@@ -12,9 +12,7 @@ unit class OLE::Storage_Lite;
 #sub DataSizeSmall{0x1000};
 #sub LongIntSize  {4};
 #sub PpsSize      {0x80};
-##------------------------------------------------------------------------------
-## new OLE::Storage_Lite
-##------------------------------------------------------------------------------
+
 #sub new($$) {
 #  my($sClass, $sFile) = @_;
 #  my $oThis = {
@@ -23,11 +21,8 @@ unit class OLE::Storage_Lite;
 #  bless $oThis;
 #  return $oThis;
 #}
-##------------------------------------------------------------------------------
-## getPpsTree: OLE::Storage_Lite
-##------------------------------------------------------------------------------
-#sub getPpsTree($;$)
-#{
+
+#sub getPpsTree($;$) {
 #  my($oThis, $bData) = @_;
 ##0.Init
 #  my $rhInfo = _initParse($oThis->{_FILE});
@@ -37,11 +32,8 @@ unit class OLE::Storage_Lite;
 #  close(IN);
 #  return $oPps;
 #}
-##------------------------------------------------------------------------------
-## getSearch: OLE::Storage_Lite
-##------------------------------------------------------------------------------
-#sub getPpsSearch($$;$$)
-#{
+
+#sub getPpsSearch($$;$$) {
 #  my($oThis, $raName, $bData, $iCase) = @_;
 ##0.Init
 #  my $rhInfo = _initParse($oThis->{_FILE});
@@ -51,11 +43,8 @@ unit class OLE::Storage_Lite;
 #  close(IN);
 #  return @aList;
 #}
-##------------------------------------------------------------------------------
-## getNthPps: OLE::Storage_Lite
-##------------------------------------------------------------------------------
-#sub getNthPps($$;$)
-#{
+
+#sub getNthPps($$;$) {
 #  my($oThis, $iNo, $bData) = @_;
 ##0.Init
 #  my $rhInfo = _initParse($oThis->{_FILE});
@@ -65,9 +54,7 @@ unit class OLE::Storage_Lite;
 #  close IN;
 #  return $oPps;
 #}
-##------------------------------------------------------------------------------
-## _initParse: OLE::Storage_Lite
-##------------------------------------------------------------------------------
+
 #sub _initParse($) {
 #  my($sFile)=@_;
 #  my $oIo;
@@ -96,9 +83,7 @@ unit class OLE::Storage_Lite;
 #  }
 #  return _getHeaderInfo($oIo);
 #}
-##------------------------------------------------------------------------------
-## _getPpsTree: OLE::Storage_Lite
-##------------------------------------------------------------------------------
+
 #sub _getPpsTree($$$;$) {
 #  my($iNo, $rhInfo, $bData, $raDone) = @_;
 #  if(defined($raDone)) {
@@ -129,9 +114,7 @@ unit class OLE::Storage_Lite;
 #                if($oPps->{NextPps} != 0xFFFFFFFF);
 #  return @aList;
 #}
-##------------------------------------------------------------------------------
-## _getPpsSearch: OLE::Storage_Lite
-##------------------------------------------------------------------------------
+
 #sub _getPpsSearch($$$$$;$) {
 #  my($iNo, $rhInfo, $raName, $bData, $iCase, $raDone) = @_;
 #  my $iRootBlock = $rhInfo->{_ROOT_START} ;
@@ -145,7 +128,6 @@ unit class OLE::Storage_Lite;
 #  }
 #  push @$raDone, $iNo;
 #  my $oPps = _getNthPps($iNo, $rhInfo, undef);
-##  if(grep($_ eq $oPps->{Name}, @$raName)) {
 #  if(($iCase && (grep(/^\Q$oPps->{Name}\E$/i, @$raName))) ||
 #     (grep($_ eq $oPps->{Name}, @$raName))) {
 #    $oPps = _getNthPps($iNo, $rhInfo, $bData) if ($bData);
@@ -163,10 +145,11 @@ unit class OLE::Storage_Lite;
 #        if($oPps->{NextPps} != 0xFFFFFFFF);
 #  return @aRes;
 #}
+
 ##===================================================================
-## Get Header Info (BASE Informain about that file)
+## Get Header Info (BASE Information about that file)
 ##===================================================================
-#sub _getHeaderInfo($){
+#sub _getHeaderInfo($) {
 #  my($FILE) = @_;
 #  my($iWk);
 #  my $rhInfo = {};
@@ -220,9 +203,7 @@ unit class OLE::Storage_Lite;
 #  $rhInfo->{_SB_SIZE}  = $oRoot->{Size};
 #  return $rhInfo;
 #}
-##------------------------------------------------------------------------------
-## _getInfoFromFile
-##------------------------------------------------------------------------------
+
 #sub _getInfoFromFile($$$$) {
 #  my($FILE, $iPos, $iLen, $sFmt) =@_;
 #  my($sWk);
@@ -231,9 +212,7 @@ unit class OLE::Storage_Lite;
 #  return undef if($FILE->read($sWk,  $iLen)!=$iLen);
 #  return unpack($sFmt, $sWk);
 #}
-##------------------------------------------------------------------------------
-## _getBbdInfo
-##------------------------------------------------------------------------------
+
 #sub _getBbdInfo($) {
 #  my($rhInfo) =@_;
 #  my @aBdList = ();
@@ -279,10 +258,8 @@ unit class OLE::Storage_Lite;
 #  }
 #  return \%hBd;
 #}
-##------------------------------------------------------------------------------
-## getNthPps (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _getNthPps($$$){
+
+#sub _getNthPps($$$) {
 #  my($iPos, $rhInfo, $bData) = @_;
 #  my($iPpsStart) = ($rhInfo->{_ROOT_START});
 #  my($iPpsBlock, $iPpsPos);
@@ -325,17 +302,13 @@ unit class OLE::Storage_Lite;
 #        \@raTime1st, \@raTime2nd, $iStart, $iSize, undef, undef);
 #  }
 #}
-##------------------------------------------------------------------------------
-## _setFilePos (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _setFilePos($$$){
+
+#sub _setFilePos($$$) {
 #  my($iBlock, $iPos, $rhInfo) = @_;
 #  $rhInfo->{_FILEH_}->seek(($iBlock+1)*$rhInfo->{_BIG_BLOCK_SIZE}+$iPos, 0);
 #}
-##------------------------------------------------------------------------------
-## _getNthBlockNo (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _getNthBlockNo($$$){
+
+#sub _getNthBlockNo($$$) {
 #  my($iStBlock, $iNth, $rhInfo) = @_;
 #  my $iSv;
 #  my $iNext = $iStBlock;
@@ -346,11 +319,8 @@ unit class OLE::Storage_Lite;
 #  }
 #  return $iNext;
 #}
-##------------------------------------------------------------------------------
-## _getData (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _getData($$$$)
-#{
+
+#sub _getData($$$$) {
 #  my($iType, $iBlock, $iSize, $rhInfo) = @_;
 #  if ($iType == OLE::Storage_Lite::PpsType_File()) {
 #    if($iSize < OLE::Storage_Lite::DataSizeSmall()) {
@@ -367,11 +337,8 @@ unit class OLE::Storage_Lite;
 #    return undef;
 #  }
 #}
-##------------------------------------------------------------------------------
-## _getBigData (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _getBigData($$$)
-#{
+
+#sub _getBigData($$$) {
 #  my($iBlock, $iSize, $rhInfo) = @_;
 #  my($iRest, $sWk, $sRes);
 #
@@ -396,14 +363,13 @@ unit class OLE::Storage_Lite;
 #  }
 #  return $sRes;
 #}
-##------------------------------------------------------------------------------
-## _getNextBlockNo (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
+
 #sub _getNextBlockNo($$){
 #  my($iBlockNo, $rhInfo) = @_;
 #  my $iRes = $rhInfo->{_BBD_INFO}->{$iBlockNo};
 #  return defined($iRes)? $iRes: $iBlockNo+1;
 #}
+
 ##------------------------------------------------------------------------------
 ## _isNormalBlock (OLE::Storage_Lite)
 ## 0xFFFFFFFC : BDList, 0xFFFFFFFD : BBD,
@@ -413,11 +379,8 @@ unit class OLE::Storage_Lite;
 #  my($iBlock) = @_;
 #  return ($iBlock < 0xFFFFFFFC)? 1: undef;
 #}
-##------------------------------------------------------------------------------
-## _getSmallData (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _getSmallData($$$)
-#{
+
+#sub _getSmallData($$$) {
 #  my($iSmBlock, $iSize, $rhInfo) = @_;
 #  my($sRes, $sWk);
 #  my $iRest = $iSize;
@@ -433,11 +396,8 @@ unit class OLE::Storage_Lite;
 #  }
 #  return $sRes;
 #}
-##------------------------------------------------------------------------------
-## _setFilePosSmall(OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _setFilePosSmall($$)
-#{
+
+#sub _setFilePosSmall($$) {
 #  my($iSmBlock, $rhInfo) = @_;
 #  my $iSmStart = $rhInfo->{_SB_START};
 #  my $iBaseCnt = $rhInfo->{_BIG_BLOCK_SIZE} / $rhInfo->{_SMALL_BLOCK_SIZE};
@@ -447,11 +407,8 @@ unit class OLE::Storage_Lite;
 #  my $iBlk = _getNthBlockNo($iSmStart, $iNth, $rhInfo);
 #  _setFilePos($iBlk, $iPos * $rhInfo->{_SMALL_BLOCK_SIZE}, $rhInfo);
 #}
-##------------------------------------------------------------------------------
-## _getNextSmallBlockNo (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _getNextSmallBlockNo($$)
-#{
+
+#sub _getNextSmallBlockNo($$) {
 #  my($iSmBlock, $rhInfo) = @_;
 #  my($sWk);
 #
@@ -464,23 +421,17 @@ unit class OLE::Storage_Lite;
 #  return unpack("V", $sWk);
 #
 #}
-##------------------------------------------------------------------------------
-## Asc2Ucs: OLE::Storage_Lite
-##------------------------------------------------------------------------------
-#sub Asc2Ucs($)
-#{
+
+#sub Asc2Ucs($) {
 #  my($sAsc) = @_;
 #  return join("\x00", split //, $sAsc) . "\x00";
 #}
-##------------------------------------------------------------------------------
-## Ucs2Asc: OLE::Storage_Lite
-##------------------------------------------------------------------------------
-#sub Ucs2Asc($)
-#{
+
+#sub Ucs2Asc($) {
 #  my($sUcs) = @_;
 #  return join('', map(pack('c', $_), unpack('v*', $sUcs)));
 #}
-#
+
 ##------------------------------------------------------------------------------
 ## OLEDate2Local()
 ##
@@ -512,7 +463,7 @@ unit class OLE::Storage_Lite;
 #
 #    return @localtime;
 #}
-#
+
 ##------------------------------------------------------------------------------
 ## LocalDate2OLE()
 ##
@@ -550,11 +501,9 @@ unit class OLE::Storage_Lite;
 #
 #    return $oletime;
 #}
-#
+
 #1;
-#__END__
-#
-#
+
 #=head1 NAME
 #
 #OLE::Storage_Lite - Simple Class for OLE document interface.

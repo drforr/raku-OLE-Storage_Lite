@@ -4,9 +4,6 @@ use OLE::Storage_Lite::PPS;
 
 unit class OLE::Storage_Lite::PPS::File is OLE::Storage_Lite::PPS;
 
-##------------------------------------------------------------------------------
-## new (OLE::Storage_Lite::PPS::File)
-##------------------------------------------------------------------------------
 #sub new ($$$) {
 #  my($sClass, $sNm, $sData) = @_;
 #    OLE::Storage_Lite::PPS::_new(
@@ -24,9 +21,7 @@ unit class OLE::Storage_Lite::PPS::File is OLE::Storage_Lite::PPS;
 #        $sData,
 #        undef);
 #}
-##------------------------------------------------------------------------------
-## newFile (OLE::Storage_Lite::PPS::File)
-##------------------------------------------------------------------------------
+
 #sub newFile ($$;$) {
 #    my($sClass, $sNm, $sFile) = @_;
 #    my $oSelf =
@@ -67,9 +62,7 @@ unit class OLE::Storage_Lite::PPS::File is OLE::Storage_Lite::PPS;
 #    }
 #    return $oSelf;
 #}
-##------------------------------------------------------------------------------
-## append (OLE::Storage_Lite::PPS::File)
-##------------------------------------------------------------------------------
+
 #sub append ($$) {
 #    my($oSelf, $sData) = @_;
 #    if($oSelf->{_PPS_FILE}) {

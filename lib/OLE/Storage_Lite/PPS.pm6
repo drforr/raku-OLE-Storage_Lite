@@ -2,9 +2,6 @@ use v6;
 
 unit class OLE::Storage_Lite::PPS;
 
-##------------------------------------------------------------------------------
-## new (OLE::Storage_Lite::PPS)
-##------------------------------------------------------------------------------
 #sub new ($$$$$$$$$$;$$) {
 ##1. Constructor for General Usage
 #  my($sClass, $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
@@ -29,10 +26,7 @@ unit class OLE::Storage_Lite::PPS;
 #    die "Error PPS:$iType $sNm\n";
 #  }
 #}
-##------------------------------------------------------------------------------
-## _new (OLE::Storage_Lite::PPS)
-##   for OLE::Storage_Lite
-##------------------------------------------------------------------------------
+
 #sub _new ($$$$$$$$$$$;$$) {
 #  my($sClass, $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
 #        $raTime1st, $raTime2nd, $iStart, $iSize, $sData, $raChild) = @_;
@@ -54,6 +48,7 @@ unit class OLE::Storage_Lite::PPS;
 #  bless $oThis, $sClass;
 #  return $oThis;
 #}
+
 ##------------------------------------------------------------------------------
 ## _DataLen (OLE::Storage_Lite::PPS)
 ## Check for update
@@ -64,9 +59,7 @@ unit class OLE::Storage_Lite::PPS;
 #    return ($oSelf->{_PPS_FILE})?
 #        ($oSelf->{_PPS_FILE}->stat())[7] : length($oSelf->{Data});
 #}
-##------------------------------------------------------------------------------
-## _makeSmallData (OLE::Storage_Lite::PPS)
-##------------------------------------------------------------------------------
+
 #sub _makeSmallData($$$) {
 #  my($oThis, $aList, $rhInfo) = @_;
 #  my ($sRes);
@@ -113,11 +106,8 @@ unit class OLE::Storage_Lite::PPS;
 ##2. Write SBD with adjusting length for block
 #  return $sRes;
 #}
-##------------------------------------------------------------------------------
-## _savePpsWk (OLE::Storage_Lite::PPS)
-##------------------------------------------------------------------------------
-#sub _savePpsWk($$)
-#{
+
+#sub _savePpsWk($$) {
 #  my($oThis, $rhInfo) = @_;
 ##1. Write PPS
 #  my $FILE = $rhInfo->{_FILEH_};

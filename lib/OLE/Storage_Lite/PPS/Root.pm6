@@ -4,9 +4,6 @@ use OLE::Storage_Lite::PPS;
 
 unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 
-##------------------------------------------------------------------------------
-## new (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
 #sub new ($;$$$) {
 #    my($sClass, $raTime1st, $raTime2nd, $raChild) = @_;
 #    OLE::Storage_Lite::PPS::_new(
@@ -24,9 +21,7 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #        undef,
 #        $raChild);
 #}
-##------------------------------------------------------------------------------
-## save (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
+
 #sub save($$;$$) {
 #  my($oThis, $sFile, $bNoAs, $rhInfo) = @_;
 #  #0.Initial Setting for saving
@@ -113,11 +108,8 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #  #7.Close File
 #  return $rhInfo->{_FILEH_}->close if $closeFile;
 #}
-##------------------------------------------------------------------------------
-## _calcSize (OLE::Storage_Lite::PPS)
-##------------------------------------------------------------------------------
-#sub _calcSize($$)
-#{
+
+#sub _calcSize($$) {
 #  my($oThis, $raList, $rhInfo) = @_;
 #
 ##0. Calculate Basic Setting
@@ -148,18 +140,14 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #  $iPPScnt = (int($iCnt/$iBdCnt) + (($iCnt % $iBdCnt)? 1: 0));
 #  return ($iSBDcnt, $iBBcnt, $iPPScnt);
 #}
-##------------------------------------------------------------------------------
-## _adjust2 (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
+
 #sub _adjust2($) {
 #  my($i2) = @_;
 #  my $iWk;
 #  $iWk = log($i2)/log(2);
 #  return ($iWk > int($iWk))? int($iWk)+1:$iWk;
 #}
-##------------------------------------------------------------------------------
-## _saveHeader (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
+
 #sub _saveHeader($$$$$) {
 #  my($oThis, $rhInfo, $iSBDcnt, $iBBcnt, $iPPScnt) = @_;
 #  my $FILE = $rhInfo->{_FILEH_};
@@ -229,9 +217,7 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #    }
 #    print {$FILE} ((pack("V", -1)) x($i1stBdL-$i)) if($i<$i1stBdL);
 #}
-##------------------------------------------------------------------------------
-## _saveBigData (OLE::Storage_Lite::PPS)
-##------------------------------------------------------------------------------
+
 #sub _saveBigData($$$$) {
 #  my($oThis, $iStBlk, $raList, $rhInfo) = @_;
 #  my $iRes = 0;
@@ -272,11 +258,8 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #    }
 #  }
 #}
-##------------------------------------------------------------------------------
-## _savePps (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
-#sub _savePps($$$)
-#{
+
+#sub _savePps($$$) {
 #  my($oThis, $raList, $rhInfo) = @_;
 ##0. Initial
 #  my $FILE = $rhInfo->{_FILEH_};
@@ -291,6 +274,7 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #        if($iCnt % $iBCnt);
 #  return int($iCnt / $iBCnt) + (($iCnt % $iBCnt)? 1: 0);
 #}
+
 ##------------------------------------------------------------------------------
 ## _savePpsSetPnt2 (OLE::Storage_Lite::PPS::Root)
 ##  For Test
@@ -333,12 +317,12 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #      return $aThis->[$iPos]->{No};
 #  }
 #}
+
 ##------------------------------------------------------------------------------
 ## _savePpsSetPnt2 (OLE::Storage_Lite::PPS::Root)
 ##  For Test
 ##------------------------------------------------------------------------------
-#sub _savePpsSetPnt2s($$$)
-#{
+#sub _savePpsSetPnt2s($$$) {
 #  my($aThis, $raList, $rhInfo) = @_;
 ##1. make Array as Children-Relations
 ##1.1 if No Children
@@ -373,11 +357,8 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #      return $aThis->[$iPos]->{No};
 #  }
 #}
-##------------------------------------------------------------------------------
-## _savePpsSetPnt (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
-#sub _savePpsSetPnt($$$)
-#{
+
+#sub _savePpsSetPnt($$$) {
 #  my($aThis, $raList, $rhInfo) = @_;
 ##1. make Array as Children-Relations
 ##1.1 if No Children
@@ -412,11 +393,8 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #      return $aThis->[$iPos]->{No};
 #  }
 #}
-##------------------------------------------------------------------------------
-## _savePpsSetPnt (OLE::Storage_Lite::PPS::Root)
-##------------------------------------------------------------------------------
-#sub _savePpsSetPnt1($$$)
-#{
+
+#sub _savePpsSetPnt1($$$) {
 #  my($aThis, $raList, $rhInfo) = @_;
 ##1. make Array as Children-Relations
 ##1.1 if No Children
@@ -451,11 +429,8 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #      return $aThis->[$iPos]->{No};
 #  }
 #}
-##------------------------------------------------------------------------------
-## _saveBbd (OLE::Storage_Lite)
-##------------------------------------------------------------------------------
-#sub _saveBbd($$$$)
-#{
+
+#sub _saveBbd($$$$) {
 #  my($oThis, $iSbdSize, $iBsize, $iPpsCnt, $rhInfo) = @_;
 #  my $FILE = $rhInfo->{_FILEH_};
 ##0. Calculate Basic Setting
