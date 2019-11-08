@@ -49,7 +49,15 @@ method nth-pps( Int $iNo, $bData? ) {
   $oPps;
 }
 
-sub _nth-pps( Int $iPos, $rhInfo, $bData ) {
+sub _nth-pps( Int $iPos, %rhInfo, $bData ) {
+  my Int $iPpsStart = %rhInfo<_ROOT_START>;
+  my Int ( $iPpsBlock, $iPpsPos );
+  my Buf $sWk;
+  my Int $iBlock;
+
+  my Int $iBaseCnt = Int( %rhInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
+  $iPpsBlock = Int( $iPos / $iBaseCnt );
+  $iPpsPos   = $iPos % $iBaseCnt;
 }
 
 # Break out different IO styles her.
@@ -65,10 +73,10 @@ sub _header-info( $FILE ) {
   ;
 
   %rhInfo<_FILEH_>.seek: 0, SeekFromBeginning;
-  my $sWk = %rhInfo<_FILEH_>.read( 8 ).unpack('A8');
+  my Str $sWk = %rhInfo<_FILEH_>.read( 8 ).unpack('A8');
   die "Header ID missing" if $sWk ne HEADER-ID;
 
-  my $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x1E, 2, "v" );
+  my Int $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x1E, 2, "v" );
   die "Big block size missing" unless defined( $iWk );
   %rhInfo<_BIG_BLOCK_SIZE> = 2 ** $iWk;
 
@@ -104,7 +112,13 @@ sub _header-info( $FILE ) {
   die "Extra BBD count missing" unless defined( $iWk );
   %rhInfo<_EXTRA_BBD_COUNT> = $iWk;
 
+  # Get BBD Info
+  #
   %rhInfo<_BBD_INFO> = _bbd-info( %rhInfo );
+
+  # Get Root PPS
+  #
+  my $oRoot = _nth-pps( 0, %rhInfo, Nil );
 
 warn %rhInfo.gist;
 }
@@ -113,7 +127,7 @@ sub _info-from-file( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
   return Nil unless $FILE;
   return Nil if $FILE.seek( $iPos, SeekFromBeginning ) == 0;
 
-  my $sWk = $FILE.read: $iLen;
+  my Buf $sWk = $FILE.read: $iLen;
   if $sFmt ~~ 'v' {
     return Nil if $sWk.decode('ascii').chars != $iLen;
   }
@@ -124,11 +138,11 @@ sub _info-from-file( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
 #
 sub _bbd-info( %rhInfo ) {
   my @aBdList;
-  my $iBdbCnt = %rhInfo<_BDB_COUNT>;
-  my $iGetCnt;
-  my $sWk;
-  my $i1stCnt = Int((%rhInfo<_BIG_BLOCK_SIZE> - 0x4c) / LONGINT-SIZE);
-  my $iBdlCnt = Int(%rhInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE) - 1;
+  my Int $iBdbCnt = %rhInfo<_BDB_COUNT>;
+  my Int $iGetCnt;
+  my Buf $sWk;
+  my Int $i1stCnt = Int((%rhInfo<_BIG_BLOCK_SIZE> - 0x4c) / LONGINT-SIZE);
+  my Int $iBdlCnt = Int(%rhInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE) - 1;
 
   # 1st BDList
   #
@@ -140,7 +154,7 @@ sub _bbd-info( %rhInfo ) {
 
   # Extra BDList
   #
-  my $iBlock = %rhInfo<_EXTRA_BBD_START>;
+  my Int $iBlock = %rhInfo<_EXTRA_BBD_START>;
   while $iBdbCnt > 0 and _is-normal-block( $iBlock ) {
     _set-file-pos( $iBlock, 0, %rhInfo );
     $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
@@ -150,6 +164,26 @@ sub _bbd-info( %rhInfo ) {
     $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE;
     $iBlock = $sWk.unpack( "V" );
   }
+
+  # Get BDs
+  #
+  my @aWk;
+  my %hBd;
+  my Int $iBlkNo = 0;
+  #my Int $iBdL;
+  #my $i;
+  my Int $iBdCnt = Int(%rhInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE);
+  for @aBdList -> $iBdL {
+    _set-file-pos( $iBdL, 0, %rhInfo );
+    $sWk = %rhInfo<_FILEH_>.read: %rhInfo<_BIG_BLOCK_SIZE>;
+    @aWk = $sWk.unpack( "V$iBdCnt" );
+    loop ( my $i = 0; $i < $iBdCnt ; $i++, $iBlkNo++ ) {
+      if @aWk[$i] != $iBlkNo + 1 {
+	%hBd{$iBlkNo} = @aWk[$i];
+      }
+    }
+  }
+  return %hBd;
 }
 
 sub _set-file-pos( Int $iBlock, Int $iPos, %rhInfo ) {
