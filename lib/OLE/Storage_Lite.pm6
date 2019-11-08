@@ -104,8 +104,9 @@ sub _header-info( $FILE ) {
   die "Extra BBD count missing" unless defined( $iWk );
   %rhInfo<_EXTRA_BBD_COUNT> = $iWk;
 
-  warn %rhInfo.gist;
-warn "[$iWk]";
+  %rhInfo<_BBD_INFO> = _bbd-info( %rhInfo );
+
+warn %rhInfo.gist;
 }
 
 sub _info-from-file( $FILE, $iPos, $iLen, $sFmt ) {
@@ -117,6 +118,47 @@ sub _info-from-file( $FILE, $iPos, $iLen, $sFmt ) {
     return Nil if $sWk.decode('ascii').chars != $iLen;
   }
   return $sWk.unpack( $sFmt );
+}
+
+# slight change here, flatten references a bit in general.
+#
+sub _bbd-info( %rhInfo ) {
+  my @aBdList;
+  my $iBdbCnt = %rhInfo<_BDB_COUNT>;
+  my $iGetCnt;
+  my $sWk;
+  my $i1stCnt = Int((%rhInfo<_BIG_BLOCK_SIZE> - 0x4c) / LONGINT-SIZE);
+  my $iBdlCnt = Int(%rhInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE) - 1;
+
+  # 1st BDList
+  #
+  %rhInfo<_FILEH_>.seek: 0x4c, SeekFromBeginning;
+  $iGetCnt = ($iBdbCnt < $i1stCnt) ?? $iBdbCnt !! $i1stCnt;
+  $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE + $iGetCnt;
+  @aBdList.append: $sWk.unpack: "V$iGetCnt";
+  $iBdbCnt -= $iGetCnt;
+
+  # Extra BDList
+  #
+  my $iBlock = %rhInfo<_EXTRA_BBD_START>;
+  while $iBdbCnt > 0 and _is-normal-block( $iBlock ) {
+    _set-file-pos( $iBlock, 0, %rhInfo );
+    $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
+    $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE + $iGetCnt;
+    @aBdList.append: $sWk.unpack( "V$iGetCnt" );
+    $iBdbCnt -= $iGetCnt;
+    $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE;
+    $iBlock = $sWk.unpack( "V" );
+  }
+}
+
+sub _set-file-pos( $iBlock, $iPos, %rhInfo ) {
+  %rhInfo<_FILEH_>.seek: ( $iBlock + 1 ) * %rhInfo<_BIG_BLOCK_SIZE> + $iPos,
+                         SeekFromBeginning;
+}
+
+sub _is-normal-block( $iBlock ) {
+  $iBlock < 0xFFFFFFFC
 }
 
 #sub _getPpsTree($$$;$) {
@@ -257,13 +299,14 @@ sub _info-from-file( $FILE, $iPos, $iLen, $sFmt ) {
 #  my $sWk;
 #  my $i1stCnt = int(($rhInfo->{_BIG_BLOCK_SIZE} - 0x4C) / LONGINT-SIZE);
 #  my $iBdlCnt = int($rhInfo->{_BIG_BLOCK_SIZE} / LONGINT-SIZE) - 1;
-#
+
 ##1. 1st BDlist
 #  $rhInfo->{_FILEH_}->seek(0x4C, 0);
 #  $iGetCnt = ($iBdbCnt < $i1stCnt)? $iBdbCnt: $i1stCnt;
 #  $rhInfo->{_FILEH_}->read($sWk, LONGINT-SIZE*$iGetCnt);
 #  push @aBdList, unpack("V$iGetCnt", $sWk);
 #  $iBdbCnt -= $iGetCnt;
+
 ##2. Extra BDList
 #  my $iBlock = $rhInfo->{_EXTRA_BBD_START};
 #  while(($iBdbCnt> 0) && _isNormalBlock($iBlock)){
