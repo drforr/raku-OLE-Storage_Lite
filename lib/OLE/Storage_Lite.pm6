@@ -58,6 +58,25 @@ sub _nth-pps( Int $iPos, %rhInfo, $bData ) {
   my Int $iBaseCnt = Int( %rhInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
   $iPpsBlock = Int( $iPos / $iBaseCnt );
   $iPpsPos   = $iPos % $iBaseCnt;
+
+  $iBlock = _nth-block-no( $iPpsStart, $iPpsBlock, %rhInfo );
+  die "No block found" unless defined $iBlock;
+}
+
+sub _nth-block-no( Int $iStBlock, Int $iNth, %rhInfo ) {
+  my Int $iSv;
+  my Int $iNext = $iStBlock;
+  loop ( my $i = 0; $i < $iNth; $i++ ) {
+    $iSv = $iNext;
+    $iNext = _next-block-no( $iSv, %rhInfo );
+    return Nil unless _is-normal-block( $iNext );
+  }
+  $iNext;
+}
+
+sub _next-block-no( Int $iBlockNo, %rhInfo ) {
+  my Int $iRes = %rhInfo<_BBD_INFO>.{$iBlockNo};
+  return defined( $iRes ) ?? $iRes !! $iBlockNo + 1;
 }
 
 # Break out different IO styles her.
