@@ -31,25 +31,25 @@ die $rhInfo;
   $oPps;
 }
 
-sub _pps-tree( $iNo, $rhInfo, $bData, $raDone? ) {
+sub _pps-tree( Int $iNo, $rhInfo, $bData, $raDone? ) {
 }
 
-method pps-search( $raName, $bData?, $iCase? ) {
+method pps-search( $raName, $bData?, Int $iCase? ) {
   my $rhInfo = _init-parse( $._FILE );
   my @aList = _pps-search( 0, $rhInfo, $raName, $bData, $iCase );
   @aList;
 }
 
-sub _pps-search( $iNo, $rhINfo, $raName, $bData, $iCase, $raDone? ) {
+sub _pps-search( Int $iNo, $rhINfo, $raName, $bData, Int $iCase, $raDone? ) {
 }
 
-method nth-pps( $iNo, $bData? ) {
+method nth-pps( Int $iNo, $bData? ) {
   my $rhInfo = _init-parse( $._FILE );
   my $oPps = _nth-pps( $iNo, $rhInfo, $bData );
   $oPps;
 }
 
-sub _nth-pps( $iPos, $rhInfo, $bData ) {
+sub _nth-pps( Int $iPos, $rhInfo, $bData ) {
 }
 
 # Break out different IO styles her.
@@ -109,7 +109,7 @@ sub _header-info( $FILE ) {
 warn %rhInfo.gist;
 }
 
-sub _info-from-file( $FILE, $iPos, $iLen, $sFmt ) {
+sub _info-from-file( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
   return Nil unless $FILE;
   return Nil if $FILE.seek( $iPos, SeekFromBeginning ) == 0;
 
@@ -152,12 +152,12 @@ sub _bbd-info( %rhInfo ) {
   }
 }
 
-sub _set-file-pos( $iBlock, $iPos, %rhInfo ) {
+sub _set-file-pos( Int $iBlock, Int $iPos, %rhInfo ) {
   %rhInfo<_FILEH_>.seek: ( $iBlock + 1 ) * %rhInfo<_BIG_BLOCK_SIZE> + $iPos,
                          SeekFromBeginning;
 }
 
-sub _is-normal-block( $iBlock ) {
+sub _is-normal-block( Int $iBlock ) {
   $iBlock < 0xFFFFFFFC
 }
 
