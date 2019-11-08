@@ -2,16 +2,17 @@ use v6;
 
 unit class OLE::Storage_Lite;
 
-##------------------------------------------------------------------------------
-## Const for OLE::Storage_Lite
-##------------------------------------------------------------------------------
-##0. Constants
-#sub PpsType_Root {5};
-#sub PpsType_Dir  {1};
-#sub PpsType_File {2};
-#sub DataSizeSmall{0x1000};
-#sub LongIntSize  {4};
-#sub PpsSize      {0x80};
+#------------------------------------------------------------------------------
+# Const for OLE::Storage_Lite
+#------------------------------------------------------------------------------
+#
+constant PPS-TYPE-DIR  = 1;
+constant PPS-TYPE-FILE = 2;
+constant PPS-TYPE-ROOT = 5;
+
+constant DATA-SIZE    = 0x1000; # Upper limit of Data size, fallback to file
+constant LONGINT-SIZE = 4;
+constant PPS-SIZE     = 0x80;
 
 #sub new($$) {
 #  my($sClass, $sFile) = @_;
@@ -219,13 +220,13 @@ unit class OLE::Storage_Lite;
 #  my $iBdbCnt = $rhInfo->{_BDB_COUNT};
 #  my $iGetCnt;
 #  my $sWk;
-#  my $i1stCnt = int(($rhInfo->{_BIG_BLOCK_SIZE} - 0x4C) / OLE::Storage_Lite::LongIntSize());
-#  my $iBdlCnt = int($rhInfo->{_BIG_BLOCK_SIZE} / OLE::Storage_Lite::LongIntSize()) - 1;
+#  my $i1stCnt = int(($rhInfo->{_BIG_BLOCK_SIZE} - 0x4C) / LONGINT-SIZE);
+#  my $iBdlCnt = int($rhInfo->{_BIG_BLOCK_SIZE} / LONGINT-SIZE) - 1;
 #
 ##1. 1st BDlist
 #  $rhInfo->{_FILEH_}->seek(0x4C, 0);
 #  $iGetCnt = ($iBdbCnt < $i1stCnt)? $iBdbCnt: $i1stCnt;
-#  $rhInfo->{_FILEH_}->read($sWk, OLE::Storage_Lite::LongIntSize()*$iGetCnt);
+#  $rhInfo->{_FILEH_}->read($sWk, LONGINT-SIZE*$iGetCnt);
 #  push @aBdList, unpack("V$iGetCnt", $sWk);
 #  $iBdbCnt -= $iGetCnt;
 ##2. Extra BDList
@@ -233,10 +234,10 @@ unit class OLE::Storage_Lite;
 #  while(($iBdbCnt> 0) && _isNormalBlock($iBlock)){
 #    _setFilePos($iBlock, 0, $rhInfo);
 #    $iGetCnt= ($iBdbCnt < $iBdlCnt)? $iBdbCnt: $iBdlCnt;
-#    $rhInfo->{_FILEH_}->read($sWk, OLE::Storage_Lite::LongIntSize()*$iGetCnt);
+#    $rhInfo->{_FILEH_}->read($sWk, LONGINT-SIZE*$iGetCnt);
 #    push @aBdList, unpack("V$iGetCnt", $sWk);
 #    $iBdbCnt -= $iGetCnt;
-#    $rhInfo->{_FILEH_}->read($sWk, OLE::Storage_Lite::LongIntSize());
+#    $rhInfo->{_FILEH_}->read($sWk, LONGINT-SIZE);
 #    $iBlock = unpack("V", $sWk);
 #  }
 ##3.Get BDs
@@ -245,7 +246,7 @@ unit class OLE::Storage_Lite;
 #  my $iBlkNo = 0;
 #  my $iBdL;
 #  my $i;
-#  my $iBdCnt = int($rhInfo->{_BIG_BLOCK_SIZE} / OLE::Storage_Lite::LongIntSize());
+#  my $iBdCnt = int($rhInfo->{_BIG_BLOCK_SIZE} / LONGINT-SIZE);
 #  foreach $iBdL (@aBdList) {
 #    _setFilePos($iBdL, 0, $rhInfo);
 #    $rhInfo->{_FILEH_}->read($sWk, $rhInfo->{_BIG_BLOCK_SIZE});
@@ -266,28 +267,28 @@ unit class OLE::Storage_Lite;
 #  my $sWk;
 #  my $iBlock;
 #
-#  my $iBaseCnt = $rhInfo->{_BIG_BLOCK_SIZE} / OLE::Storage_Lite::PpsSize();
+#  my $iBaseCnt = $rhInfo->{_BIG_BLOCK_SIZE} / PPS-SIZE;
 #  $iPpsBlock = int($iPos / $iBaseCnt);
 #  $iPpsPos   = $iPos % $iBaseCnt;
 #
 #  $iBlock = _getNthBlockNo($iPpsStart, $iPpsBlock, $rhInfo);
 #  return undef unless(defined($iBlock));
 #
-#  _setFilePos($iBlock, OLE::Storage_Lite::PpsSize()*$iPpsPos, $rhInfo);
-#  $rhInfo->{_FILEH_}->read($sWk, OLE::Storage_Lite::PpsSize());
+#  _setFilePos($iBlock, PPS-SIZE * $iPpsPos, $rhInfo);
+#  $rhInfo->{_FILEH_}->read($sWk, PPS-SIZE);
 #  return undef unless($sWk);
 #  my $iNmSize = unpack("v", substr($sWk, 0x40, 2));
 #  $iNmSize = ($iNmSize > 2)? $iNmSize - 2 : $iNmSize;
 #  my $sNm= substr($sWk, 0, $iNmSize);
 #  my $iType = unpack("C", substr($sWk, 0x42, 2));
-#  my $lPpsPrev = unpack("V", substr($sWk, 0x44, OLE::Storage_Lite::LongIntSize()));
-#  my $lPpsNext = unpack("V", substr($sWk, 0x48, OLE::Storage_Lite::LongIntSize()));
-#  my $lDirPps  = unpack("V", substr($sWk, 0x4C, OLE::Storage_Lite::LongIntSize()));
+#  my $lPpsPrev = unpack("V", substr($sWk, 0x44, LONGINT-SIZE));
+#  my $lPpsNext = unpack("V", substr($sWk, 0x48, LONGINT-SIZE));
+#  my $lDirPps  = unpack("V", substr($sWk, 0x4C, LONGINT-SIZE));
 #  my @raTime1st =
-#        (($iType == OLE::Storage_Lite::PpsType_Root()) or ($iType == OLE::Storage_Lite::PpsType_Dir()))?
+#        (($iType == PPS-TYPE-ROOT) or ($iType == PPS-TYPE-DIR))?
 #            OLEDate2Local(substr($sWk, 0x64, 8)) : undef ,
 #  my @raTime2nd =
-#        (($iType == OLE::Storage_Lite::PpsType_Root()) or ($iType == OLE::Storage_Lite::PpsType_Dir()))?
+#        (($iType == PPS-TYPE-ROOT) or ($iType == PPS-TYPE-DIR))?
 #            OLEDate2Local(substr($sWk, 0x6C, 8)) : undef,
 #  my($iStart, $iSize) = unpack("VV", substr($sWk, 0x74, 8));
 #  if($bData) {
@@ -322,18 +323,18 @@ unit class OLE::Storage_Lite;
 
 #sub _getData($$$$) {
 #  my($iType, $iBlock, $iSize, $rhInfo) = @_;
-#  if ($iType == OLE::Storage_Lite::PpsType_File()) {
-#    if($iSize < OLE::Storage_Lite::DataSizeSmall()) {
+#  if ($iType == PPS-TYPE-FILE) {
+#    if($iSize < DATA-SIZE) {
 #        return _getSmallData($iBlock, $iSize, $rhInfo);
 #    }
 #    else {
 #        return _getBigData($iBlock, $iSize, $rhInfo);
 #    }
 #  }
-#  elsif($iType == OLE::Storage_Lite::PpsType_Root()) {  #Root
+#  elsif($iType == PPS-TYPE-ROOT) {  #Root
 #    return _getBigData($iBlock, $iSize, $rhInfo);
 #  }
-#  elsif($iType == OLE::Storage_Lite::PpsType_Dir()) {  # Directory
+#  elsif($iType == PPS-TYPE-DIR) {  # Directory
 #    return undef;
 #  }
 #}
@@ -412,12 +413,12 @@ unit class OLE::Storage_Lite;
 #  my($iSmBlock, $rhInfo) = @_;
 #  my($sWk);
 #
-#  my $iBaseCnt = $rhInfo->{_BIG_BLOCK_SIZE} / OLE::Storage_Lite::LongIntSize();
+#  my $iBaseCnt = $rhInfo->{_BIG_BLOCK_SIZE} / LONGINT-SIZE;
 #  my $iNth = int($iSmBlock/$iBaseCnt);
 #  my $iPos = $iSmBlock % $iBaseCnt;
 #  my $iBlk = _getNthBlockNo($rhInfo->{_SBD_START}, $iNth, $rhInfo);
-#  _setFilePos($iBlk, $iPos * OLE::Storage_Lite::LongIntSize(), $rhInfo);
-#  $rhInfo->{_FILEH_}->read($sWk, OLE::Storage_Lite::LongIntSize());
+#  _setFilePos($iBlk, $iPos * LONGINT-SIZE, $rhInfo);
+#  $rhInfo->{_FILEH_}->read($sWk, LONGINT-SIZE);
 #  return unpack("V", $sWk);
 #
 #}
