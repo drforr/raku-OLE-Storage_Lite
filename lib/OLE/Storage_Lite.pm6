@@ -2,10 +2,14 @@ use v6;
 
 unit class OLE::Storage_Lite;
 
+use experimental :pack;
+
 #------------------------------------------------------------------------------
-# Const for OLE::Storage_Lite
+# Consts for OLE::Storage_Lite
 #------------------------------------------------------------------------------
 #
+constant HEADER-ID = "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1";
+
 constant PPS-TYPE-DIR  = 1;
 constant PPS-TYPE-FILE = 2;
 constant PPS-TYPE-ROOT = 5;
@@ -14,76 +18,106 @@ constant DATA-SIZE    = 0x1000; # Upper limit of Data size, fallback to file
 constant LONGINT-SIZE = 4;
 constant PPS-SIZE     = 0x80;
 
-#sub new($$) {
-#  my($sClass, $sFile) = @_;
-#  my $oThis = {
-#    _FILE => $sFile,
-#  };
-#  bless $oThis;
-#  return $oThis;
-#}
+has $._FILE; # String or IO::Handle or ...
 
-#sub getPpsTree($;$) {
-#  my($oThis, $bData) = @_;
-##0.Init
-#  my $rhInfo = _initParse($oThis->{_FILE});
-#  return undef unless($rhInfo);
-##1. Get Data
-#  my ($oPps) = _getPpsTree(0, $rhInfo, $bData);
-#  close(IN);
-#  return $oPps;
-#}
+multi method new( $_FILE ) {
+  self.bless( :$_FILE );
+}
 
-#sub getPpsSearch($$;$$) {
-#  my($oThis, $raName, $bData, $iCase) = @_;
-##0.Init
-#  my $rhInfo = _initParse($oThis->{_FILE});
-#  return undef unless($rhInfo);
-##1. Get Data
-#  my @aList = _getPpsSearch(0, $rhInfo, $raName, $bData, $iCase);
-#  close(IN);
-#  return @aList;
-#}
+method pps-tree( $bData? ) {
+  my $rhInfo = _init-parse( $._FILE );
+die $rhInfo;
+  my $oPps = _pps-tree( 0, $rhInfo, $bData );
+  $oPps;
+}
 
-#sub getNthPps($$;$) {
-#  my($oThis, $iNo, $bData) = @_;
-##0.Init
-#  my $rhInfo = _initParse($oThis->{_FILE});
-#  return undef unless($rhInfo);
-##1. Get Data
-#  my $oPps = _getNthPps($iNo, $rhInfo, $bData);
-#  close IN;
-#  return $oPps;
-#}
+sub _pps-tree( $iNo, $rhInfo, $bData, $raDone? ) {
+}
 
-#sub _initParse($) {
-#  my($sFile)=@_;
-#  my $oIo;
-#  #1. $sFile is Ref of scalar
-#  if(ref($sFile) eq 'SCALAR') {
-#    require IO::Scalar;
-#    $oIo = new IO::Scalar;
-#    $oIo->open($sFile);
-#  }
-#  #2. $sFile is a IO::Handle object
-#  elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
-#    $oIo = $sFile;
-#    binmode($oIo);
-#  }
-#  #3. $sFile is a simple filename string
-#  elsif(!ref($sFile)) {
-#    $oIo = new IO::File;
-#    $oIo->open("<$sFile") || return undef;
-#    binmode($oIo);
-#  }
-#  #4 Assume that if $sFile is a ref then it is a valid filehandle
-#  else {
-#    $oIo = $sFile;
-#    # Not all filehandles support binmode() so try it in an eval.
-#    eval{ binmode $oIo };
-#  }
-#  return _getHeaderInfo($oIo);
-#}
+method pps-search( $raName, $bData?, $iCase? ) {
+  my $rhInfo = _init-parse( $._FILE );
+  my @aList = _pps-search( 0, $rhInfo, $raName, $bData, $iCase );
+  @aList;
+}
+
+sub _pps-search( $iNo, $rhINfo, $raName, $bData, $iCase, $raDone? ) {
+}
+
+method nth-pps( $iNo, $bData? ) {
+  my $rhInfo = _init-parse( $._FILE );
+  my $oPps = _nth-pps( $iNo, $rhInfo, $bData );
+  $oPps;
+}
+
+sub _nth-pps( $iPos, $rhInfo, $bData ) {
+}
+
+# Break out different IO styles her.
+#
+sub _init-parse( $file ) {
+  my $oIo = open $file;
+  _header-info( $oIo );
+}
+
+sub _header-info( $FILE ) {
+  my %rhInfo =
+    _FILEH_ => $FILE
+  ;
+
+  %rhInfo<_FILEH_>.seek: 0, SeekFromBeginning;
+  my $sWk = %rhInfo<_FILEH_>.read( 8 ).unpack('A8');
+  die "Header ID missing" if $sWk ne HEADER-ID;
+
+  my $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x1E, 2, "v" );
+  die "Big block size missing" unless defined( $iWk );
+  %rhInfo<_BIG_BLOCK_SIZE> = 2 ** $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x20, 2, "v" );
+  die "Small block size missing" unless defined( $iWk );
+  %rhInfo<_SMALL_BLOCK_SIZE> = 2 ** $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x2C, 4, "v" );
+  die "BDB count missing" unless defined( $iWk );
+  %rhInfo<_BDB_COUNT> = $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x30, 4, "V" );
+  die "Root start missing" unless defined( $iWk );
+  %rhInfo<_ROOT_START> = $iWk;
+
+# $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x38, 4, "v" );
+# die "Min size BB missing" unless defined( $iWk );
+# %rhInfo<_MIN_SIZE_BB> = $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x3C, 4, "V" );
+  die "Small BD start missing" unless defined( $iWk );
+  %rhInfo<_SBD_START> = $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x40, 4, "V" );
+  die "Small BD count missing" unless defined( $iWk );
+  %rhInfo<_SBD_COUNT> = $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x44, 4, "V" );
+  die "Extra BBD start missing" unless defined( $iWk );
+  %rhInfo<_EXTRA_BBD_START> = $iWk;
+
+  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x48, 4, "V" );
+  die "Extra BBD count missing" unless defined( $iWk );
+  %rhInfo<_EXTRA_BBD_COUNT> = $iWk;
+
+  warn %rhInfo.gist;
+warn "[$iWk]";
+}
+
+sub _info-from-file( $FILE, $iPos, $iLen, $sFmt ) {
+  return Nil unless $FILE;
+  return Nil if $FILE.seek( $iPos, SeekFromBeginning ) == 0;
+
+  my $sWk = $FILE.read: $iLen;
+  if $sFmt ~~ 'v' {
+    return Nil if $sWk.decode('ascii').chars != $iLen;
+  }
+  return $sWk.unpack( $sFmt );
+}
 
 #sub _getPpsTree($$$;$) {
 #  my($iNo, $rhInfo, $bData, $raDone) = @_;
@@ -196,6 +230,7 @@ constant PPS-SIZE     = 0x80;
 #  $iWk = _getInfoFromFile($rhInfo->{_FILEH_}, 0x48, 4, "V");
 #  return undef unless(defined($iWk));
 #  $rhInfo->{_EXTRA_BBD_COUNT} = $iWk;
+
 ##GET BBD INFO
 #  $rhInfo->{_BBD_INFO}= _getBbdInfo($rhInfo);
 ##GET ROOT PPS
