@@ -1,0 +1,8 @@
+# Temp files
+.*~
+.*.sw[a-z]
+
+lib/.precomp
+
+# Sample data that's created on the fly
+sample/tsv.dat
