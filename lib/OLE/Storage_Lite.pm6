@@ -69,6 +69,7 @@ warn "iBlock: $iBlock\n";
   $sWk = %rhInfo<_FILEH_>.read: PPS-SIZE;
   return Nil unless defined $iBlock;
   my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack: "v";
+warn "iNmSize: $iNmSize\n";
   $iNmSize = ( $iNmSize > 2 ) ?? $iNmSize - 2 !! $iNmSize;
   my Buf $sNm   = $sWk.subbuf( 0, $iNmSize );
   my Int $iType = $sWk.subbuf( 0x42, 2 ).unpack: "C";
@@ -82,6 +83,17 @@ warn "iBlock: $iBlock\n";
      (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
         OLE-date-to-local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack: "VV";
+  if $bData {
+    my $sData = _data( $iType, $iStart, $iSize, %rhInfo );
+    return OLE::Storage_Lite::PPS.new(
+      $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      @raTime1st, @raTime2nd, $iStart, $iSize, $sData, Nil );
+  }
+  else {
+  }
+}
+
+sub _data( Int $iType, Int $iBlock, Int $iSize, %rhInfo ) {
 }
 
 sub OLE-date-to-local( $oletime ) {
