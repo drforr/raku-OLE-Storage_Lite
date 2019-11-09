@@ -23,6 +23,8 @@ use P5localtime;
 # Dropping parens where unneeded, and also dropping parens around the new
 # unpack/pack methods so I can better delineate where they go.
 #
+# Dropping unneeded 'return's on the last line.
+#
 # I'm leaving the method/function distinctions alone for the time being, simply
 # because it's easier that way. Also it'll be easier to find changes from the
 # Perl 5 module in the new Raku code.
@@ -217,7 +219,16 @@ sub _small-data( Int $iSmBlock, Int $iSize, %hInfo ) {
   return $sRes;
 }
 
-sub _next-small-block-no( Int $ismBlock, %hInfo ) {
+sub _next-small-block-no( Int $iSmBlock, %hInfo ) {
+  my Buf $sWk;
+
+  my $iBaseCnt = %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE;
+  my $iNth = Int( $iSmBlock / $iBaseCnt );
+  my $iPos = $iSmBlock % $iBaseCnt;
+  my $iBlk = _nth-block-no( %hInfo<_SBD_START>, $iNth, %hInfo );
+  _set-file-pos( $iBlk, $iPos * LONGINT-SIZE, %hInfo );
+  $sWk = %hInfo<_FILEH_>.read: LONGINT-SIZE;
+  return $sWk.unpack( "V" );
 }
 
 sub _set-file-pos-small( Int $iSmBlock, %hInfo ) {
@@ -230,7 +241,29 @@ sub _set-file-pos-small( Int $iSmBlock, %hInfo ) {
   _set-file-pos( $iBlk, $iPos * %hInfo<_SMALL_BLOCK_SIZE>, %hInfo );
 }
 
-sub _big-data( int $iSmBlock, Int $iSize, %hInfo ) {
+sub _big-data( Int $iBlock, Int $iSize, %hInfo ) {
+  my ( $iRest, $sWk, $sRes );
+
+  return '' unless _is-normal-block( $iBlock );
+  $iRest = $iSize;
+  my ( $i, $iGetSize, $iNext );
+  $sRes = '';
+  my @aKeys = sort { $^a <=> $^b }, keys %( %hInfo<_BBD_INFO> );
+
+  while $iRest > 0 {
+    my @aRes = grep { $_ >= $iBlock }, @aKeys;
+    my Int $iNKey = @aRes[0];
+    $i = $iNKey - $iBlock;
+    $iNext = %hInfo<_BBD_INFO>{$iNKey};
+    _set-file-pos( $iBlock, 0, %hInfo );
+    my $iGetSize = %hInfo<_BIG_BLOCK_SIZE> * ($i + 1);
+    $iGetSize = $iRest if $iRest < $iGetSize;
+    $sWk = %hInfo<_FILEH_>.read: $iGetSize;
+    $sRes ~= $sWk;
+    $iRest -= $iGetSize;
+    $iBlock = $iNext;
+  }
+  $sRes;
 }
 
 sub OLE-date-to-local( $oletime ) {
