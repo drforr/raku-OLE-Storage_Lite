@@ -3,6 +3,7 @@ use v6;
 unit class OLE::Storage_Lite;
 
 use experimental :pack;
+use P5localtime;
 
 #------------------------------------------------------------------------------
 # Consts for OLE::Storage_Lite
@@ -56,11 +57,51 @@ sub _nth-pps( Int $iPos, %rhInfo, $bData ) {
   my Int $iBlock;
 
   my Int $iBaseCnt = Int( %rhInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
+warn "iBaseCnt: $iBaseCnt\n";
   $iPpsBlock = Int( $iPos / $iBaseCnt );
   $iPpsPos   = $iPos % $iBaseCnt;
 
   $iBlock = _nth-block-no( $iPpsStart, $iPpsBlock, %rhInfo );
+warn "iBlock: $iBlock\n";
   die "No block found" unless defined $iBlock;
+
+  _set-file-pos( $iBlock, PPS-SIZE * $iPpsPos, %rhInfo );
+  $sWk = %rhInfo<_FILEH_>.read: PPS-SIZE;
+  return Nil unless defined $iBlock;
+  my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack: "v";
+  $iNmSize = ( $iNmSize > 2 ) ?? $iNmSize - 2 !! $iNmSize;
+  my Buf $sNm   = $sWk.subbuf( 0, $iNmSize );
+  my Int $iType = $sWk.subbuf( 0x42, 2 ).unpack: "C";
+  my $lPpsPrev  = $sWk.subbuf( 0x44, LONGINT-SIZE ).unpack: "V";
+  my $lPpsNext  = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack: "V";
+  my $lDirPps   = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack: "V";
+  my @raTime1st =
+     (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
+        OLE-date-to-local( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
+  my @raTime2nd =
+     (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
+        OLE-date-to-local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
+  my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack: "VV";
+}
+
+sub OLE-date-to-local( $oletime ) {
+
+  # Unpack FILETIME into high and low longs
+  #
+  my ( $lo, $hi ) = $oletime.unpack: "V2";
+
+  # Convert the longs to a double
+  #
+  my $nanoseconds = $hi * 2**32 + $lo;
+
+  # Convert the 100ns units to seconds
+  #
+  my $time = $nanoseconds / 1e7;
+
+  # Subtract the number of seconds between the 1601 and 1970 epocs
+  #
+  $time -= 11644473600;
+
 }
 
 sub _nth-block-no( Int $iStBlock, Int $iNth, %rhInfo ) {
