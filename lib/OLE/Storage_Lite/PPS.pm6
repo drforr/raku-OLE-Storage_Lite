@@ -1,39 +1,33 @@
 use v6;
 
+# I've changed the "OO" part of this module just to simplify things.
+#
+# The original module called new() here which called new() on one of a bunch
+# of different modules based on $iType.
+#
+# That means a parent module needed to include its children. Which is bad.
+# So instead I put the method higher up in the OLE::Storage_Lite hierarchy.
+# It now just needs the PPS modules it's going to disgorge, so it's more like
+# a Factory pattern, I suppose.
+#
+
 unit class OLE::Storage_Lite::PPS;
 
 has Int $.No;
-has Str $.Name;
+has Str $.Name; # Gotten usually from Buffers, decoded to UTF-8...
 has Int $.Type;
 has Int $.PrevPps;
 has Int $.NextPps;
 has Int $.DirPps;
-has @.Time1st;
-has @.Time2nd;
+has     @.Time1st;
+has     @.Time2nd;
 has Int $.StartBlock;
 has Int $.Size;
-has $.Data;
-has @.Child;
+has     $.Data;
+has     @.Child;
 
-multi method new( Int $iNo, Str $sNm, Int $iType, Int $iPrev, Int $iNext,
-                  Int $iDir, @raTime1st, @raTime2nd, Int $iStart, Int $iSize,
-		  $sData?, $raChild? ) {
-  self.bless(
-    :No( $iNo ),
-    :Name( $sNm ),
-    :Type( $iType ),
-    :PrevPps( $iPrev ),
-    :NextPps( $iNext ),
-    :DirPps( $iDir ),
-    :Time1st( @raTime1st ),
-    :Time2nd( @raTime2nd ),
-    :StartBlock( $iStart ),
-    :Size( $iSize ),
-    :Data( $sData ),
-    :Child( @raChild )
-  );
-}
-
+# Specifically, this method right here gets moved up.
+#
 #sub new ($$$$$$$$$$;$$) {
 ##1. Constructor for General Usage
 #  my($sClass, $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,

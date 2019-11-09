@@ -2,8 +2,35 @@ use v6;
 
 unit class OLE::Storage_Lite;
 
+use OLE::Storage_Lite::PPS::Dir;
+use OLE::Storage_Lite::PPS::File;
+use OLE::Storage_Lite::PPS::Root;
+
 use experimental :pack;
 use P5localtime;
+
+# A couple of notes on how I translated (loosely) this from the Perl 5 module:
+#
+# To save time I've Raku-ified method names where appropriate, which is to say
+# pretty much everywhere. Camel case goes to kebab case, and I've dropped 'get'
+# because it seems redundant.
+#
+# I'm taking advantage of being able to pass along array and hash types, and
+# leaving hash "attribute"s as just that, attributes.
+#
+#   This is probably most notable with the %rhInfo and @Time{1st,2nd} vars.
+#   I should probably rename $rhInfo => %hInfo because I'm sure these names
+#   are all done Hungarian style.
+#
+# Dropping parens where unneeded, and also dropping parens around the new
+# unpack/pack methods so I can better delineate where they go.
+#
+# I'm leaving the method/function distinctions alone for the time being, simply
+# because it's easier that way. Also it'll be easier to find changes from the
+# Perl 5 module in the new Raku code.
+
+# Once I've gotten it tested and able to do its job in Raku I'll feel better
+# about completely rearranging things to work better in Raku.
 
 #------------------------------------------------------------------------------
 # Consts for OLE::Storage_Lite
@@ -85,15 +112,94 @@ warn "iNmSize: $iNmSize\n";
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack: "VV";
   if $bData {
     my $sData = _data( $iType, $iStart, $iSize, %rhInfo );
-    return OLE::Storage_Lite::PPS.new(
+#    return OLE::Storage_Lite::PPS.new
+    return create-PPS(
       $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
-      @raTime1st, @raTime2nd, $iStart, $iSize, $sData, Nil );
+      @raTime1st, @raTime2nd, $iStart, $iSize, $sData, Nil
+    );
   }
   else {
+#    return OLE::Storage_Lite::PPS.new
+    return create-PPS(
+      $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      @raTime1st, @raTime2nd, $iStart, $iSize
+    );
+  }
+}
+
+# Rename 'new' to 'create', for the moment.
+# The bless() mechanism isn't working for me...
+
+sub create-PPS( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
+                @raTime1st, @raTime2nd, $iStart, $iSize, $sData?, @raChild? ) {
+  if $iType == 2 { #OLE::Storage_Lite::PPS-TYPE-FILE {
+    OLE::Storage_Lite::PPS::File.new(
+      :No( $iNo ),
+      :Name( $sNm.decode('utf-8') ),
+      :Type( $iType ),
+      :PrevPps( $iPrev ),
+      :NextPps( $iNext ),
+      :DirPps( $iDir ),
+      :Time1st( @raTime1st ),
+      :Time2nd( @raTime2nd ),
+      :StartBlock( $iStart ),
+      :Size( $iSize ),
+      :Data( $sData ),
+      :Child( @raChild )
+    )
+  }
+  elsif $iType == 1 { #OLE::Storage_Lite::PPS-TYPE-DIR {
+    OLE::Storage_Lite::PPS::Dir.new(
+      :No( $iNo ),
+      :Name( $sNm.decode('utf-8') ),
+      :Type( $iType ),
+      :PrevPps( $iPrev ),
+      :NextPps( $iNext ),
+      :DirPps( $iDir ),
+      :Time1st( @raTime1st ),
+      :Time2nd( @raTime2nd ),
+      :StartBlock( $iStart ),
+      :Size( $iSize ),
+      :Data( $sData ),
+      :Child( @raChild )
+    )
+  }
+  elsif $iType == 5 { #OLE::Storage_Lite::PPS-TYPE-ROOT {
+    OLE::Storage_Lite::PPS::Root.new(
+      :No( $iNo ),
+      :Name( $sNm.decode('utf-8') ),
+      :Type( $iType ),
+      :PrevPps( $iPrev ),
+      :NextPps( $iNext ),
+      :DirPps( $iDir ),
+      :Time1st( @raTime1st ),
+      :Time2nd( @raTime2nd ),
+      :StartBlock( $iStart ),
+      :Size( $iSize ),
+      :Data( $sData ),
+      :Child( @raChild )
+    )
+  }
+  else {
+    die "Can't find PPS type $iType";
   }
 }
 
 sub _data( Int $iType, Int $iBlock, Int $iSize, %rhInfo ) {
+  if $iType == PPS-TYPE-FILE {
+    if $iSize < DATA-SIZE {
+      return _small-data( $iBlock, $iSize, %rhInfo );
+    }
+    else {
+    }
+  }
+  elsif $iType == PPS-TYPE-ROOT {
+  }
+  elsif $iType == PPS-TYPE-DIR {
+  }
+}
+
+sub _small-data( int $iSmBlock, Int $iSize, %rhInfo ) {
 }
 
 sub OLE-date-to-local( $oletime ) {
@@ -688,301 +794,3 @@ sub _is-normal-block( Int $iBlock ) {
 #}
 
 #1;
-
-#=head1 NAME
-#
-#OLE::Storage_Lite - Simple Class for OLE document interface.
-#
-#=head1 SYNOPSIS
-#
-#    use OLE::Storage_Lite;
-#
-#    # Initialize.
-#
-#    # From a file
-#    my $oOl = OLE::Storage_Lite->new("some.xls");
-#
-#    # From a filehandle object
-#    use IO::File;
-#    my $oIo = new IO::File;
-#    $oIo->open("<iofile.xls");
-#    binmode($oIo);
-#    my $oOl = OLE::Storage_Lite->new($oFile);
-#
-#    # Read data
-#    my $oPps = $oOl->getPpsTree(1);
-#
-#    # Save Data
-#    # To a File
-#    $oPps->save("kaba.xls"); #kaba.xls
-#    $oPps->save('-');        #STDOUT
-#
-#    # To a filehandle object
-#    my $oIo = new IO::File;
-#    $oIo->open(">iofile.xls");
-#    bimode($oIo);
-#    $oPps->save($oIo);
-#
-#
-#=head1 DESCRIPTION
-#
-#OLE::Storage_Lite allows you to read and write an OLE structured file.
-#
-#OLE::Storage_Lite::PPS is a class representing PPS. OLE::Storage_Lite::PPS::Root, OLE::Storage_Lite::PPS::File and OLE::Storage_Lite::PPS::Dir
-#are subclasses of OLE::Storage_Lite::PPS.
-#
-#
-#=head2 new()
-#
-#Constructor.
-#
-#    $oOle = OLE::Storage_Lite->new($sFile);
-#
-#Creates a OLE::Storage_Lite object for C<$sFile>. C<$sFile> must be a correct file name.
-#
-#The C<new()> constructor also accepts a valid filehandle. Remember to C<binmode()> the filehandle first.
-#
-#
-#=head2 getPpsTree()
-#
-#    $oPpsRoot = $oOle->getPpsTree([$bData]);
-#
-#Returns PPS as an OLE::Storage_Lite::PPS::Root object.
-#Other PPS objects will be included as its children.
-#
-#If C<$bData> is true, the objects will have data in the file.
-#
-#
-#=head2 getPpsSearch()
-#
-#    $oPpsRoot = $oOle->getPpsTree($raName [, $bData][, $iCase] );
-#
-#Returns PPSs as OLE::Storage_Lite::PPS objects that has the name specified in C<$raName> array.
-#
-#If C<$bData> is true, the objects will have data in the file.
-#If C<$iCase> is true, search is case insensitive.
-#
-#
-#=head2 getNthPps()
-#
-#    $oPpsRoot = $oOle->getNthPps($iNth [, $bData]);
-#
-#Returns PPS as C<OLE::Storage_Lite::PPS> object specified number C<$iNth>.
-#
-#If C<$bData> is true, the objects will have data in the file.
-#
-#
-#=head2 Asc2Ucs()
-#
-#    $sUcs2 = OLE::Storage_Lite::Asc2Ucs($sAsc>);
-#
-#Utility function. Just adds 0x00 after every characters in C<$sAsc>.
-#
-#
-#=head2 Ucs2Asc()
-#
-#    $sAsc = OLE::Storage_Lite::Ucs2Asc($sUcs2);
-#
-#Utility function. Just deletes 0x00 after words in C<$sUcs>.
-#
-#
-#=head1 OLE::Storage_Lite::PPS
-#
-#OLE::Storage_Lite::PPS has these properties:
-#
-#=over 4
-#
-#=item No
-#
-#Order number in saving.
-#
-#=item Name
-#
-#Its name in UCS2 (a.k.a Unicode).
-#
-#=item Type
-#
-#Its type (1:Dir, 2:File (Data), 5: Root)
-#
-#=item PrevPps
-#
-#Previous pps (as No)
-#
-#=item NextPps
-#
-#Next pps (as No)
-#
-#=item DirPps
-#
-#Dir pps (as No).
-#
-#=item Time1st
-#
-#Timestamp 1st in array ref as similar fomat of localtime.
-#
-#=item Time2nd
-#
-#Timestamp 2nd in array ref as similar fomat of localtime.
-#
-#=item StartBlock
-#
-#Start block number
-#
-#=item Size
-#
-#Size of the pps
-#
-#=item Data
-#
-#Its data
-#
-#=item Child
-#
-#Its child PPSs in array ref
-#
-#=back
-#
-#
-#=head1 OLE::Storage_Lite::PPS::Root
-#
-#OLE::Storage_Lite::PPS::Root has 2 methods.
-#
-#=head2 new()
-#
-#    $oRoot = OLE::Storage_Lite::PPS::Root->new(
-#                    $raTime1st,
-#                    $raTime2nd,
-#                    $raChild);
-#
-#
-#Constructor.
-#
-#C<$raTime1st>, C<$raTime2nd> are array refs with ($iSec, $iMin, $iHour, $iDay, $iMon, $iYear).
-#$iSec means seconds, $iMin means minutes. $iHour means hours.
-#$iDay means day. $iMon is month -1. $iYear is year - 1900.
-#
-#C<$raChild> is a array ref of children PPSs.
-#
-#
-#=head2 save()
-#
-#    $oRoot = $oRoot>->save(
-#                    $sFile,
-#                    $bNoAs);
-#
-#
-#Saves information into C<$sFile>. If C<$sFile> is '-', this will use STDOUT.
-#
-#The C<new()> constructor also accepts a valid filehandle. Remember to C<binmode()> the filehandle first.
-#
-#If C<$bNoAs> is defined, this function will use the No of PPSs for saving order.
-#If C<$bNoAs> is undefined, this will calculate PPS saving order.
-#
-#
-#=head1 OLE::Storage_Lite::PPS::Dir
-#
-#OLE::Storage_Lite::PPS::Dir has 1 method.
-#
-#=head2 new()
-#
-#    $oRoot = OLE::Storage_Lite::PPS::Dir->new(
-#                    $sName,
-#                  [, $raTime1st]
-#                  [, $raTime2nd]
-#                  [, $raChild>]);
-#
-#
-#Constructor.
-#
-#C<$sName> is a name of the PPS.
-#
-#C<$raTime1st>, C<$raTime2nd> is a array ref as
-#($iSec, $iMin, $iHour, $iDay, $iMon, $iYear).
-#$iSec means seconds, $iMin means minutes. $iHour means hours.
-#$iDay means day. $iMon is month -1. $iYear is year - 1900.
-#
-#C<$raChild> is a array ref of children PPSs.
-#
-#
-#=head1 OLE::Storage_Lite::PPS::File
-#
-#OLE::Storage_Lite::PPS::File has 3 method.
-#
-#=head2 new
-#
-#    $oRoot = OLE::Storage_Lite::PPS::File->new($sName, $sData);
-#
-#C<$sName> is name of the PPS.
-#
-#C<$sData> is data of the PPS.
-#
-#
-#=head2 newFile()
-#
-#    $oRoot = OLE::Storage_Lite::PPS::File->newFile($sName, $sFile);
-#
-#This function makes to use file handle for geting and storing data.
-#
-#C<$sName> is name of the PPS.
-#
-#If C<$sFile> is scalar, it assumes that is a filename.
-#If C<$sFile> is an IO::Handle object, it uses that specified handle.
-#If C<$sFile> is undef or '', it uses temporary file.
-#
-#CAUTION: Take care C<$sFile> will be updated by C<append> method.
-#So if you want to use IO::Handle and append a data to it,
-#you should open the handle with "r+".
-#
-#
-#=head2 append()
-#
-#    $oRoot = $oPps->append($sData);
-#
-#appends specified data to that PPS.
-#
-#C<$sData> is appending data for that PPS.
-#
-#
-#=head1 CAUTION
-#
-#A saved file with VBA (a.k.a Macros) by this module will not work correctly.
-#However modules can get the same information from the file,
-#the file occurs a error in application(Word, Excel ...).
-#
-#
-#=head1 DEPRECATED FEATURES
-#
-#Older version of C<OLE::Storage_Lite> autovivified a scalar ref in the C<new()> constructors into a scalar filehandle. This functionality is still there for backwards compatibility but it is highly recommended that you do not use it. Instead create a filehandle (scalar or otherwise) and pass that in.
-#
-#
-#=head1 COPYRIGHT
-#
-#The OLE::Storage_Lite module is Copyright (c) 2000,2001 Kawai Takanori. Japan.
-#All rights reserved.
-#
-#You may distribute under the terms of either the GNU General Public
-#License or the Artistic License, as specified in the Perl README file.
-#
-#
-#=head1 ACKNOWLEDGEMENTS
-#
-#First of all, I would like to acknowledge to Martin Schwartz and his module OLE::Storage.
-#
-#
-#=head1 AUTHOR
-#
-#Kawai Takanori kwitknr@cpan.org
-#
-#This module is currently maintained by John McNamara jmcnamara@cpan.org
-#
-#
-#=head1 SEE ALSO
-#
-#OLE::Storage
-#
-#Documentation for the OLE Compound document has been released by Microsoft under the I<Open Specification Promise>. See http://www.microsoft.com/interop/docs/supportingtechnologies.mspx
-#
-#The Digital Imaging Group have also detailed the OLE format in the JPEG2000 specification: see Appendix A of http://www.i3a.org/pdf/wg1n1017.pdf
-#
-#
-#=cut
