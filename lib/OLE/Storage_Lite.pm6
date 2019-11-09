@@ -19,8 +19,6 @@ use P5localtime;
 # leaving hash "attribute"s as just that, attributes.
 #
 #   This is probably most notable with the %rhInfo and @Time{1st,2nd} vars.
-#   I should probably rename $rhInfo => %hInfo because I'm sure these names
-#   are all done Hungarian style.
 #
 # Dropping parens where unneeded, and also dropping parens around the new
 # unpack/pack methods so I can better delineate where they go.
@@ -77,23 +75,23 @@ method nth-pps( Int $iNo, $bData? ) {
   $oPps;
 }
 
-sub _nth-pps( Int $iPos, %rhInfo, $bData ) {
-  my Int $iPpsStart = %rhInfo<_ROOT_START>;
+sub _nth-pps( Int $iPos, %hInfo, $bData ) {
+  my Int $iPpsStart = %hInfo<_ROOT_START>;
   my Int ( $iPpsBlock, $iPpsPos );
   my Buf $sWk;
   my Int $iBlock;
 
-  my Int $iBaseCnt = Int( %rhInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
+  my Int $iBaseCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
 warn "iBaseCnt: $iBaseCnt\n";
   $iPpsBlock = Int( $iPos / $iBaseCnt );
   $iPpsPos   = $iPos % $iBaseCnt;
 
-  $iBlock = _nth-block-no( $iPpsStart, $iPpsBlock, %rhInfo );
+  $iBlock = _nth-block-no( $iPpsStart, $iPpsBlock, %hInfo );
 warn "iBlock: $iBlock\n";
   die "No block found" unless defined $iBlock;
 
-  _set-file-pos( $iBlock, PPS-SIZE * $iPpsPos, %rhInfo );
-  $sWk = %rhInfo<_FILEH_>.read: PPS-SIZE;
+  _set-file-pos( $iBlock, PPS-SIZE * $iPpsPos, %hInfo );
+  $sWk = %hInfo<_FILEH_>.read: PPS-SIZE;
   return Nil unless defined $iBlock;
   my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack: "v";
 warn "iNmSize: $iNmSize\n";
@@ -111,7 +109,7 @@ warn "iNmSize: $iNmSize\n";
         OLE-date-to-local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack: "VV";
   if $bData {
-    my $sData = _data( $iType, $iStart, $iSize, %rhInfo );
+    my $sData = _data( $iType, $iStart, $iSize, %hInfo );
 #    return OLE::Storage_Lite::PPS.new
     return create-PPS(
       $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
@@ -185,43 +183,54 @@ sub create-PPS( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
   }
 }
 
-sub _data( Int $iType, Int $iBlock, Int $iSize, %rhInfo ) {
+sub _data( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
   if $iType == PPS-TYPE-FILE {
     if $iSize < DATA-SIZE {
-      return _small-data( $iBlock, $iSize, %rhInfo );
+      return _small-data( $iBlock, $iSize, %hInfo );
     }
     else {
-      return _big-data( $iBlock, $iSize, %rhInfo );
+      return _big-data( $iBlock, $iSize, %hInfo );
     }
   }
   elsif $iType == PPS-TYPE-ROOT {
-    return _big-data( $iBlock, $iSize, %rhInfo );
+    return _big-data( $iBlock, $iSize, %hInfo );
   }
   elsif $iType == PPS-TYPE-DIR {
     return;
   }
 }
 
-sub _small-data( Int $iSmBlock, Int $iSize, %rhInfo ) {
+sub _small-data( Int $iSmBlock, Int $iSize, %hInfo ) {
   my ( $sRes, $sWk );
   my Int $iRest = $iSize;
   $sRes = '';
   while $iRest > 0 {
-    _set-file-pos-small( $iSmBlock, %rhInfo );
+    _set-file-pos-small( $iSmBlock, %hInfo );
+    $sWk = %hInfo<_FILEH>>.read(
+             ( $iRest >= %hInfo<_SMALL_BLOCK_SIZE>) ??
+	       %hInfo<_SMALL_BLOCK_SIZE> !!
+	       $iRest );
+    $sRes ~= $sWk;
+    $iRest -= %hInfo<_SMALL_BLOCK_SIZE>;
+    $iSmBlock = _next-small-block-no( $iSmBlock, %hInfo );
   }
+  return $sRes;
 }
 
-sub _set-file-pos-small( Int $iSmBlock, %rhInfo ) {
-  my Int $iSmStart = %rhInfo<_SB_START>;
-  my Int $iBaseCnt = %rhInfo<_BIG_BLOCK_SIZE> / %rhInfo<_SMALL_BLOCK_SIZE>;
+sub _next-small-block-no( Int $ismBlock, %hInfo ) {
+}
+
+sub _set-file-pos-small( Int $iSmBlock, %hInfo ) {
+  my Int $iSmStart = %hInfo<_SB_START>;
+  my Int $iBaseCnt = %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_SMALL_BLOCK_SIZE>;
   my Int $iNth = Int( $iSmBlock / $iBaseCnt );
   my Int $iPos = $iSmBlock % $iBaseCnt;
 
-  my Int $iBlk = _nth-block-no( $iSmStart, $iNth, %rhInfo );
-  _set-file-pos( $iBlk, $iPos * %rhInfo<_SMALL_BLOCK_SIZE>, %rhInfo );
+  my Int $iBlk = _nth-block-no( $iSmStart, $iNth, %hInfo );
+  _set-file-pos( $iBlk, $iPos * %hInfo<_SMALL_BLOCK_SIZE>, %hInfo );
 }
 
-sub _big-data( int $iSmBlock, Int $iSize, %rhInfo ) {
+sub _big-data( int $iSmBlock, Int $iSize, %hInfo ) {
 }
 
 sub OLE-date-to-local( $oletime ) {
@@ -244,19 +253,19 @@ sub OLE-date-to-local( $oletime ) {
 
 }
 
-sub _nth-block-no( Int $iStBlock, Int $iNth, %rhInfo ) {
+sub _nth-block-no( Int $iStBlock, Int $iNth, %hInfo ) {
   my Int $iSv;
   my Int $iNext = $iStBlock;
   loop ( my $i = 0; $i < $iNth; $i++ ) {
     $iSv = $iNext;
-    $iNext = _next-block-no( $iSv, %rhInfo );
+    $iNext = _next-block-no( $iSv, %hInfo );
     return Nil unless _is-normal-block( $iNext );
   }
   $iNext;
 }
 
-sub _next-block-no( Int $iBlockNo, %rhInfo ) {
-  my Int $iRes = %rhInfo<_BBD_INFO>.{$iBlockNo};
+sub _next-block-no( Int $iBlockNo, %hInfo ) {
+  my Int $iRes = %hInfo<_BBD_INFO>.{$iBlockNo};
   return defined( $iRes ) ?? $iRes !! $iBlockNo + 1;
 }
 
@@ -268,59 +277,59 @@ sub _init-parse( $file ) {
 }
 
 sub _header-info( $FILE ) {
-  my %rhInfo =
+  my %hInfo =
     _FILEH_ => $FILE
   ;
 
-  %rhInfo<_FILEH_>.seek: 0, SeekFromBeginning;
-  my Str $sWk = %rhInfo<_FILEH_>.read( 8 ).unpack('A8');
+  %hInfo<_FILEH_>.seek: 0, SeekFromBeginning;
+  my Str $sWk = %hInfo<_FILEH_>.read( 8 ).unpack('A8');
   die "Header ID missing" if $sWk ne HEADER-ID;
 
-  my Int $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x1E, 2, "v" );
+  my Int $iWk = _info-from-file( %hInfo<_FILEH_>, 0x1E, 2, "v" );
   die "Big block size missing" unless defined( $iWk );
-  %rhInfo<_BIG_BLOCK_SIZE> = 2 ** $iWk;
+  %hInfo<_BIG_BLOCK_SIZE> = 2 ** $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x20, 2, "v" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x20, 2, "v" );
   die "Small block size missing" unless defined( $iWk );
-  %rhInfo<_SMALL_BLOCK_SIZE> = 2 ** $iWk;
+  %hInfo<_SMALL_BLOCK_SIZE> = 2 ** $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x2C, 4, "v" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x2C, 4, "v" );
   die "BDB count missing" unless defined( $iWk );
-  %rhInfo<_BDB_COUNT> = $iWk;
+  %hInfo<_BDB_COUNT> = $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x30, 4, "V" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x30, 4, "V" );
   die "Root start missing" unless defined( $iWk );
-  %rhInfo<_ROOT_START> = $iWk;
+  %hInfo<_ROOT_START> = $iWk;
 
-# $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x38, 4, "v" );
+# $iWk = _info-from-file( %hInfo<_FILEH_>, 0x38, 4, "v" );
 # die "Min size BB missing" unless defined( $iWk );
-# %rhInfo<_MIN_SIZE_BB> = $iWk;
+# %hInfo<_MIN_SIZE_BB> = $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x3C, 4, "V" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x3C, 4, "V" );
   die "Small BD start missing" unless defined( $iWk );
-  %rhInfo<_SBD_START> = $iWk;
+  %hInfo<_SBD_START> = $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x40, 4, "V" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x40, 4, "V" );
   die "Small BD count missing" unless defined( $iWk );
-  %rhInfo<_SBD_COUNT> = $iWk;
+  %hInfo<_SBD_COUNT> = $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x44, 4, "V" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x44, 4, "V" );
   die "Extra BBD start missing" unless defined( $iWk );
-  %rhInfo<_EXTRA_BBD_START> = $iWk;
+  %hInfo<_EXTRA_BBD_START> = $iWk;
 
-  $iWk = _info-from-file( %rhInfo<_FILEH_>, 0x48, 4, "V" );
+  $iWk = _info-from-file( %hInfo<_FILEH_>, 0x48, 4, "V" );
   die "Extra BBD count missing" unless defined( $iWk );
-  %rhInfo<_EXTRA_BBD_COUNT> = $iWk;
+  %hInfo<_EXTRA_BBD_COUNT> = $iWk;
 
   # Get BBD Info
   #
-  %rhInfo<_BBD_INFO> = _bbd-info( %rhInfo );
+  %hInfo<_BBD_INFO> = _bbd-info( %hInfo );
 
   # Get Root PPS
   #
-  my $oRoot = _nth-pps( 0, %rhInfo, Nil );
+  my $oRoot = _nth-pps( 0, %hInfo, Nil );
 
-warn %rhInfo.gist;
+warn %hInfo.gist;
 }
 
 sub _info-from-file( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
@@ -336,32 +345,32 @@ sub _info-from-file( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
 
 # slight change here, flatten references a bit in general.
 #
-sub _bbd-info( %rhInfo ) {
+sub _bbd-info( %hInfo ) {
   my @aBdList;
-  my Int $iBdbCnt = %rhInfo<_BDB_COUNT>;
+  my Int $iBdbCnt = %hInfo<_BDB_COUNT>;
   my Int $iGetCnt;
   my Buf $sWk;
-  my Int $i1stCnt = Int((%rhInfo<_BIG_BLOCK_SIZE> - 0x4c) / LONGINT-SIZE);
-  my Int $iBdlCnt = Int(%rhInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE) - 1;
+  my Int $i1stCnt = Int((%hInfo<_BIG_BLOCK_SIZE> - 0x4c) / LONGINT-SIZE);
+  my Int $iBdlCnt = Int(%hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE) - 1;
 
   # 1st BDList
   #
-  %rhInfo<_FILEH_>.seek: 0x4c, SeekFromBeginning;
+  %hInfo<_FILEH_>.seek: 0x4c, SeekFromBeginning;
   $iGetCnt = ($iBdbCnt < $i1stCnt) ?? $iBdbCnt !! $i1stCnt;
-  $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE + $iGetCnt;
+  $sWk = %hInfo<_FILEH_>.read: LONGINT-SIZE + $iGetCnt;
   @aBdList.append: $sWk.unpack: "V$iGetCnt";
   $iBdbCnt -= $iGetCnt;
 
   # Extra BDList
   #
-  my Int $iBlock = %rhInfo<_EXTRA_BBD_START>;
+  my Int $iBlock = %hInfo<_EXTRA_BBD_START>;
   while $iBdbCnt > 0 and _is-normal-block( $iBlock ) {
-    _set-file-pos( $iBlock, 0, %rhInfo );
+    _set-file-pos( $iBlock, 0, %hInfo );
     $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
-    $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE + $iGetCnt;
+    $sWk = %hInfo<_FILEH_>.read: LONGINT-SIZE + $iGetCnt;
     @aBdList.append: $sWk.unpack( "V$iGetCnt" );
     $iBdbCnt -= $iGetCnt;
-    $sWk = %rhInfo<_FILEH_>.read: LONGINT-SIZE;
+    $sWk = %hInfo<_FILEH_>.read: LONGINT-SIZE;
     $iBlock = $sWk.unpack( "V" );
   }
 
@@ -372,10 +381,10 @@ sub _bbd-info( %rhInfo ) {
   my Int $iBlkNo = 0;
   #my Int $iBdL;
   #my $i;
-  my Int $iBdCnt = Int(%rhInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE);
+  my Int $iBdCnt = Int(%hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE);
   for @aBdList -> $iBdL {
-    _set-file-pos( $iBdL, 0, %rhInfo );
-    $sWk = %rhInfo<_FILEH_>.read: %rhInfo<_BIG_BLOCK_SIZE>;
+    _set-file-pos( $iBdL, 0, %hInfo );
+    $sWk = %hInfo<_FILEH_>.read: %hInfo<_BIG_BLOCK_SIZE>;
     @aWk = $sWk.unpack( "V$iBdCnt" );
     loop ( my $i = 0; $i < $iBdCnt ; $i++, $iBlkNo++ ) {
       if @aWk[$i] != $iBlkNo + 1 {
@@ -386,8 +395,8 @@ sub _bbd-info( %rhInfo ) {
   return %hBd;
 }
 
-sub _set-file-pos( Int $iBlock, Int $iPos, %rhInfo ) {
-  %rhInfo<_FILEH_>.seek: ( $iBlock + 1 ) * %rhInfo<_BIG_BLOCK_SIZE> + $iPos,
+sub _set-file-pos( Int $iBlock, Int $iPos, %hInfo ) {
+  %hInfo<_FILEH_>.seek: ( $iBlock + 1 ) * %hInfo<_BIG_BLOCK_SIZE> + $iPos,
                          SeekFromBeginning;
 }
 
