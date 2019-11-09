@@ -191,15 +191,37 @@ sub _data( Int $iType, Int $iBlock, Int $iSize, %rhInfo ) {
       return _small-data( $iBlock, $iSize, %rhInfo );
     }
     else {
+      return _big-data( $iBlock, $iSize, %rhInfo );
     }
   }
   elsif $iType == PPS-TYPE-ROOT {
+    return _big-data( $iBlock, $iSize, %rhInfo );
   }
   elsif $iType == PPS-TYPE-DIR {
+    return;
   }
 }
 
-sub _small-data( int $iSmBlock, Int $iSize, %rhInfo ) {
+sub _small-data( Int $iSmBlock, Int $iSize, %rhInfo ) {
+  my ( $sRes, $sWk );
+  my Int $iRest = $iSize;
+  $sRes = '';
+  while $iRest > 0 {
+    _set-file-pos-small( $iSmBlock, %rhInfo );
+  }
+}
+
+sub _set-file-pos-small( Int $iSmBlock, %rhInfo ) {
+  my Int $iSmStart = %rhInfo<_SB_START>;
+  my Int $iBaseCnt = %rhInfo<_BIG_BLOCK_SIZE> / %rhInfo<_SMALL_BLOCK_SIZE>;
+  my Int $iNth = Int( $iSmBlock / $iBaseCnt );
+  my Int $iPos = $iSmBlock % $iBaseCnt;
+
+  my Int $iBlk = _nth-block-no( $iSmStart, $iNth, %rhInfo );
+  _set-file-pos( $iBlk, $iPos * %rhInfo<_SMALL_BLOCK_SIZE>, %rhInfo );
+}
+
+sub _big-data( int $iSmBlock, Int $iSize, %rhInfo ) {
 }
 
 sub OLE-date-to-local( $oletime ) {
