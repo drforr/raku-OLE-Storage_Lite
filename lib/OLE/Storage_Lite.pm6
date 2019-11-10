@@ -28,9 +28,16 @@ use P5localtime;
 # I'm leaving the method/function distinctions alone for the time being, simply
 # because it's easier that way. Also it'll be easier to find changes from the
 # Perl 5 module in the new Raku code.
+#
+# Actually that's a lie, it's easier to test things if everything is a method.
+# I'll probably refactor it back once I'm sure of how it's going to be used.
+#
 
 # Once I've gotten it tested and able to do its job in Raku I'll feel better
 # about completely rearranging things to work better in Raku.
+#
+# And yes, I do know that classes can have subs as well, I'm using subs until
+# I figure out a better method of testing.
 
 #------------------------------------------------------------------------------
 # Consts for OLE::Storage_Lite
@@ -52,18 +59,48 @@ multi method new( $_FILE ) {
   self.bless( :$_FILE );
 }
 
+# I really don't think @raDone is useful in general
+# But I'll keep it around until I have actual tests.
+#
 method pps-tree( $bData? ) {
-  my $rhInfo = _init-parse( $._FILE );
-die $rhInfo;
-  my $oPps = _pps-tree( 0, $rhInfo, $bData );
-  $oPps;
+  my %hInfo = self._init-parse( $._FILE );
+my @raDone;
+  my @oPps = _pps-tree( 0, %hInfo, $bData, @raDone ); # @raDone is my own
+  @oPps;
 }
 
-sub _pps-tree( Int $iNo, $rhInfo, $bData, $raDone? ) {
+sub _pps-tree( Int $iNo, %hInfo, $bData, @raDone ) {
+  if @raDone.elems {
+    return () if grep { $_ == $iNo }, @raDone;
+  }
+  else {
+    @raDone = ();
+  }
+  @raDone.append: $iNo;
+
+  my Int $iRootBlock = %hInfo<_ROOT_START>;
+
+  my $oPps = _nth-pps( $iNo, %hInfo, $bData );
+
+  if $oPps.DirPps != 2**32 - 1 {
+    my @aChildL = _pps-tree( $oPps.DirPps, %hInfo, $bData, @raDone );
+    $oPps.Child = @aChildL;
+  }
+  else {
+    $oPps.Child = ();
+  }
+
+  my @aList = ( );
+  @aList.append: _pps-tree( $oPps.PrevPps, %hInfo, $bData, @raDone ) if
+    $oPps.PrevPps != 2**32 - 1;
+  @aList.append: $oPps;
+  @aList.append: _pps-tree( $oPps.NextPps, %hInfo, $bData, @raDone ) if
+    $oPps.NextPps != 2**32 - 1;
+  @aList;
 }
 
 method pps-search( $raName, $bData?, Int $iCase? ) {
-  my $rhInfo = _init-parse( $._FILE );
+  my $rhInfo = self._init-parse( $._FILE );
   my @aList = _pps-search( 0, $rhInfo, $raName, $bData, $iCase );
   @aList;
 }
@@ -72,7 +109,7 @@ sub _pps-search( Int $iNo, $rhINfo, $raName, $bData, Int $iCase, $raDone? ) {
 }
 
 method nth-pps( Int $iNo, $bData? ) {
-  my $rhInfo = _init-parse( $._FILE );
+  my $rhInfo = self._init-parse( $._FILE );
   my $oPps = _nth-pps( $iNo, $rhInfo, $bData );
   $oPps;
 }
@@ -84,19 +121,16 @@ sub _nth-pps( Int $iPos, %hInfo, $bData ) {
   my Int $iBlock;
 
   my Int $iBaseCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
-warn "iBaseCnt: $iBaseCnt\n";
   $iPpsBlock = Int( $iPos / $iBaseCnt );
   $iPpsPos   = $iPos % $iBaseCnt;
 
   $iBlock = _nth-block-no( $iPpsStart, $iPpsBlock, %hInfo );
-warn "iBlock: $iBlock\n";
   die "No block found" unless defined $iBlock;
 
   _set-file-pos( $iBlock, PPS-SIZE * $iPpsPos, %hInfo );
   $sWk = %hInfo<_FILEH_>.read: PPS-SIZE;
   return Nil unless defined $iBlock;
   my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack: "v";
-warn "iNmSize: $iNmSize\n";
   $iNmSize = ( $iNmSize > 2 ) ?? $iNmSize - 2 !! $iNmSize;
   my Buf $sNm   = $sWk.subbuf( 0, $iNmSize );
   my Int $iType = $sWk.subbuf( 0x42, 2 ).unpack: "C";
@@ -302,14 +336,14 @@ sub _next-block-no( Int $iBlockNo, %hInfo ) {
   return defined( $iRes ) ?? $iRes !! $iBlockNo + 1;
 }
 
-# Break out different IO styles her.
+# Break out different IO styles here.
 #
-sub _init-parse( $file ) {
-  my $oIo = open $file;
-  _header-info( $oIo );
+method _init-parse( $filename ) {
+  my $oIo = open $filename;
+  self._header-info( $oIo );
 }
 
-sub _header-info( $FILE ) {
+method _header-info( $FILE ) {
   my %hInfo =
     _FILEH_ => $FILE
   ;
@@ -362,7 +396,7 @@ sub _header-info( $FILE ) {
   #
   my $oRoot = _nth-pps( 0, %hInfo, Nil );
 
-warn %hInfo.gist;
+  %hInfo;
 }
 
 sub _info-from-file( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
