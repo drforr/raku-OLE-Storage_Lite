@@ -1,35 +1,37 @@
 NAME
-    OLE::Storage_Lite - Simple Class for OLE document interface.
+    OLE::Storage_Lite - Read and Write OLE files on any platform
 
 DESCRIPTION
     This module allows you to read and write an OLE-Structured file.
-
-    The module will work on the majority of Windows, UNIX and
-    Macintosh platforms.
+    It works anywhere Raku works, without the need of an OLE binary.
 
 REQUIREMENT
-     Perl 5.005 or later.
+    Raku 6.c (anything that supports experimental:pack)
 
 INSTALLATION
-    The module can be installed using the standard Perl procedure:
+    Using the Zef installer:
 
-        perl Makefile.PL
-        make
-        make test
-        make install    # You may need to be root
-        make clean      # or make realclean
-
-    Windows users without a working "make" can get nmake from:
-        ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
+        zef update
+        zef install OLE::Storage_Lite
 
 SAMPLE
-    Samples scripts are in sample directory.
+    This still retains the Perl 5 sample scripts, will rewrite these for
+    proper Raku compatibility later.
 
     smplls.pl : displays PPS structure of specified file
                 (subset of "lls" distributed with OLE::Storage)
 
     smpsv.pl  : creates and save a sample OLE-file(tsv.dat).
 
+ACKNOWLEDGEMENTS
+    This module is as close to a 1:1 translation of the Perl 5 OLE::Storage_Lite
+    module as I could reasonably get. All glory belongs to Kawai Takanori, all
+    new bugs are my fault.
+
 AUTHOR
+    Jeff Goff <jgoff@cpan.org>
+
+AUTHOR EMERITUS
+
     Kawai Takanori (kwitknr@cpan.org)
 
