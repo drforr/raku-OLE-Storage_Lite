@@ -59,13 +59,13 @@ multi method new( $_FILE ) {
   self.bless( :$_FILE );
 }
 
-# I really don't think @raDone is useful in general
+# I really don't think @aDone is useful in general
 # But I'll keep it around until I have actual tests.
 #
 method getPpsTree( $bData? ) {
   my %hInfo = self._initParse( $._FILE );
-my @raDone;
-  my @oPps = _getPpsTree( 0, %hInfo, $bData, @raDone ); # @raDone is my own
+my @aDone;
+  my @oPps = _getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
   @oPps;
 }
 
@@ -88,21 +88,21 @@ method _initParse( $filename ) {
   self._getHeaderInfo( $oIo );
 }
 
-sub _getPpsTree( Int $iNo, %hInfo, $bData, @raDone ) {
-  if @raDone.elems {
-    return () if grep { $_ == $iNo }, @raDone;
+sub _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
+  if @aDone.elems {
+    return () if grep { $_ == $iNo }, @aDone;
   }
   else {
-    @raDone = ();
+    @aDone = ();
   }
-  @raDone.append: $iNo;
+  @aDone.append: $iNo;
 
   my Int $iRootBlock = %hInfo<_ROOT_START>;
 
   my $oPps = _getNthPps( $iNo, %hInfo, $bData );
 
   if $oPps.DirPps != 2**32 - 1 {
-    my @aChildL = _getPpsTree( $oPps.DirPps, %hInfo, $bData, @raDone );
+    my @aChildL = _getPpsTree( $oPps.DirPps, %hInfo, $bData, @aDone );
     $oPps.Child = @aChildL;
   }
   else {
@@ -110,29 +110,29 @@ sub _getPpsTree( Int $iNo, %hInfo, $bData, @raDone ) {
   }
 
   my @aList = ( );
-  @aList.append: _getPpsTree( $oPps.PrevPps, %hInfo, $bData, @raDone ) if
+  @aList.append: _getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
     $oPps.PrevPps != 2**32 - 1;
   @aList.append: $oPps;
-  @aList.append: _getPpsTree( $oPps.NextPps, %hInfo, $bData, @raDone ) if
+  @aList.append: _getPpsTree( $oPps.NextPps, %hInfo, $bData, @aDone ) if
     $oPps.NextPps != 2**32 - 1;
   @aList;
 }
 
-sub _getPpsSearch( Int $iNo, %hInfo, @raName, $bData, Int $iCase, @raDone ) {
+sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
   my $iRootBlock = %hInfo<_ROOT_START>;
   my @aRes;
 
-  if @raDone.elems {
-    return () if grep { $_ == $iNo }, @raDone;
+  if @aDone.elems {
+    return () if grep { $_ == $iNo }, @aDone;
   }
   else {
-    @raDone = ( );
+    @aDone = ( );
   }
 
-  @raDone.append: $iNo;
+  @aDone.append: $iNo;
   my $oPps = _getNthPps( $iNo, %hInfo, Nil );
-  if ( $iCase && grep { fc( $oPps.Name ) eq fc( $_ ) }, @raName ) or
-       grep { $oPps.Name eq $_ }, @raName {
+  if ( $iCase && grep { fc( $oPps.Name ) eq fc( $_ ) }, @aName ) or
+       grep { $oPps.Name eq $_ }, @aName {
     $oPps = _getNthPps( $iNo, %hInfo, $bData ) if $bData;
     @aRes = $oPps;
   }
@@ -140,11 +140,11 @@ sub _getPpsSearch( Int $iNo, %hInfo, @raName, $bData, Int $iCase, @raDone ) {
     @aRes = ( );
   }
 
-  @aRes.append: _getPpsSearch( $oPps.DirPps, %hInfo, @raName, $bData, $iCase, @raDone ) if
+  @aRes.append: _getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
     $oPps.DirPps != 2**32 - 1;
-  @aRes.append: _getPpsSearch( $oPps.PrevPps, %hInfo, @raName, $bData, $iCase, @raDone ) if
+  @aRes.append: _getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
     $oPps.PrevPps != 2**32 - 1;
-  @aRes.append: _getPpsSearch( $oPps.NextPps, %hInfo, @raName, $bData, $iCase, @raDone ) if
+  @aRes.append: _getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
     $oPps.NextPps != 2**32 - 1;
 
   @aRes;
@@ -292,10 +292,10 @@ sub _getNthPps( Int $iPos, %hInfo, $bData ) {
   my $lPpsPrev  = $sWk.subbuf( 0x44, LONGINT-SIZE ).unpack: "V";
   my $lPpsNext  = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack: "V";
   my $lDirPps   = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack: "V";
-  my @raTime1st =
+  my @aTime1st =
      (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
         OLEDate2Local( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
-  my @raTime2nd =
+  my @aTime2nd =
      (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
         OLEDate2Local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack: "VV";
@@ -304,14 +304,14 @@ sub _getNthPps( Int $iPos, %hInfo, $bData ) {
 #    return OLE::Storage_Lite::PPS.new
     return createPps(
       $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
-      @raTime1st, @raTime2nd, $iStart, $iSize, $sData, Nil
+      @aTime1st, @aTime2nd, $iStart, $iSize, $sData, Nil
     );
   }
   else {
 #    return OLE::Storage_Lite::PPS.new
     return createPps(
       $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
-      @raTime1st, @raTime2nd, $iStart, $iSize
+      @aTime1st, @aTime2nd, $iStart, $iSize
     );
   }
 }
@@ -503,7 +503,7 @@ my $time;
 # The bless() mechanism isn't working for me...
 # 
 sub createPps( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
-               @raTime1st, @raTime2nd, $iStart, $iSize, $sData?, @raChild? ) {
+               @aTime1st, @aTime2nd, $iStart, $iSize, $sData?, @aChild? ) {
   if $iType == 2 { #OLE::Storage_Lite::PPS-TYPE-FILE {
     OLE::Storage_Lite::PPS::File.new(
       :No( $iNo ),
@@ -512,12 +512,12 @@ sub createPps( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
       :PrevPps( $iPrev ),
       :NextPps( $iNext ),
       :DirPps( $iDir ),
-      :Time1st( @raTime1st ),
-      :Time2nd( @raTime2nd ),
+      :Time1st( @aTime1st ),
+      :Time2nd( @aTime2nd ),
       :StartBlock( $iStart ),
       :Size( $iSize ),
       :Data( $sData ),
-      :Child( @raChild )
+      :Child( @aChild )
     )
   }
   elsif $iType == 1 { #OLE::Storage_Lite::PPS-TYPE-DIR {
@@ -528,12 +528,12 @@ sub createPps( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
       :PrevPps( $iPrev ),
       :NextPps( $iNext ),
       :DirPps( $iDir ),
-      :Time1st( @raTime1st ),
-      :Time2nd( @raTime2nd ),
+      :Time1st( @aTime1st ),
+      :Time2nd( @aTime2nd ),
       :StartBlock( $iStart ),
       :Size( $iSize ),
       :Data( $sData ),
-      :Child( @raChild )
+      :Child( @aChild )
     )
   }
   elsif $iType == 5 { #OLE::Storage_Lite::PPS-TYPE-ROOT {
@@ -544,12 +544,12 @@ sub createPps( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
       :PrevPps( $iPrev ),
       :NextPps( $iNext ),
       :DirPps( $iDir ),
-      :Time1st( @raTime1st ),
-      :Time2nd( @raTime2nd ),
+      :Time1st( @aTime1st ),
+      :Time2nd( @aTime2nd ),
       :StartBlock( $iStart ),
       :Size( $iSize ),
       :Data( $sData ),
-      :Child( @raChild )
+      :Child( @aChild )
     )
   }
   else {
