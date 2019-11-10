@@ -13,6 +13,8 @@ use v6;
 
 unit class OLE::Storage_Lite::PPS;
 
+use experimental :pack;
+
 has Int $.No;
 has Str $.Name; # Gotten usually from Buffers, decoded to UTF-8...
 has Int $.Type;
@@ -26,65 +28,63 @@ has Int $.Size;
 has     $.Data;
 has     @.Child;
 
-# Specifically, this method right here gets moved up.
-#
-#sub new ($$$$$$$$$$;$$) {
-##1. Constructor for General Usage
-#  my($sClass, $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
-#     $raTime1st, $raTime2nd, $iStart, $iSize, $sData, $raChild) = @_;
-#
-#  if($iType == OLE::Storage_Lite::PpsType_File()) { #FILE
-#    return OLE::Storage_Lite::PPS::File->_new
-#        ($iNo, $sNm, $iType, $iPrev, $iNext, $iDir, $raTime1st, $raTime2nd,
-#         $iStart, $iSize, $sData, $raChild);
-#  }
-#  elsif($iType == OLE::Storage_Lite::PpsType_Dir()) { #DIRECTRY
-#    return OLE::Storage_Lite::PPS::Dir->_new
-#        ($iNo, $sNm, $iType, $iPrev, $iNext, $iDir, $raTime1st, $raTime2nd,
-#         $iStart, $iSize, $sData, $raChild);
-#  }
-#  elsif($iType == OLE::Storage_Lite::PpsType_Root()) { #ROOT
-#    return OLE::Storage_Lite::PPS::Root->_new
-#        ($iNo, $sNm, $iType, $iPrev, $iNext, $iDir, $raTime1st, $raTime2nd,
-#         $iStart, $iSize, $sData, $raChild);
-#  }
-#  else {
-#    die "Error PPS:$iType $sNm\n";
-#  }
-#}
+has Str $._PPS_FILE;
 
-#sub _new ($$$$$$$$$$$;$$) {
-#  my($sClass, $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
-#        $raTime1st, $raTime2nd, $iStart, $iSize, $sData, $raChild) = @_;
-##1. Constructor for OLE::Storage_Lite
-#  my $oThis = {
-#    No   => $iNo,
-#    Name => $sNm,
-#    Type => $iType,
-#    PrevPps => $iPrev,
-#    NextPps => $iNext,
-#    DirPps => $iDir,
-#    Time1st => $raTime1st,
-#    Time2nd => $raTime2nd,
-#    StartBlock => $iStart,
-#    Size       => $iSize,
-#    Data       => $sData,
-#    Child      => $raChild,
-#  };
-#  bless $oThis, $sClass;
-#  return $oThis;
-#}
+# The old 'new' methods really don't do anything special.
 
-##------------------------------------------------------------------------------
-## _DataLen (OLE::Storage_Lite::PPS)
-## Check for update
-##------------------------------------------------------------------------------
-#sub _DataLen($) {
-#    my($oSelf) =@_;
-#    return 0 unless(defined($oSelf->{Data}));
-#    return ($oSelf->{_PPS_FILE})?
-#        ($oSelf->{_PPS_FILE}->stat())[7] : length($oSelf->{Data});
-#}
+method _DataLen {
+  return 0 unless self.Data;
+  self._PPS_FILE ??
+    self._PPS_FILE.stat()[7] !!
+    self.Data.chars;
+}
+
+method _makeSmallData( @aList, %hInfo ) {
+  my Str $sRes;
+  my $FILE = %hInfo<_FILEH_>;
+  my Int $iSmBlk = 0;
+
+  for @aList -> $oPps {
+    if $oPps.Type == 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
+      next if $oPps.Size <= 0;
+      if $oPps.Size < %hInfo<_SMALL_SIZE> {
+        my Int $iSmbCnt;
+	$iSmbCnt = ( Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
+   	                ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
+
+	loop ( my $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
+	  $FILE.print: pack( "V", $i + $iSmBlk + 1 );
+	}
+	$FILE.print: pack( "V", -2 );
+
+	if $oPps._PPS_FILE {
+	  my $sBuff;
+	  $oPps._PPS_FILE.seek: 0, SeekFromBeginning;
+	  while $sBuff = $oPps._PPS_FILE.read: 4096 {
+	    $sRes ~= $sBuff;
+	  }
+	}
+	else {
+	  $sRes ~= $oPps.Data;
+	}
+
+	$sRes ~= ( "\x00" xx 
+	           ( %hInfo<_SMALL_BLOCK_SIZE> -
+		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ) if
+	  $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE>;
+	
+	$oPps.StartBlock = $iSmBlk;
+	$iSmBlk += $iSmbCnt;
+      }
+    }
+  }
+
+  my $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
+  $FILE.print: -1.pack( "V" ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) if
+    $iSmBlk % $iSbCnt;
+
+  $sRes;
+}
 
 #sub _makeSmallData($$$) {
 #  my($oThis, $aList, $rhInfo) = @_;
