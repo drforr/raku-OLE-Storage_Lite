@@ -15,7 +15,7 @@ plan 0;
 # Rewritten to be a test by Jeff G. (drforr)
 
 my $ole  = OLE::Storage_Lite.new( FILENAME );
-my @pps  = $ole.pps-tree();
+my @pps  = $ole.getPpsTree();
 warn @pps.perl;
 #my $tree = Utils::serialize_pps($pps);
 #
