@@ -109,44 +109,41 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #  return $rhInfo->{_FILEH_}->close if $closeFile;
 #}
 
-#sub _calcSize($$) {
-#  my($oThis, $raList, $rhInfo) = @_;
-#
-##0. Calculate Basic Setting
-#  my ($iSBDcnt, $iBBcnt, $iPPScnt) = (0,0,0);
-#  my $iSmallLen = 0;
-#  my $iSBcnt = 0;
-#  foreach my $oPps (@$raList) {
-#      if($oPps->{Type}==OLE::Storage_Lite::PpsType_File()) {
-#        $oPps->{Size} = $oPps->_DataLen();  #Mod
-#        if($oPps->{Size} < $rhInfo->{_SMALL_SIZE}) {
-#          $iSBcnt += int($oPps->{Size} / $rhInfo->{_SMALL_BLOCK_SIZE})
-#                          + (($oPps->{Size} % $rhInfo->{_SMALL_BLOCK_SIZE})? 1: 0);
-#        }
-#        else {
-#          $iBBcnt +=
-#            (int($oPps->{Size}/ $rhInfo->{_BIG_BLOCK_SIZE}) +
-#                (($oPps->{Size}% $rhInfo->{_BIG_BLOCK_SIZE})? 1: 0));
-#        }
-#      }
-#  }
-#  $iSmallLen = $iSBcnt * $rhInfo->{_SMALL_BLOCK_SIZE};
-#  my $iSlCnt = int($rhInfo->{_BIG_BLOCK_SIZE}/ OLE::Storage_Lite::LongIntSize());
-#  $iSBDcnt = int($iSBcnt / $iSlCnt)+ (($iSBcnt % $iSlCnt)? 1:0);
-#  $iBBcnt +=  (int($iSmallLen/ $rhInfo->{_BIG_BLOCK_SIZE}) +
-#                (( $iSmallLen% $rhInfo->{_BIG_BLOCK_SIZE})? 1: 0));
-#  my $iCnt = scalar(@$raList);
-#  my $iBdCnt = $rhInfo->{_BIG_BLOCK_SIZE}/OLE::Storage_Lite::PpsSize();
-#  $iPPScnt = (int($iCnt/$iBdCnt) + (($iCnt % $iBdCnt)? 1: 0));
-#  return ($iSBDcnt, $iBBcnt, $iPPScnt);
-#}
+method _calcSize( @aList, %hInfo ) {
+  my Int ( $iSBDcnt, $iBBcnt, $iPPScnt ) = ( 0, 0, 0 );
+  my Int $iSmallLen = 0;
+  my Int $iSBcnt = 0;
 
-#sub _adjust2($) {
-#  my($i2) = @_;
-#  my $iWk;
-#  $iWk = log($i2)/log(2);
-#  return ($iWk > int($iWk))? int($iWk)+1:$iWk;
-#}
+  for @aList -> $oPps {
+    if $oPps.Type == 2 { # PPS-TYPE-FILE
+      $oPps.Size = $oPps._DataLen(); # Mod
+      if $oPps.Size < %hInfo<_SMALL_SIZE> {
+	$iSBcnt += Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
+	              ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ?? 1 !! 0;
+      }
+      else {
+	$iBBcnt += Int( $oPps.Size / %hInfo<_BIG_BLOCK_SIZE> ) +
+  	              ( ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ?? 1 !! 0 );
+      }
+    }
+  }
+
+  $iSmallLen = $iSBcnt * %hInfo<_SMALL_BLOCK_SIZE>;
+  my Int $iSlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
+  $iSBDcnt = Int( $iSBcnt / $iSlCnt ) + ( ( $iSBcnt % $iSlCnt ) ?? 1 !! 0 );
+  $iSBcnt += Int( $iSmallLen / %hInfo<_BIG_BLOCK_SIZE> ) +
+                 ( ( $iSmallLen % %hInfo<_BIG_BLOCK_SIZE> ) ?? 1 !! 0 );
+  my Int $iCnt = @aList.elems;
+  my Int $iBdCnt = %hInfo<_BIG_BLOCK_SIZE> / 0x80; # PPS-SIZE
+  $iPPScnt = Int( $iCnt / $iBdCnt ) + ( ( $iCnt % $iBdCnt ) ?? 1 !! 0 );
+  return ( $iSBDcnt, $iBBcnt, $iPPScnt );
+}
+
+sub _adjust( Int $i2 ) {
+  my $iWk;
+  $iWk = log( $i2 ) / log(2);
+  ( $iWk > Int( $iWk ) ) ?? Int( $iWk ) + 1 !! $iWk;
+}
 
 #sub _saveHeader($$$$$) {
 #  my($oThis, $rhInfo, $iSBDcnt, $iBBcnt, $iPPScnt) = @_;
@@ -218,6 +215,9 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #    print {$FILE} ((pack("V", -1)) x($i1stBdL-$i)) if($i<$i1stBdL);
 #}
 
+method _saveBigData( Int $iStBlk, @aList, %hInfo ) {
+}
+
 #sub _saveBigData($$$$) {
 #  my($oThis, $iStBlk, $raList, $rhInfo) = @_;
 #  my $iRes = 0;
@@ -259,21 +259,19 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #  }
 #}
 
-#sub _savePps($$$) {
-#  my($oThis, $raList, $rhInfo) = @_;
-##0. Initial
-#  my $FILE = $rhInfo->{_FILEH_};
-##2. Save PPS
-#  foreach my $oItem (@$raList) {
-#      $oItem->_savePpsWk($rhInfo);
-#  }
-##3. Adjust for Block
-#  my $iCnt = scalar(@$raList);
-#  my $iBCnt = $rhInfo->{_BIG_BLOCK_SIZE} / $rhInfo->{_PPS_SIZE};
-#  print {$FILE} ("\x00" x (($iBCnt - ($iCnt % $iBCnt)) * $rhInfo->{_PPS_SIZE}))
-#        if($iCnt % $iBCnt);
-#  return int($iCnt / $iBCnt) + (($iCnt % $iBCnt)? 1: 0);
-#}
+method _savePps( @aList, %hInfo ) {
+  my $FILE = %hInfo<_FILEH_>;
+
+  for @aList -> $oItem {
+    $oItem._savePpsWk( %hInfo );
+  }
+
+  my Int $iCnt = @aList.elems;
+  my Int $iBCnt = %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_PPS_SIZE>;
+  $FILE.print: "\x00" xx ( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> )
+    if $iCnt % $iBCnt;
+  Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
+}
 
 ##------------------------------------------------------------------------------
 ## _savePpsSetPnt2 (OLE::Storage_Lite::PPS::Root)
