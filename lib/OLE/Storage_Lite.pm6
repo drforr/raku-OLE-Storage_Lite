@@ -71,13 +71,13 @@ my @aDone;
 
 method getPpsSearch( $raName, $bData?, Int $iCase? ) {
   my $rhInfo = self._initParse( $._FILE );
-  my @aList = _getPpsSearch( 0, $rhInfo, $raName, $bData, $iCase );
+  my @aList  = _getPpsSearch( 0, $rhInfo, $raName, $bData, $iCase );
   @aList;
 }
 
 method getNthPps( Int $iNo, $bData? ) {
   my $rhInfo = self._initParse( $._FILE );
-  my $oPps = _getNthPps( $iNo, $rhInfo, $bData );
+  my $oPps   = _getNthPps( $iNo, $rhInfo, $bData );
   $oPps;
 }
 
@@ -85,7 +85,7 @@ method getNthPps( Int $iNo, $bData? ) {
 #
 method _initParse( $filename ) {
   my $oIo = open $filename;
-  self._getHeaderInfo( $oIo );
+  _getHeaderInfo( $oIo );
 }
 
 sub _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
@@ -95,7 +95,7 @@ sub _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   else {
     @aDone = ();
   }
-  @aDone.append( $iNo );
+  append @aDone, $iNo;
 
   my Int $iRootBlock = %hInfo<_ROOT_START>;
 
@@ -110,16 +110,16 @@ sub _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   }
 
   my @aList = ( );
-  @aList.append( _getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) ) if
+  append @aList, _getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
     $oPps.PrevPps != 2**32 - 1;
-  @aList.append( $oPps );
-  @aList.append( _getPpsTree( $oPps.NextPps, %hInfo, $bData, @aDone ) ) if
+  append @aList, $oPps;
+  append @aList, _getPpsTree( $oPps.NextPps, %hInfo, $bData, @aDone ) if
     $oPps.NextPps != 2**32 - 1;
   @aList;
 }
 
 sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
-  my $iRootBlock = %hInfo<_ROOT_START>;
+  my Int $iRootBlock = %hInfo<_ROOT_START>;
   my @aRes;
 
   if @aDone.elems {
@@ -129,7 +129,7 @@ sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
     @aDone = ( );
   }
 
-  @aDone.append( $iNo );
+  append @aDone, $iNo;
   my $oPps = _getNthPps( $iNo, %hInfo, Nil );
   if ( $iCase && grep { fc( $oPps.Name ) eq fc( $_ ) }, @aName ) or
        grep { $oPps.Name eq $_ }, @aName {
@@ -140,17 +140,17 @@ sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
     @aRes = ( );
   }
 
-  @aRes.append( _getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone ) ) if
+  append @aRes, _getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
     $oPps.DirPps != 2**32 - 1;
-  @aRes.append( _getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone ) ) if
+  append @aRes, _getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
     $oPps.PrevPps != 2**32 - 1;
-  @aRes.append( _getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone ) ) if
+  append @aRes, _getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
     $oPps.NextPps != 2**32 - 1;
 
   @aRes;
 }
 
-method _getHeaderInfo( $FILE ) {
+sub _getHeaderInfo( $FILE ) {
   my %hInfo =
     _FILEH_ => $FILE
   ;
@@ -224,15 +224,15 @@ sub _getBbdInfo( %hInfo ) {
   my Int $iBdbCnt = %hInfo<_BDB_COUNT>;
   my Int $iGetCnt;
   my Buf $sWk;
-  my Int $i1stCnt = Int((%hInfo<_BIG_BLOCK_SIZE> - 0x4c) / LONGINT-SIZE);
-  my Int $iBdlCnt = Int(%hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE) - 1;
+  my Int $i1stCnt = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
+  my Int $iBdlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE ) - 1;
 
   # 1st BDList
   #
   %hInfo<_FILEH_>.seek( 0x4c, SeekFromBeginning );
-  $iGetCnt = ($iBdbCnt < $i1stCnt) ?? $iBdbCnt !! $i1stCnt;
+  $iGetCnt = ( $iBdbCnt < $i1stCnt ) ?? $iBdbCnt !! $i1stCnt;
   $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE + $iGetCnt );
-  @aBdList.append( $sWk.unpack( "V$iGetCnt" ) );
+  append @aBdList, $sWk.unpack( "V$iGetCnt" );
   $iBdbCnt -= $iGetCnt;
 
   # Extra BDList
@@ -242,7 +242,7 @@ sub _getBbdInfo( %hInfo ) {
     _setFilePos( $iBlock, 0, %hInfo );
     $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
     $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE + $iGetCnt );
-    @aBdList.append( $sWk.unpack( "V$iGetCnt" ) );
+    append @aBdList, $sWk.unpack( "V$iGetCnt" );
     $iBdbCnt -= $iGetCnt;
     $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE );
     $iBlock = $sWk.unpack( "V" );
@@ -253,14 +253,12 @@ sub _getBbdInfo( %hInfo ) {
   my @aWk;
   my %hBd;
   my Int $iBlkNo = 0;
-  #my Int $iBdL;
-  #my $i;
   my Int $iBdCnt = Int(%hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE);
   for @aBdList -> $iBdL {
     _setFilePos( $iBdL, 0, %hInfo );
     $sWk = %hInfo<_FILEH_>.read( %hInfo<_BIG_BLOCK_SIZE> );
     @aWk = $sWk.unpack( "V$iBdCnt" );
-    loop ( my $i = 0; $i < $iBdCnt ; $i++, $iBlkNo++ ) {
+    loop ( my Int $i = 0; $i < $iBdCnt ; $i++, $iBlkNo++ ) {
       if @aWk[$i] != $iBlkNo + 1 {
 	%hBd{$iBlkNo} = @aWk[$i];
       }
@@ -293,14 +291,14 @@ sub _getNthPps( Int $iPos, %hInfo, $bData ) {
   my $lPpsNext  = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack( "V" );
   my $lDirPps   = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack( "V" );
   my @aTime1st =
-     (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
-        OLEDate2Local( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
+     ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
+         OLEDate2Local( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
   my @aTime2nd =
-     (( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
-        OLEDate2Local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
+     ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
+         OLEDate2Local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack( "VV" );
   if $bData {
-    my $sData = _getData( $iType, $iStart, $iSize, %hInfo );
+    my Str $sData = _getData( $iType, $iStart, $iSize, %hInfo );
 #    return OLE::Storage_Lite::PPS.new
     return createPps(
       $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
@@ -326,7 +324,7 @@ sub _setFilePos( Int $iBlock, Int $iPos, %hInfo ) {
 sub _getNthBlockNo( Int $iStBlock, Int $iNth, %hInfo ) {
   my Int $iSv;
   my Int $iNext = $iStBlock;
-  loop ( my $i = 0; $i < $iNth; $i++ ) {
+  loop ( my Int $i = 0; $i < $iNth; $i++ ) {
     $iSv = $iNext;
     $iNext = _getNextBlockNo( $iSv, %hInfo );
     return Nil unless _isNormalBlock( $iNext );
@@ -335,24 +333,30 @@ sub _getNthBlockNo( Int $iStBlock, Int $iNth, %hInfo ) {
 }
 
 sub _getData( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
-  if $iType == PPS-TYPE-FILE {
-    if $iSize < DATA-SIZE {
-      return _getSmallDat( $iBlock, $iSize, %hInfo );
+  given $iType {
+    when PPS-TYPE-FILE {
+      if $iSize < DATA-SIZE {
+        return _getSmallData( $iBlock, $iSize, %hInfo );
+      }
+      else {
+        return _getBigData( $iBlock, $iSize, %hInfo );
+      }
     }
-    else {
+    when PPS-TYPE-ROOT {
       return _getBigData( $iBlock, $iSize, %hInfo );
     }
-  }
-  elsif $iType == PPS-TYPE-ROOT {
-    return _getBigData( $iBlock, $iSize, %hInfo );
-  }
-  elsif $iType == PPS-TYPE-DIR {
-    return;
+    when PPS-TYPE-DIR {
+      return;
+    }
+    default {
+      die "Can't get data from unknown type $iType\n";
+    }
   }
 }
 
 sub _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
-  my ( $iRest, $sWk, $sRes );
+  my Int $iRest;
+  my Str ( $sWk, $sRes );
 
   return '' unless _isNormalBlock( $iBlock );
   $iRest = $iSize;
@@ -366,7 +370,7 @@ sub _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
     $i = $iNKey - $iBlock;
     $iNext = %hInfo<_BBD_INFO>{$iNKey};
     _setFilePos( $iBlock, 0, %hInfo );
-    my $iGetSize = %hInfo<_BIG_BLOCK_SIZE> * ($i + 1);
+    my Int $iGetSize = %hInfo<_BIG_BLOCK_SIZE> * ($i + 1);
     $iGetSize = $iRest if $iRest < $iGetSize;
     $sWk = %hInfo<_FILEH_>.read( $iGetSize );
     $sRes ~= $sWk;
@@ -385,7 +389,7 @@ sub _isNormalBlock( Int $iBlock ) {
   $iBlock < 0xFFFFFFFC;
 }
 
-sub _getSmallDat( Int $iSmBlock, Int $iSize, %hInfo ) {
+sub _getSmallData( Int $iSmBlock, Int $iSize, %hInfo ) {
   my ( $sRes, $sWk );
   my Int $iRest = $iSize;
   $sRes = '';
@@ -415,10 +419,10 @@ sub _setFilePosSmall( Int $iSmBlock, %hInfo ) {
 sub _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
   my Buf $sWk;
 
-  my $iBaseCnt = %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE;
-  my $iNth = Int( $iSmBlock / $iBaseCnt );
-  my $iPos = $iSmBlock % $iBaseCnt;
-  my $iBlk = _getNthBlockNo( %hInfo<_SBD_START>, $iNth, %hInfo );
+  my Int $iBaseCnt = %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE;
+  my Int $iNth = Int( $iSmBlock / $iBaseCnt );
+  my Int $iPos = $iSmBlock % $iBaseCnt;
+  my Int $iBlk = _getNthBlockNo( %hInfo<_SBD_START>, $iNth, %hInfo );
   _setFilePos( $iBlk, $iPos * LONGINT-SIZE, %hInfo );
   $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE );
   return $sWk.unpack( "V" );
