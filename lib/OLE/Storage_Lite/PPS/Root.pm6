@@ -2,6 +2,8 @@ use v6;
 
 use OLE::Storage_Lite::PPS;
 
+use experimental :pack;
+
 unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 
 #sub new ($;$$$) {
@@ -234,19 +236,19 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	if $oPps._PPS_FILE {
 	  my $sBuff;
 	  my Int $iLen = 0;
-	  $oPps._PPS_FILE.seek: 0, SeekFromBeginning; # 0, 0
+	  $oPps._PPS_FILE.seek( 0, SeekFromBeginning ); # 0, 0
 	  while $sBuff = $oPps._PPS_FILE.read: 4096 {
 	    $iLen += $sBuff.chars;
-	    $FILE.print: $sBuff;
+	    $FILE.print( $sBuff );
 	  }
 	}
 	else {
-	  $FILE.print: $oPps.Data;
+	  $FILE.print( $oPps.Data );
 	}
-	$FILE.print:
+	$FILE.print(
 	  "\x00" xx ( %hInfo<_BIG_BLOCK_SIZE> -
-	              ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) if
-	    $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
+	              ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) )
+	) if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
 
 	$oPps.StartBlock = $iStBlk;
 	$iStBlk += Int( $oPps.Size / %hInfo<_BIG_BLOCK_SIZE> ) +
@@ -265,7 +267,8 @@ method _savePps( @aList, %hInfo ) {
 
   my Int $iCnt = @aList.elems;
   my Int $iBCnt = %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_PPS_SIZE>;
-  $FILE.print: "\x00" xx ( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> )
+  $FILE.print( "\x00" xx
+               ( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> ) )
     if $iCnt % $iBCnt;
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
 }
@@ -447,7 +450,7 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
     loop {
       $iBdCnt = Int( ( $iBBleftover / $iBlCnt ) + ( ( $iBBleftover % $iBlCnt ) ?? 1 !! 0 ) );
       $iBdExL = Int( $iBdCnt / $iBlCnt ) + ( ( $iBdCnt % $iBlCnt ) ?? 1 !! 0 );
-      $iBBleftover + $iBdExL;
+      $iBBleftover = $iBBleftover + $iBdExL;
       last if $iBdCnt == Int( $iBBleftover / $iBlCnt ) +
                             ( ( $iBBleftover % $iBlCnt ) ?? 1 !! 0 );
     }
@@ -459,40 +462,41 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   #
   if $iSbdSize > 0 {
     loop ( $i = 0 ; $i < $iSbdSize - 1 ; $i++ ) {
-      $FILE.print: "V".pack( $i + 1 );
+      $FILE.print( pack( "V", $i + 1 ) );
     }
-    $FILE.print: "V".pack( -2 );
+    $FILE.print( "V".pack( -2 ) );
   }
 
   # Set for B
   #
   loop ( $i = 0 ; $i < $iBsize - 1 ; $i++ ) {
-    $FILE.print: "V".pack( $i + $iSbdSize + 1 );
+    $FILE.print( "V".pack( $i + $iSbdSize + 1 ) );
   }
-  $FILE.print: "V".pack( -2 );
+  $FILE.print( "V".pack( -2 ) );
 
   # Set for PPS
   #
   loop ( $i = 0 ; $i < $iPpsCnt - 1 ; $i++ ) {
-    $FILE.print: "V".pack( $i + $iSbdSize + $iBsize + 1 );
+    $FILE.print( "V".pack( $i + $iSbdSize + $iBsize + 1 ) );
   }
-  $FILE.print: "V".pack( -2 );
+  $FILE.print( "V".pack( -2 ) );
 
   # Set for BBD itself ( 0xFFFFFFFD : BBD )
   #
   loop ( $i = 0 ; $i < $iBdCnt ; $i++ ) {
-    $FILE.print: "V".pack( 0xFFFFFFFD );
+    $FILE.print( "V".pack( 0xFFFFFFFD ) );
   }
 
   # Set for ExtraBDList
   #
   loop ( $i = 0 ; $i < $iBdExL ; $i++ ) {
-    $FILE.pack: "V".pack( 0xFFFFFFFC );
+    $FILE.pack( "V".pack( 0xFFFFFFFC ) );
   }
 
   # Adjust for Block
   #
-  $FILE.print: ( "V".pack( -1 ) ) xx ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) )
+  $FILE.print( ( "V".pack( -1 ) ) xx
+                 ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
     if $iAllW + $iBdCnt % $iBbCnt;
 
   # Extra BDList
@@ -504,11 +508,11 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
       if $iN >= $iBbCnt - 1 {
 	$iN = 0;
 	$iNb++;
-	$FILE;print: "V".pack( $iAll + $iBdCnt + $iNb );
+	$FILE.print( "V".pack( $iAll + $iBdCnt + $iNb ) );
       }
-      $FILE.print: ( "V".pack( -1 ) ) xx ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) )
+      $FILE.print( ( "V".pack( -1 ) ) xx ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) )
         if $iBdCnt - $i1stBdL % $iBbCnt - 1;
-      $FILE.print: "V".pack( -2 );
+      $FILE.print( "V".pack( -2 ) );
     }
   }
 }

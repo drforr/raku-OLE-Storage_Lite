@@ -16,7 +16,7 @@ method newFile( $sNm, $sFile? ) {
 
 method append( Str $sData ) {
   if self._PPS_FILE {
-    self._PPS_FILE.print: $sData;
+    self._PPS_FILE.print( $sData );
   }
   else {
     self.Data ~= $sData;

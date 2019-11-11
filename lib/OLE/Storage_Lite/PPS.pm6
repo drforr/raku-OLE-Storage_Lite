@@ -53,14 +53,14 @@ method _makeSmallData( @aList, %hInfo ) {
    	                ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
 
 	loop ( my $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
-	  $FILE.print: pack( "V", $i + $iSmBlk + 1 );
+	  $FILE.print( pack( "V", $i + $iSmBlk + 1 ) );
 	}
-	$FILE.print: pack( "V", -2 );
+	$FILE.print( pack( "V", -2 ) );
 
 	if $oPps._PPS_FILE {
 	  my $sBuff;
-	  $oPps._PPS_FILE.seek: 0, SeekFromBeginning;
-	  while $sBuff = $oPps._PPS_FILE.read: 4096 {
+	  $oPps._PPS_FILE.seek( 0, SeekFromBeginning );
+	  while $sBuff = $oPps._PPS_FILE.read( 4096 ) {
 	    $sRes ~= $sBuff;
 	  }
 	}
@@ -80,7 +80,7 @@ method _makeSmallData( @aList, %hInfo ) {
   }
 
   my $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
-  $FILE.print: -1.pack( "V" ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) if
+  $FILE.print( -1.pack( "V" ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
     $iSmBlk % $iSbCnt;
 
   $sRes;
@@ -89,7 +89,7 @@ method _makeSmallData( @aList, %hInfo ) {
 method _savePpsWk( %rhInfo ) {
   my $FILE = %rhInfo.<_FILEH_>;
 
-  $FILE.print:
+  $FILE.print(
     self.Name
     ~ ( "\x80" xx ( 64 - self.Name.chars ) )                           # 64
     ~ ( ( self.Name.chars + 2 ).pack: "v" )                            # 66
@@ -108,5 +108,5 @@ method _savePpsWk( %rhInfo ) {
     ~ ( defined( self.StartBlock ?? self.StartBlock !! 0 ) ).pack: "V" # 120
     ~ ( defined( self.size ?? self.Size !! 0 ) ).pack: "V"             # 124
     ~ 0.pack: "V"                                                      # 128
-  ;
+  );
 }
