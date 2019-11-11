@@ -50,6 +50,7 @@ constant PPS-TYPE-FILE = 2;
 constant PPS-TYPE-ROOT = 5;
 
 constant DATA-SIZE    = 0x1000; # Upper limit of Data size, fallback to file
+constant INT-SIZE     = 2;
 constant LONGINT-SIZE = 4;
 constant PPS-SIZE     = 0x80;
 
@@ -69,15 +70,15 @@ my @aDone;
   @oPps;
 }
 
-method getPpsSearch( $raName, $bData?, Int $iCase? ) {
-  my $rhInfo = self._initParse( $._FILE );
-  my @aList  = _getPpsSearch( 0, $rhInfo, $raName, $bData, $iCase );
+method getPpsSearch( @aName, $bData?, Int $iCase? ) {
+  my %hInfo = self._initParse( $._FILE );
+  my @aList = _getPpsSearch( 0, %hInfo, @aName, $bData, $iCase );
   @aList;
 }
 
 method getNthPps( Int $iNo, $bData? ) {
-  my $rhInfo = self._initParse( $._FILE );
-  my $oPps   = _getNthPps( $iNo, $rhInfo, $bData );
+  my %hInfo = self._initParse( $._FILE );
+  my $oPps  = _getNthPps( $iNo, %hInfo, $bData );
   $oPps;
 }
 
@@ -286,7 +287,7 @@ sub _getNthPps( Int $iPos, %hInfo, $bData ) {
   my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack( "v" );
   $iNmSize = ( $iNmSize > 2 ) ?? $iNmSize - 2 !! $iNmSize;
   my Buf $sNm   = $sWk.subbuf( 0, $iNmSize );
-  my Int $iType = $sWk.subbuf( 0x42, 2 ).unpack( "C" );
+  my Int $iType = $sWk.subbuf( 0x42, INT-SIZE ).unpack( "C" );
   my $lPpsPrev  = $sWk.subbuf( 0x44, LONGINT-SIZE ).unpack( "V" );
   my $lPpsNext  = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack( "V" );
   my $lDirPps   = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack( "V" );

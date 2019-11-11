@@ -24,92 +24,56 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 #        $raChild);
 #}
 
-#sub save($$;$$) {
-#  my($oThis, $sFile, $bNoAs, $rhInfo) = @_;
-#  #0.Initial Setting for saving
-#  $rhInfo = {} unless($rhInfo);
-#  $rhInfo->{_BIG_BLOCK_SIZE}  = 2**
-#                (($rhInfo->{_BIG_BLOCK_SIZE})?
-#                    _adjust2($rhInfo->{_BIG_BLOCK_SIZE})  : 9);
-#  $rhInfo->{_SMALL_BLOCK_SIZE}= 2 **
-#                (($rhInfo->{_SMALL_BLOCK_SIZE})?
-#                    _adjust2($rhInfo->{_SMALL_BLOCK_SIZE}): 6);
-#  $rhInfo->{_SMALL_SIZE} = 0x1000;
-#  $rhInfo->{_PPS_SIZE} = 0x80;
-#
-#  my $closeFile = 1;
-#
-#  #1.Open File
-#  #1.1 $sFile is Ref of scalar
-#  if(ref($sFile) eq 'SCALAR') {
-#    require IO::Scalar;
-#    my $oIo = new IO::Scalar $sFile, O_WRONLY;
-#    $rhInfo->{_FILEH_} = $oIo;
-#  }
-#  #1.1.1 $sFile is a IO::Scalar object
-#  # Now handled as a filehandle ref below.
-#
-#  #1.2 $sFile is a IO::Handle object
-#  elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
-#    # Not all filehandles support binmode() so try it in an eval.
-#    eval{ binmode $sFile };
-#    $rhInfo->{_FILEH_} = $sFile;
-#  }
-#  #1.3 $sFile is a simple filename string
-#  elsif(!ref($sFile)) {
-#    if($sFile ne '-') {
-#        my $oIo = new IO::File;
-#        $oIo->open(">$sFile") || return undef;
-#        binmode($oIo);
-#        $rhInfo->{_FILEH_} = $oIo;
-#    }
-#    else {
-#        my $oIo = new IO::Handle;
-#        $oIo->fdopen(fileno(STDOUT),"w") || return undef;
-#        binmode($oIo);
-#        $rhInfo->{_FILEH_} = $oIo;
-#    }
-#  }
-#  #1.4 Assume that if $sFile is a ref then it is a valid filehandle
-#  else {
-#    # Not all filehandles support binmode() so try it in an eval.
-#    eval{ binmode $sFile };
-#    $rhInfo->{_FILEH_} = $sFile;
-#    # Caller controls filehandle closing
-#    $closeFile = 0;
-#  }
-#
-#  my $iBlk = 0;
-#  #1. Make an array of PPS (for Save)
-#  my @aList=();
-#  if($bNoAs) {
-#    _savePpsSetPnt2([$oThis], \@aList, $rhInfo);
-#  }
-#  else {
-#    _savePpsSetPnt([$oThis], \@aList, $rhInfo);
-#  }
-#  my ($iSBDcnt, $iBBcnt, $iPPScnt) = $oThis->_calcSize(\@aList, $rhInfo);
-#
-#  #2.Save Header
-#  $oThis->_saveHeader($rhInfo, $iSBDcnt, $iBBcnt, $iPPScnt);
-#
-#  #3.Make Small Data string (write SBD)
-#  my $sSmWk = $oThis->_makeSmallData(\@aList, $rhInfo);
-#  $oThis->{Data} = $sSmWk;  #Small Datas become RootEntry Data
-#
-#  #4. Write BB
-#  my $iBBlk = $iSBDcnt;
-#  $oThis->_saveBigData(\$iBBlk, \@aList, $rhInfo);
-#
-#  #5. Write PPS
-#  $oThis->_savePps(\@aList, $rhInfo);
-#
-#  #6. Write BD and BDList and Adding Header informations
-#  $oThis->_saveBbd($iSBDcnt, $iBBcnt, $iPPScnt,  $rhInfo);
-#
-#  #7.Close File
-#  return $rhInfo->{_FILEH_}->close if $closeFile;
-#}
+method save( $sFile, $bNoAs?, %hInfo? ) {
+  %hInfo<_BIG_BLOCK_SIZE> =
+    2**( %hInfo<_BIG_BLOCK_SIZE> ??
+         _adjust2( %hInfo<_BIG_BLOCK_SIZE> ) !! 9 );
+  %hInfo<_SMALL_BLOCK_SIZE> =
+    2**( %hInfo<_SMALL_BLOCK_SIZE> ??
+         _adjust2( %hInfo<_SMALL_BLOCK_SIZE> ) !! 6 );
+  %hInfo<_SMALL_SIZE> = 0x1000;
+  %hInfo<_PPS_SIZE>   = 0x80;
+
+  # sFile is Ref of scalar
+  #
+  %hInfo<_FILEH_> = open $sFile;
+
+  my Int $iBlk = 0;
+
+  # Make an array of PPS
+  #
+  my @aList = ( );
+my @thisList = self;
+  if $bNoAs {
+    _savePpsSetPnt2( @thisList, @aList, %hInfo ); 
+  }
+  else {
+    _savePpsSetPnt( @thisList, @aList, %hInfo );
+  }
+  my Int ( $iSBDcnt, $iBBcnt, $iPPScnt ) = self._calcSize( @aList, %hInfo );
+
+  # Save header
+  #
+  self._saveHeader( %hInfo, $iSBDcnt, $iBBcnt, $iPPScnt );
+
+  # Make small data string
+  #
+  my Str $sSmWk = self._makeSmallData( @aList, %hInfo );
+  self.Data = $sSmWk; # Small data's become RootEntry Data
+
+  # Write BB
+  #
+  my Int $iBBlk = $iSBDcnt;
+  self._saveBigData( $iBBlk, @aList, %hInfo );
+
+  # Write PPS
+  #
+  self._savePps( @aList, %hInfo );
+
+  # Write BD and BDList and Adding Header Information
+  #
+  self._saveBbd( $iSBDcnt, $iBBcnt, $iPPScnt, %hInfo );
+}
 
 method _calcSize( @aList, %hInfo ) {
   my Int ( $iSBDcnt, $iBBcnt, $iPPScnt ) = ( 0, 0, 0 );
@@ -141,15 +105,18 @@ method _calcSize( @aList, %hInfo ) {
   return ( $iSBDcnt, $iBBcnt, $iPPScnt );
 }
 
-sub _adjust( Int $i2 ) {
+sub _adjust2( Int $i2 ) {
   my $iWk;
   $iWk = log( $i2 ) / log(2);
   ( $iWk > Int( $iWk ) ) ?? Int( $iWk ) + 1 !! $iWk;
 }
 
+method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
+  my $pFile = %hInfo<_FILEH_>;
+}
+
 #sub _saveHeader($$$$$) {
-#  my($oThis, $rhInfo, $iSBDcnt, $iBBcnt, $iPPScnt) = @_;
-#  my $FILE = $rhInfo->{_FILEH_};
+#  my pFILE = $rhInfo->{_FILEH_};
 #
 ##0. Calculate Basic Setting
 #  my $iBlCnt = $rhInfo->{_BIG_BLOCK_SIZE} / OLE::Storage_Lite::LongIntSize();
@@ -273,6 +240,9 @@ method _savePps( @aList, %hInfo ) {
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
 }
 
+sub _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
+}
+
 ##------------------------------------------------------------------------------
 ## _savePpsSetPnt2 (OLE::Storage_Lite::PPS::Root)
 ##  For Test
@@ -315,6 +285,9 @@ method _savePps( @aList, %hInfo ) {
 #  }
 #}
 
+sub _savePpsSetPnt2s( @aThis, @aList, %hInfo ) {
+}
+
 ##------------------------------------------------------------------------------
 ## _savePpsSetPnt2 (OLE::Storage_Lite::PPS::Root)
 ##  For Test
@@ -354,6 +327,9 @@ method _savePps( @aList, %hInfo ) {
 #      return $aThis->[$iPos]->{No};
 #  }
 #}
+
+sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
+}
 
 #sub _savePpsSetPnt($$$) {
 #  my($aThis, $raList, $rhInfo) = @_;

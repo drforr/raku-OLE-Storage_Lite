@@ -52,13 +52,13 @@ method _makeSmallData( @aList, %hInfo ) {
 	$iSmbCnt = ( Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
    	                ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
 
-	loop ( my $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
+	loop ( my Int $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
 	  $FILE.print( pack( "V", $i + $iSmBlk + 1 ) );
 	}
 	$FILE.print( pack( "V", -2 ) );
 
 	if $oPps._PPS_FILE {
-	  my $sBuff;
+	  my Buf $sBuff;
 	  $oPps._PPS_FILE.seek( 0, SeekFromBeginning );
 	  while $sBuff = $oPps._PPS_FILE.read( 4096 ) {
 	    $sRes ~= $sBuff;
@@ -79,7 +79,7 @@ method _makeSmallData( @aList, %hInfo ) {
     }
   }
 
-  my $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
+  my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
   $FILE.print( -1.pack( "V" ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
     $iSmBlk % $iSbCnt;
 
