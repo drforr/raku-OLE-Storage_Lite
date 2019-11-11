@@ -247,49 +247,38 @@ method _savePps( @aList, %hInfo ) {
 }
 
 sub _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
-}
+  # If no child relations
+  #
+  if @aThis.elems <= 0 {
+    return 0xffffffff;
+  }
+  elsif @aThis.elems == 1 {
+    append @aList, @aThis[0];
+    @aThis[0]<No> = @aList.elems;
+    @aThis[0]<PrevPps> = 0xffffffff;
+    @aThis[0]<NextPps> = 0xffffffff;
+    @aThis[0]<DirPps> =
+      _savePpsSetPnt2( @aThis[0]<Child>, @aList, %hInfo );
+    return @aThis[0]<No>;
+  }
+  else {
+    my Int $iCnt = @aThis.elems;
+    my Int $iPos = 0;
 
-##------------------------------------------------------------------------------
-## _savePpsSetPnt2 (OLE::Storage_Lite::PPS::Root)
-##  For Test
-##------------------------------------------------------------------------------
-#sub _savePpsSetPnt2($$$) {
-#  my($aThis, $raList, $rhInfo) = @_;
-##1. make Array as Children-Relations
-##1.1 if No Children
-#  if($#$aThis < 0) {
-#      return 0xFFFFFFFF;
-#  }
-#  elsif($#$aThis == 0) {
-##1.2 Just Only one
-#      push @$raList, $aThis->[0];
-#      $aThis->[0]->{No} = $#$raList;
-#      $aThis->[0]->{PrevPps} = 0xFFFFFFFF;
-#      $aThis->[0]->{NextPps} = 0xFFFFFFFF;
-#      $aThis->[0]->{DirPps} = _savePpsSetPnt2($aThis->[0]->{Child}, $raList, $rhInfo);
-#      return $aThis->[0]->{No};
-#  }
-#  else {
-##1.3 Array
-#      my $iCnt = $#$aThis + 1;
-##1.3.1 Define Center
-#      my $iPos = 0; #int($iCnt/ 2);     #$iCnt
-#
-#      my @aWk = @$aThis;
-#      my @aPrev = ($#$aThis > 1)? splice(@aWk, 1, 1) : (); #$iPos);
-#      my @aNext = splice(@aWk, 1); #, $iCnt - $iPos -1);
-#      $aThis->[$iPos]->{PrevPps} = _savePpsSetPnt2(
-#            \@aPrev, $raList, $rhInfo);
-#      push @$raList, $aThis->[$iPos];
-#      $aThis->[$iPos]->{No} = $#$raList;
-#
-##1.3.2 Devide a array into Previous,Next
-#      $aThis->[$iPos]->{NextPps} = _savePpsSetPnt2(
-#            \@aNext, $raList, $rhInfo);
-#      $aThis->[$iPos]->{DirPps} = _savePpsSetPnt2($aThis->[$iPos]->{Child}, $raList, $rhInfo);
-#      return $aThis->[$iPos]->{No};
-#  }
-#}
+    my @aWk = @aThis;
+    my @aPrev = @aThis.elems > 1 ?? splice( @aWk, 1, 1 ) !! ( );
+    my @aNext = splice( @aWk, 1 );
+    @aThis[$iPos]<PrevPps> =
+      _savePpsSetPnt2( @aPrev, @aList, %hInfo );
+    push @aList, @aThis[$iPos];
+    @aThis[$iPos]<No> = @aList.elems;
+    @aThis[$iPos]<NextPps> =
+      _savePpsSetPnt2( @aNext, @aList, %hInfo );
+    @aThis[$iPos]<DirPps> =
+      _savePpsSetPnt2( @aThis[$iPos]<Child>, @aList, %hInfo );
+    return @aThis[$iPos]<No>;
+  }
+}
 
 sub _savePpsSetPnt2s( @aThis, @aList, %hInfo ) {
   # If no child relations
