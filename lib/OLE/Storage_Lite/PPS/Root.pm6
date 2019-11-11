@@ -112,77 +112,83 @@ sub _adjust2( Int $i2 ) {
 }
 
 method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
-  my $pFile = %hInfo<_FILEH_>;
-}
+  my $FILE = %hInfo<_FILEH_>; # pFile originally?
 
-#sub _saveHeader($$$$$) {
-#  my pFILE = $rhInfo->{_FILEH_};
-#
-##0. Calculate Basic Setting
-#  my $iBlCnt = $rhInfo->{_BIG_BLOCK_SIZE} / OLE::Storage_Lite::LongIntSize();
-#  my $i1stBdL = int(($rhInfo->{_BIG_BLOCK_SIZE} - 0x4C) / OLE::Storage_Lite::LongIntSize());
-#  my $i1stBdMax = $i1stBdL * $iBlCnt  - $i1stBdL;
-#  my $iBdExL = 0;
-#  my $iAll = $iBBcnt + $iPPScnt + $iSBDcnt;
-#  my $iAllW = $iAll;
-#  my $iBdCntW = int($iAllW / $iBlCnt) + (($iAllW % $iBlCnt)? 1: 0);
-#  my $iBdCnt = int(($iAll + $iBdCntW) / $iBlCnt) + ((($iAllW+$iBdCntW) % $iBlCnt)? 1: 0);
-#  my $i;
-#
-#  if ($iBdCnt > $i1stBdL) {
-#    #0.1 Calculate BD count
-#    $iBlCnt--; #the BlCnt is reduced in the count of the last sect is used for a pointer the next Bl
-#    my $iBBleftover = $iAll - $i1stBdMax;
-#
-#    if ($iAll >$i1stBdMax) {
-#      while(1) {
-#        $iBdCnt = int(($iBBleftover) / $iBlCnt) + ((($iBBleftover) % $iBlCnt)? 1: 0);
-#        $iBdExL = int(($iBdCnt) / $iBlCnt) + ((($iBdCnt) % $iBlCnt)? 1: 0);
-#        $iBBleftover = $iBBleftover + $iBdExL;
-#        last if($iBdCnt == (int(($iBBleftover) / $iBlCnt) + ((($iBBleftover) % $iBlCnt)? 1: 0)));
-#      }
-#    }
-#    $iBdCnt += $i1stBdL;
-#    #print "iBdCnt = $iBdCnt \n";
-#  }
-##1.Save Header
-#  print {$FILE} (
-#            "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"
-#            , "\x00\x00\x00\x00" x 4
-#            , pack("v", 0x3b)
-#            , pack("v", 0x03)
-#            , pack("v", -2)
-#            , pack("v", 9)
-#            , pack("v", 6)
-#            , pack("v", 0)
-#            , "\x00\x00\x00\x00" x 2
-#            , pack("V", $iBdCnt),
-#            , pack("V", $iBBcnt+$iSBDcnt), #ROOT START
-#            , pack("V", 0)
-#            , pack("V", 0x1000)
-#            , pack("V", $iSBDcnt ? 0 : -2)                  #Small Block Depot
-#            , pack("V", $iSBDcnt)
-#    );
-##2. Extra BDList Start, Count
-#  if($iAll <= $i1stBdMax) {
-#    print {$FILE} (
-#                pack("V", -2),      #Extra BDList Start
-#                pack("V", 0),       #Extra BDList Count
-#        );
-#  }
-#  else {
-#    print {$FILE} (
-#            pack("V", $iAll+$iBdCnt),
-#            pack("V", $iBdExL),
-#        );
-#  }
-#
-##3. BDList
-#    for($i=0; $i<$i1stBdL and $i < $iBdCnt; $i++) {
-#        print {$FILE} (pack("V", $iAll+$i));
-#    }
-#    print {$FILE} ((pack("V", -1)) x($i1stBdL-$i)) if($i<$i1stBdL);
-#}
+  # Calculate basic setting
+  #
+  my Int $iBlCnt = %hInfo<_BIG_BLOCK_SIZE> / 4; # LONGINT-SIZE
+  my Int $i1stBdl = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / 4 ); # LONGINT-SIZE
+  my Int $i1stBdMax = $i1stBdl * $iBlCnt - $i1stBdl;
+  my Int $iBdExL = 0;
+  my Int $iAll = $iBBcnt + $iPPScnt + $iSBDCnt;
+  my Int $iAllW = $iAll;
+  my Int $iBdCntW = Int( $iAllW / $iBlCnt ) + ( $iAllW % $iBlCnt ?? 1 !! 0 );
+  my Int $iBdCnt =
+    Int( ( $iAll + $iBdCntW ) / $iBlCnt ) +
+       ( ( ( $iAllW + $iBdCntW ) % $iBlCnt ) ?? 1 !! 0 );
+  my Int $i;
+
+  if $iBdCnt > $i1stBdl {
+    # Calculate BD count
+    $iBlCnt--;
+    my $iBBleftover = $iAll - $i1stBdMax;
+
+    if $iAll > $i1stBdMax {
+      loop {
+        $iBdCnt = Int( $iBBleftover / $iBlCnt ) +
+	             ( ( $iBBleftover % $iBlCnt ) ?? 1 !! 0 );
+	$iBdExL = Int( $iBdCnt / $iBlCnt ) +
+	             ( ( $iBdCnt % $iBlCnt ) ?? 1 !! 0 );
+	$iBBleftover = $iBBleftover + $iBdExL;
+	last if $iBdCnt == Int( $iBBleftover / $iBlCnt ) +
+	                      ( $iBBleftover % $iBlCnt ?? 1 !! 0 );
+      }
+    }
+    $iBdCnt += $i1stBdl;
+  }
+
+  # Save Header
+  #
+  $FILE.print(
+     "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" ~
+     "\x00\x00\x00\x00" x 4 ~
+     pack( "v", 0x3b ) ~
+     pack( "v", 0x03 ) ~
+     pack( "v", -2 ) ~
+     pack( "v", 9 ) ~
+     pack( "v", 6 ) ~
+     pack( "v", 0 ) ~
+     "\x00\x00\x00\x00" x 2 ~
+     pack( "V", $iBdCnt ) ~
+     pack( "V", $iBBcnt + $iSBDCnt ) ~ # ROOT START
+     pack( "V", 0 ) ~
+     pack( "V", 0x1000 ) ~
+     pack( "V", $iSBDCnt ?? 0 !! -2 ) ~
+     pack( "V", $iSBDCnt )
+  );
+
+  # Extra BDlist Start, Count
+  #
+  if $iAll <= $i1stBdMax {
+    $FILE.print(
+      pack( "V", -2 ) ~ # Extra BDlist Start
+      pack( "V", 0 )    # Extra BDList Count
+    );
+  }
+  else {
+    $FILE.print(
+      pack( "V", $iAll + $iBdCnt ) ~ # Extra BDlist Start
+      pack( "V", $iBdExL )           # Extra BDList Count
+    );
+  }
+
+  # BDlist
+  #
+  loop ( $i = 0 ; $i < $i1stBdl and $i < $iBdCnt ; $i++ ) {
+    $FILE.print( pack( "V", $iAll + $i ) );
+  }
+  $FILE.print( ( pack( "V", -1 ) xx ( $i1stBdl - $i ) ) ) if $i < $i1stBdl;
+}
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.
 # XXX

@@ -4,7 +4,7 @@ use OLE::Storage_Lite::PPS;
 
 unit class OLE::Storage_Lite::PPS::File is OLE::Storage_Lite::PPS;
 
-method newFile( $sNm, $sFile? ) {
+method newFile( Str $sNm, Str $sFile? ) {
   my $oSelf = OLE::Storage::Lite::PPS.new(
     :Name( $sNm ),
     :Type( 2 ),

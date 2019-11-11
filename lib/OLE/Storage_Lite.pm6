@@ -54,9 +54,9 @@ constant INT-SIZE     = 2;
 constant LONGINT-SIZE = 4;
 constant PPS-SIZE     = 0x80;
 
-has $._FILE; # String or IO::Handle or ...
+has Str $._FILE; # String or IO::Handle or ...
 
-multi method new( $_FILE ) {
+multi method new( Str $_FILE ) {
   self.bless( :$_FILE );
 }
 
@@ -84,7 +84,7 @@ method getNthPps( Int $iNo, $bData? ) {
 
 # Break out different IO styles here.
 #
-method _initParse( $filename ) {
+method _initParse( Str $filename ) {
   my $oIo = open $filename;
   _getHeaderInfo( $oIo );
 }
@@ -429,11 +429,11 @@ sub _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
   return $sWk.unpack( "V" );
 }
 
-sub Asc2Ucs( $sAsc ) {
+sub Asc2Ucs( Str $sAsc ) {
   return join( "\x00", split '', $sAsc ) ~ "\x00";
 }
 
-sub Ucs2Asc( $sUcs ) {
+sub Ucs2Asc( Str $sUcs ) {
   return join( '', map( $_.pack( 'c' ), $sUcs.unpack( 'v*' ) ) );
 }
 
@@ -447,7 +447,7 @@ sub Ucs2Asc( $sUcs ) {
 # We first convert the FILETIME to seconds and then subtract the difference
 # between the 1601 epoch and the 1970 Unix epoch.
 #
-sub OLEDate2Local( $oletime ) {
+sub OLEDate2Local( Buf $oletime ) {
 
   # Unpack FILETIME into high and low longs
   #
