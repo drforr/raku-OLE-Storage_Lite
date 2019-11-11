@@ -300,7 +300,7 @@ sub _savePpsSetPnt2s( @aThis, @aList, %hInfo ) {
   elsif @aThis.elems == 1 {
     # Just one element
     #
-    append( @aList, @aThis[0] );
+    append @aList, @aThis[0];
     @aThis[0]<No> = @aList.elems;
     @aThis[0]<PrevPps> = 0xffffffff;
     @aThis[0]<NextPps> = 0xffffffff;
@@ -315,7 +315,7 @@ sub _savePpsSetPnt2s( @aThis, @aList, %hInfo ) {
     # Define center
     #
     my Int $iPos = 0;
-    append( @aList, @aThis[$iPos] );
+    append @aList, @aThis[$iPos];
     @aThis[$iPos]<No> = @aList.elems;
     my @aWk = @aThis;
 
