@@ -280,6 +280,8 @@ sub _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
   }
 }
 
+# Strangely _savePpsSetPnt2s doesn't call itself in the original source.
+#
 sub _savePpsSetPnt2s( @aThis, @aList, %hInfo ) {
   # If no child relations
   #
@@ -361,43 +363,44 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
 }
 
 sub _savePpsSetPnt1( @aThis, @aList, %hInfo ) {
-}
+  # If no child relations
+  #
+  if @aThis.elems <= 0 {
+    return 0xffffffff;
+  }
+  elsif @aThis.elems == 1 {
+    # Just one element
+    #
+    append @aList, @aThis[0];
+    @aThis[0]<No> = @aList.elems;
+    @aThis[0]<PrevPps> = 0xffffffff;
+    @aThis[0]<NextPps> = 0xffffffff;
+    @aThis[0]<DirPps> = _savePpsSetPnt( @aThis[0]<Child>, @aList, %hInfo );
+    return @aThis[0]<No>;
+  }
+  else {
+    # Array
+    #
+    my Int $iCnt = @aThis.elems;
 
-#sub _savePpsSetPnt1($$$) {
-#  my($aThis, $raList, $rhInfo) = @_;
-##1. make Array as Children-Relations
-##1.1 if No Children
-#  if($#$aThis < 0) {
-#      return 0xFFFFFFFF;
-#  }
-#  elsif($#$aThis == 0) {
-##1.2 Just Only one
-#      push @$raList, $aThis->[0];
-#      $aThis->[0]->{No} = $#$raList;
-#      $aThis->[0]->{PrevPps} = 0xFFFFFFFF;
-#      $aThis->[0]->{NextPps} = 0xFFFFFFFF;
-#      $aThis->[0]->{DirPps} = _savePpsSetPnt($aThis->[0]->{Child}, $raList, $rhInfo);
-#      return $aThis->[0]->{No};
-#  }
-#  else {
-##1.3 Array
-#      my $iCnt = $#$aThis + 1;
-##1.3.1 Define Center
-#      my $iPos = int($iCnt/ 2);     #$iCnt
-#      push @$raList, $aThis->[$iPos];
-#      $aThis->[$iPos]->{No} = $#$raList;
-#      my @aWk = @$aThis;
-##1.3.2 Devide a array into Previous,Next
-#      my @aPrev = splice(@aWk, 0, $iPos);
-#      my @aNext = splice(@aWk, 1, $iCnt - $iPos -1);
-#      $aThis->[$iPos]->{PrevPps} = _savePpsSetPnt(
-#            \@aPrev, $raList, $rhInfo);
-#      $aThis->[$iPos]->{NextPps} = _savePpsSetPnt(
-#            \@aNext, $raList, $rhInfo);
-#      $aThis->[$iPos]->{DirPps} = _savePpsSetPnt($aThis->[$iPos]->{Child}, $raList, $rhInfo);
-#      return $aThis->[$iPos]->{No};
-#  }
-#}
+    # Define center
+    #
+    my Int $iPos = Int( $iCnt / 2 );
+    append @aList, @aThis[$iPos];
+    @aThis[$iPos]<No> = @aList.elems;
+    my @aWk = @aThis;
+
+    # Divide array into Previous, Next
+    #
+    my @aPrev = splice( @aWk, 0, $iPos );
+    my @aNext = splice( @aWk, 1, $iCnt - $iPos - 1 );
+    @aThis[$iPos]<PrevPps> = _savePpsSetPnt( @aPrev, @aList, %hInfo );
+    @aThis[$iPos]<NextPps> = _savePpsSetPnt( @aNext, @aList, %hInfo );
+    @aThis[$iPos]<DirPps> =
+      _savePpsSetPnt( @aThis[$iPos]<Child>, @aList, %hInfo );
+    return @aThis[$iPos]<No>;
+  }
+}
 
 method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   my $FILE = %hInfo<_FILEH_>;
