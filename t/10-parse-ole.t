@@ -6,7 +6,7 @@ use OLE::Storage_Lite;
 
 constant FILENAME = 'sample/test.xls';
 
-plan 0;
+plan 4;
 
 #use Utils;
 
@@ -16,55 +16,81 @@ plan 0;
 
 my $ole  = OLE::Storage_Lite.new( FILENAME );
 my @pps  = $ole.getPpsTree();
-warn @pps.perl;
+#warn @pps.perl;
 #my $tree = Utils::serialize_pps($pps);
-#
+
+subtest 'Root Entry', {
+  my $elem = @pps[0];
+
+  is        $elem.No,         0,                                    'No';
+  is        $elem.Type,       5,                                    'Type';
+  is        $elem.Size,       0,                                    'Size';
+  is        $elem.Name,       'Root Entry',                         'Name';
+  is-deeply $elem.Time1st,    [ 1, 28, 18, 5, 9, -240, 2, 278, 0 ], 'Time1st';
+  is-deeply $elem.Time2nd,    [ 31, 58, 21, 28, 1, 101, 3, 58, 0 ], 'Time2nd';
+  is        $elem.PrevPps,    2**32 - 1,                            'PrevPps';
+  is        $elem.NextPps,    2**32 - 1,                            'NextPps';
+  is        $elem.DirPps,     2,                                    'DirPps';
+
+  is        $elem.StartBlock, 2**32 - 2,  'StartBlock';
+}
+
+subtest 'Workbook', {
+  my $elem = @pps[0].Child[0];
+
+  is        $elem.No,         1,          'No';
+  is        $elem.Data,       Any,        'Data';
+  is        $elem.Type,       2,          'Type';
+  is        $elem.StartBlock, 0,          'StartBlock';
+  is        $elem.Size,       4096,       'Size';
+  is        $elem.Name,       'Workbook', 'Name';
+  is-deeply $elem.Time1st,    [ Any ],    'Time1st';
+  is-deeply $elem.Time2nd,    [ Any ],    'Time2nd';
+  is        $elem.PrevPps,    2**32 - 1,  'PrevPps';
+  is        $elem.NextPps,    2**32 - 1,  'NextPps';
+  is        $elem.DirPps,     2**32 - 1,  'DirPps';
+}
+
+subtest 'SummaryInformation', {
+  my $elem = @pps[0].Child[1];
+
+  is        $elem.No,         2,                    'No';
+  is        $elem.Data,       Any,                  'Data';
+  is        $elem.Type,       2,                    'Type';
+  is        $elem.StartBlock, 8,                    'StartBlock';
+  is        $elem.Size,       4096,                 'Size';
+  is        $elem.Name,       'SummaryInformation', 'Name';
+  is-deeply $elem.Time1st,    [ Any ],              'Time1st';
+  is-deeply $elem.Time2nd,    [ Any ],              'Time2nd';
+  is        $elem.PrevPps,    1,                    'PrevPps';
+  is        $elem.NextPps,    3,                    'NextPps';
+  is        $elem.DirPps,     2**32 - 1,            'DirPps';
+}
+
+subtest 'DocumentSummaryInformation', {
+  my $elem = @pps[0].Child[2];
+
+  is        $elem.No,         3,                            'No';
+  is        $elem.Data,       Any,                          'Data';
+  is        $elem.Type,       2,                            'Type';
+  is        $elem.StartBlock, 16,                           'StartBlock';
+  is        $elem.Size,       4096,                         'Size';
+  is        $elem.Name,       'DocumentSummaryInformation', 'Name';
+  is-deeply $elem.Time1st,    [ Any ],                      'Time1st';
+  is-deeply $elem.Time2nd,    [ Any ],                      'Time2nd';
+  is        $elem.PrevPps,    2**32 - 1,                    'PrevPps';
+  is        $elem.NextPps,    2**32 - 1,                    'NextPps';
+  is        $elem.DirPps,     2**32 - 1,                    'DirPps';
+}
+
 #is_deeply $tree, {
-#  Type       => 5,
-#  No         => 0,
-#  Size       => 0,
-#  StartBlock => 2**32 - 2,
-#  Time1st    => [ 1, 28, 18, 5, 9, -240, 2, 278, 0 ],
-#  Time2nd    => [ 31, 58, 21, 28, 1, 101, 3, 58, 0 ],
-#  Name       => encode('UTF-16LE', q{Root Entry}),
-#  Data       => undef,
-#  PrevPps    => 2**32 - 1,
-#  NextPps    => 2**32 - 1,
 #  DirPps     => 2,
 #  Child   => [
-#    { Type       => 2,
-#      No         => 1,
-#      Size       => 4096,
-#      StartBlock => 0,
-#      Time1st    => [ undef ],
-#      Time2nd    => [ undef ],
-#      Name       => encode('UTF-16LE', q{Workbook}),
-#      Data       => undef,
-#      PrevPps    => 2**32 - 1,
-#      NextPps    => 2**32 - 1,
 #      DirPps     => 2**32 - 1,
 #    },
-#    { Type       => 2,
-#      No         => 2,
-#      Size       => 4096,
-#      StartBlock => 8,
-#      Time1st    => [ undef ],
-#      Time2nd    => [ undef ],
-#      Name       => encode('UTF-16LE', qq{\x05SummaryInformation} ),
-#      Data       => undef,
-#      PrevPps    => 1,
 #      NextPps    => 3,
 #      DirPps     => 2**32 - 1,
 #    },
-#    { Type       => 2,
-#      No         => 3,
-#      Size       => 4096,
-#      StartBlock => 16,
-#      Time1st    => [ undef ],
-#      Time2nd    => [ undef ],
-#      Name       => encode('UTF-16LE', qq{\x05DocumentSummaryInformation} ),
-#      Data       => undef,
-#      PrevPps    => 2**32 - 1,
 #      NextPps    => 2**32 - 1,
 #      DirPps     => 2**32 - 1,
 #    }

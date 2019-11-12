@@ -481,8 +481,8 @@ sub OLEDate2Local( Buf $oletime ) {
   $time -= 11644473600;
 
   my @localtime = gmtime( $time );
-  pop @localtime; # XXX Get rid of the timezone, I don't think it's present in
-  		  # the OLE version.
+#  pop @localtime; # XXX Get rid of the timezone, I don't think it's present in
+#  		  # the OLE version.
 
   @localtime;
 }
@@ -584,6 +584,8 @@ sub createPps( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
     }
   }
 }
+
+=begin pod
 
 =head1 NAME
 
@@ -844,3 +846,5 @@ Documentation for the OLE Compound document has been released by Microsoft under
 The Digital Imaging Group have also detailed the OLE format in the JPEG2000 specification: see Appendix A of http://www.i3a.org/pdf/wg1n1017.pdf
 
 =cut
+
+=end pod
