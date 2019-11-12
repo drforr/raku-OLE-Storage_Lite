@@ -71,26 +71,28 @@ multi method new( Str $_FILE ) {
 method getPpsTree( $bData? ) {
   my %hInfo = self._initParse( $._FILE );
 my @aDone;
-  my @oPps = _getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
+  my OLE::Storage_Lite::PPS @oPps =
+    _getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
   @oPps;
 }
 
 method getPpsSearch( @aName, $bData?, Int $iCase? ) {
   my %hInfo = self._initParse( $._FILE );
-  my @aList = _getPpsSearch( 0, %hInfo, @aName, $bData, $iCase );
+  my OLE::Storage_Lite::PPS @aList =
+    _getPpsSearch( 0, %hInfo, @aName, $bData, $iCase );
   @aList;
 }
 
 method getNthPps( Int $iNo, $bData? ) {
   my %hInfo = self._initParse( $._FILE );
-  my $oPps  = _getNthPps( $iNo, %hInfo, $bData );
+  my OLE::Storage_Lite::PPS $oPps = _getNthPps( $iNo, %hInfo, $bData );
   $oPps;
 }
 
 # Break out different IO styles here.
 #
 method _initParse( Str $filename ) {
-  my $oIo = open $filename;
+  my IO::Handle $oIo = open $filename;
   _getHeaderInfo( $oIo );
 }
 
@@ -105,17 +107,18 @@ sub _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
 
   my Int $iRootBlock = %hInfo<_ROOT_START>;
 
-  my $oPps = _getNthPps( $iNo, %hInfo, $bData );
+  my OLE::Storage_Lite::PPS $oPps = _getNthPps( $iNo, %hInfo, $bData );
 
   if $oPps.DirPps != 2**32 - 1 {
-    my @aChildL = _getPpsTree( $oPps.DirPps, %hInfo, $bData, @aDone );
+    my OLE::Storage_Lite::PPS @aChildL =
+      _getPpsTree( $oPps.DirPps, %hInfo, $bData, @aDone );
     $oPps.Child = @aChildL;
   }
   else {
     $oPps.Child = ();
   }
 
-  my @aList = ( );
+  my OLE::Storage_Lite::PPS @aList = ( );
   append @aList, _getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
     $oPps.PrevPps != 2**32 - 1;
   append @aList, $oPps;
@@ -126,7 +129,7 @@ sub _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
 
 sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
   my Int $iRootBlock = %hInfo<_ROOT_START>;
-  my @aRes;
+  my OLE::Storage_Lite::PPS @aRes;
 
   if @aDone.elems {
     return () if grep { $_ == $iNo }, @aDone;
@@ -136,7 +139,8 @@ sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
   }
 
   append @aDone, $iNo;
-  my $oPps = _getNthPps( $iNo, %hInfo, Nil );
+  my OLE::Storage_Lite::PPS $oPps =
+     _getNthPps( $iNo, %hInfo, Nil );
   if ( $iCase && grep { fc( $oPps.Name ) eq fc( $_ ) }, @aName ) or
        grep { $oPps.Name eq $_ }, @aName {
     $oPps = _getNthPps( $iNo, %hInfo, $bData ) if $bData;
@@ -146,12 +150,15 @@ sub _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
     @aRes = ( );
   }
 
-  append @aRes, _getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
-    $oPps.DirPps != 2**32 - 1;
-  append @aRes, _getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
-    $oPps.PrevPps != 2**32 - 1;
-  append @aRes, _getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
-    $oPps.NextPps != 2**32 - 1;
+  append @aRes,
+    _getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
+      $oPps.DirPps != 2**32 - 1;
+  append @aRes,
+    _getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
+      $oPps.PrevPps != 2**32 - 1;
+  append @aRes,
+    _getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone ) if
+      $oPps.NextPps != 2**32 - 1;
 
   @aRes;
 }
@@ -207,7 +214,8 @@ sub _getHeaderInfo( $FILE ) {
 
   # Get Root PPS
   #
-  my $oRoot = _getNthPps( 0, %hInfo, Nil );
+  my OLE::Storage_Lite::PPS $oRoot =
+     _getNthPps( 0, %hInfo, Nil );
   %hInfo<_SB_START> = $oRoot.StartBlock;
   %hInfo<_SB_SIZE>  = $oRoot.Size;
 
@@ -313,14 +321,14 @@ sub _getNthPps( Int $iPos, %hInfo, $bData ) {
     my Str $sData = _getData( $iType, $iStart, $iSize, %hInfo );
 #    return OLE::Storage_Lite::PPS.new
     return createPps(
-      $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      $iPos, $sNm.encode('UTF-16LE'), $iType, $lPpsPrev, $lPpsNext, $lDirPps,
       @aTime1st, @aTime2nd, $iStart, $iSize, $sData, Nil
     );
   }
   else {
 #    return OLE::Storage_Lite::PPS.new
     return createPps(
-      $iPos, $sNm, $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      $iPos, $sNm.decode('UTF-16LE'), $iType, $lPpsPrev, $lPpsNext, $lDirPps,
       @aTime1st, @aTime2nd, $iStart, $iSize
     );
   }
@@ -481,8 +489,6 @@ sub OLEDate2Local( Buf $oletime ) {
   $time -= 11644473600;
 
   my @localtime = gmtime( $time );
-#  pop @localtime; # XXX Get rid of the timezone, I don't think it's present in
-#  		  # the OLE version.
 
   @localtime;
 }
@@ -528,59 +534,36 @@ my $time;
 # Rename 'new' to 'create', for the moment.
 # The bless() mechanism isn't working for me...
 # 
-sub createPps( $iNo, $sNm, $iType, $iPrev, $iNext, $iDir,
-               @aTime1st, @aTime2nd, $iStart, $iSize, $sData?, @aChild? ) {
-  given $iType {
+sub createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
+               Int $DirPps, @Time1st, @Time2nd, Int $StartBlock, Int $Size,
+	       $Data?, @Child? ) {
+  given $Type {
     when 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
       OLE::Storage_Lite::PPS::File.new(
-        :No( $iNo ),
-        :Name( $sNm.decode('utf-8') ),
-        :Type( $iType ),
-        :PrevPps( $iPrev ),
-        :NextPps( $iNext ),
-        :DirPps( $iDir ),
-        :Time1st( @aTime1st ),
-        :Time2nd( @aTime2nd ),
-        :StartBlock( $iStart ),
-        :Size( $iSize ),
-        :Data( $sData ),
-        :Child( @aChild )
+        :$No, :$Name, :$Type, :$Size, :$StartBlock,
+        :$PrevPps, :$NextPps, :$DirPps,
+        :@Time1st, :@Time2nd,
+        :$Data, :@Child
       )
     }
     when 1 { #OLE::Storage_Lite::PPS-TYPE-DIR
       OLE::Storage_Lite::PPS::Dir.new(
-        :No( $iNo ),
-        :Name( $sNm.decode('utf-8') ),
-        :Type( $iType ),
-        :PrevPps( $iPrev ),
-        :NextPps( $iNext ),
-        :DirPps( $iDir ),
-        :Time1st( @aTime1st ),
-        :Time2nd( @aTime2nd ),
-        :StartBlock( $iStart ),
-        :Size( $iSize ),
-        :Data( $sData ),
-        :Child( @aChild )
+        :$No, :$Name, :$Type, :$Size, :$StartBlock,
+        :$PrevPps, :$NextPps, :$DirPps,
+        :@Time1st, :@Time2nd,
+        :$Data, :@Child
       )
     }
     when 5 { #OLE::Storage_Lite::PPS-TYPE-ROOT
       OLE::Storage_Lite::PPS::Root.new(
-        :No( $iNo ),
-        :Name( $sNm.decode('utf-8') ),
-        :Type( $iType ),
-        :PrevPps( $iPrev ),
-        :NextPps( $iNext ),
-        :DirPps( $iDir ),
-        :Time1st( @aTime1st ),
-        :Time2nd( @aTime2nd ),
-        :StartBlock( $iStart ),
-        :Size( $iSize ),
-        :Data( $sData ),
-        :Child( @aChild )
+        :$No, :$Name, :$Type, :$Size, :$StartBlock,
+        :$PrevPps, :$NextPps, :$DirPps,
+        :@Time1st, :@Time2nd,
+        :$Data, :@Child
       )
     }
     default {
-      die "Can't find PPS type $iType";
+      die "Can't find PPS type $Type";
     }
   }
 }
