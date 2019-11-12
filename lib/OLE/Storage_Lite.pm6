@@ -239,15 +239,13 @@ sub _getBbdInfo( %hInfo ) {
   my Int $iBdbCnt = %hInfo<_BDB_COUNT>;
   my Int $i1stCnt = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
   my Int $iBdlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE ) - 1;
-  my Int $iGetCnt;
-  my Buf $sWk;
   my @aBdList;
 
   # 1st BDList
   #
   %hInfo<_FILEH_>.seek( 0x4c, SeekFromBeginning );
-  $iGetCnt = ( $iBdbCnt < $i1stCnt ) ?? $iBdbCnt !! $i1stCnt;
-  $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE + $iGetCnt );
+  my Int $iGetCnt = ( $iBdbCnt < $i1stCnt ) ?? $iBdbCnt !! $i1stCnt;
+  my Buf $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE + $iGetCnt );
   append @aBdList, $sWk.unpack( "V$iGetCnt" );
   $iBdbCnt -= $iGetCnt;
 
@@ -269,7 +267,7 @@ sub _getBbdInfo( %hInfo ) {
   my @aWk;
   my %hBd;
   my Int $iBlkNo = 0;
-  my Int $iBdCnt = Int(%hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE);
+  my Int $iBdCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   for @aBdList -> $iBdL {
     _setFilePos( $iBdL, 0, %hInfo );
     $sWk = %hInfo<_FILEH_>.read( %hInfo<_BIG_BLOCK_SIZE> );
@@ -285,15 +283,13 @@ sub _getBbdInfo( %hInfo ) {
 
 sub _getNthPps( Int $iPos, %hInfo, $bData ) {
   my Int $iPpsStart = %hInfo<_ROOT_START>;
-  my Int ( $iPpsBlock, $iPpsPos );
   my Buf $sWk;
-  my Int $iBlock;
 
-  my Int $iBaseCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
-  $iPpsBlock = Int( $iPos / $iBaseCnt );
-  $iPpsPos   = $iPos % $iBaseCnt;
+  my Int $iBaseCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
+  my Int $iPpsBlock = Int( $iPos / $iBaseCnt );
+  my Int $iPpsPos   = $iPos % $iBaseCnt;
 
-  $iBlock = _getNthBlockNo( $iPpsStart, $iPpsBlock, %hInfo );
+  my Int $iBlock = _getNthBlockNo( $iPpsStart, $iPpsBlock, %hInfo );
   die "No block found" unless defined $iBlock;
 
   _setFilePos( $iBlock, PPS-SIZE * $iPpsPos, %hInfo );
@@ -373,20 +369,20 @@ sub _getData( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
 }
 
 sub _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
-  my Int $iRest;
-  my Str ( $sWk, $sRes );
+  my Str ( $sWk );
 
   return '' unless _isNormalBlock( $iBlock );
-  $iRest = $iSize;
-  my Int ( $i, $iGetSize, $iNext );
-  $sRes = '';
+
+  my Int $iRest = $iSize;
+  my Str $sRes = '';
   my @aKeys = sort { $^a <=> $^b }, keys %( %hInfo<_BBD_INFO> );
 
   while $iRest > 0 {
-    my @aRes = grep { $_ >= $iBlock }, @aKeys;
+    my @aRes      = grep { $_ >= $iBlock }, @aKeys;
     my Int $iNKey = @aRes[0];
-    $i = $iNKey - $iBlock;
-    $iNext = %hInfo<_BBD_INFO>{$iNKey};
+    my Int $i     = $iNKey - $iBlock;
+    my Int $iNext = %hInfo<_BBD_INFO>{$iNKey};
+
     _setFilePos( $iBlock, 0, %hInfo );
 
     my Int $iGetSize = %hInfo<_BIG_BLOCK_SIZE> * ( $i + 1 );
@@ -411,9 +407,10 @@ sub _isNormalBlock( Int $iBlock ) {
 }
 
 sub _getSmallData( Int $iSmBlock, Int $iSize, %hInfo ) {
-  my Str ( $sRes, $sWk );
+  my Str $sWk;
   my Int $iRest = $iSize;
-  $sRes = '';
+  my Str $sRes  = '';
+
   while $iRest > 0 {
     _setFilePosSmall( $iSmBlock, %hInfo );
     $sWk = %hInfo<_FILEH>>.read(
