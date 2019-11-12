@@ -83,44 +83,4 @@ subtest 'DocumentSummaryInformation', {
   is        $elem.DirPps,     2**32 - 1,                    'DirPps';
 }
 
-#is_deeply $tree, {
-#  DirPps     => 2,
-#  Child   => [
-#      DirPps     => 2**32 - 1,
-#    },
-#      NextPps    => 3,
-#      DirPps     => 2**32 - 1,
-#    },
-#      NextPps    => 2**32 - 1,
-#      DirPps     => 2**32 - 1,
-#    }
-#  ]
-#};
-#
-#=pod
-#
-#sub serialize_pps {
-#  my ($pps) = @_;
-#
-#  my $output = { };
-#
-#  for my $name ( qw( Type Data No Size StartBlock Time1st
-#		     Time2nd Name DirPps NextPps PrevPps ) ) {
-#    $output->{$name} = $pps->{$name};
-#  }
-#
-#  if ( $pps->{Child} and @{ $pps->{Child} } ) {
-#    $output->{Child} = [ ];
-#
-#    foreach my $item (@{$pps->{Child}}) {
-#      my $res = serialize_pps($item);
-#      push @{ $output->{Child} }, $res;
-#    }
-#  }
-#
-#  return $output;
-#}
-#
-#=cut
-
 done-testing;
