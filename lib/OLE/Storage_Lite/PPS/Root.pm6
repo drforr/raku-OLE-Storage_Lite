@@ -35,7 +35,7 @@ method save( $sFile, $bNoAs?, %hInfo? ) {
   # Make an array of PPS
   #
   my @aList = ( );
-my @thisList = self;
+my @thisList = ( self );
   if $bNoAs {
     _savePpsSetPnt2( @thisList, @aList, %hInfo ); 
   }
