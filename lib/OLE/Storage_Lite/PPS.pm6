@@ -40,17 +40,17 @@ method _DataLen {
 }
 
 method _makeSmallData( @aList, %hInfo ) {
-  my Str $sRes;
-  my $FILE = %hInfo<_FILEH_>;
-  my Int $iSmBlk = 0;
+  my Str        $sRes;
+  my IO::Handle $FILE   = %hInfo<_FILEH_>;
+  my Int        $iSmBlk = 0;
 
   for @aList -> $oPps {
     if $oPps.Type == 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
       next if $oPps.Size <= 0;
       if $oPps.Size < %hInfo<_SMALL_SIZE> {
-        my Int $iSmbCnt;
-	$iSmbCnt = ( Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
-   	                ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
+        my Int $iSmbCnt =
+	  ( Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
+   	       ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
 
 	loop ( my Int $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
 	  $FILE.print( pack( "V", $i + $iSmBlk + 1 ) );
@@ -91,22 +91,22 @@ method _savePpsWk( %rhInfo ) {
 
   $FILE.print(
     self.Name
-    ~ ( "\x80" xx ( 64 - self.Name.chars ) )                           # 64
-    ~ ( ( self.Name.chars + 2 ).pack: "v" )                            # 66
-    ~ ( self.Type.pack: "c" )                                          # 67
-    ~ ( 0x00.pack: "c" )                                               # 68
-    ~ ( self.PrevPps.pack: "V" )                                       # 72
-    ~ ( self.NextPps.pack: "V" )                                       # 76
-    ~ ( self.DirPps.pack: "V" )                                        # 80
-    ~ "\x00\x09\x02\x00"                                               # 84
-    ~ "\x00\x00\x00\x00"                                               # 88
-    ~ "\xc0\x00\x00\x00"                                               # 92
-    ~ "\x00\x00\x00\x46"                                               # 96
-    ~ "\x00\x00\x00\x00"                                               # 100
-    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )                 # 108
-    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )                 # 116
-    ~ ( defined( self.StartBlock ?? self.StartBlock !! 0 ) ).pack: "V" # 120
-    ~ ( defined( self.size ?? self.Size !! 0 ) ).pack: "V"             # 124
-    ~ 0.pack: "V"                                                      # 128
+    ~ "\x80" xx ( 64 - self.Name.chars )                                 # 64
+    ~ ( self.Name.chars + 2 ).pack( "v" )                                # 66
+    ~ self.Type.pack( "c" )                                              # 67
+    ~ 0x00.pack( "c" )                                                   # 68
+    ~ self.PrevPps.pack( "V" )                                           # 72
+    ~ self.NextPps.pack( "V" )                                           # 76
+    ~ self.DirPps.pack( "V" )                                            # 80
+    ~ "\x00\x09\x02\x00"                                                 # 84
+    ~ "\x00\x00\x00\x00"                                                 # 88
+    ~ "\xc0\x00\x00\x00"                                                 # 92
+    ~ "\x00\x00\x00\x46"                                                 # 96
+    ~ "\x00\x00\x00\x00"                                                 # 100
+    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )                   # 108
+    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )                   # 116
+    ~ ( defined( self.StartBlock ?? self.StartBlock !! 0 ) ).pack( "V" ) # 120
+    ~ ( defined( self.size ?? self.Size !! 0 ) ).pack( "V" )             # 124
+    ~ 0.pack( "V" )                                                      # 128
   );
 }
