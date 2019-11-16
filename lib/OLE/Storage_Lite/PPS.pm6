@@ -15,18 +15,18 @@ unit class OLE::Storage_Lite::PPS;
 
 use experimental :pack;
 
-has Int $.No;
-has Str $.Name; # Gotten usually from Buffers, decoded to UTF-8...
-has Int $.Type;
-has Int $.PrevPps;
-has Int $.NextPps;
-has Int $.DirPps;
-has     @.Time1st;
-has     @.Time2nd;
-has Int $.StartBlock;
-has Int $.Size;
-has     $.Data;
-has     @.Child;
+has Int $.No is rw;
+has Str $.Name is rw; # Gotten usually from Buffers, decoded to UTF-8...
+has Int $.Type is rw;
+has Int $.PrevPps is rw;
+has Int $.NextPps is rw;
+has Int $.DirPps is rw;
+has     @.Time1st is rw;
+has     @.Time2nd is rw;
+has Int $.StartBlock is rw;
+has Int $.Size is rw;
+has     $.Data is rw;
+has     @.Child is rw;
 
 has Str $._PPS_FILE;
 
