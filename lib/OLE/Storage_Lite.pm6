@@ -527,13 +527,15 @@ my $time;
 # Rename 'new' to 'create', for the moment.
 # The bless() mechanism isn't working for me...
 # 
+# # Also *gotta* clean up the hierarchy, PPS.pm is referencing child classes.
+#
 sub createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
                Int $DirPps, @Time1st, @Time2nd, Int $StartBlock, Int $Size,
 	       $Data?, @Child? ) {
   given $Type {
     when 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
       OLE::Storage_Lite::PPS::File.new(
-        :$No, :$Name, :$Type, :$Size, :$StartBlock,
+        :$No, :$Name, :Type( 2 ), :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
         :@Time1st, :@Time2nd,
         :$Data, :@Child
@@ -541,7 +543,7 @@ sub createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
     }
     when 1 { #OLE::Storage_Lite::PPS-TYPE-DIR
       OLE::Storage_Lite::PPS::Dir.new(
-        :$No, :$Name, :$Type, :$Size, :$StartBlock,
+        :$No, :$Name, :Type( 1 ), :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
         :@Time1st, :@Time2nd,
         :$Data, :@Child
@@ -549,7 +551,7 @@ sub createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
     }
     when 5 { #OLE::Storage_Lite::PPS-TYPE-ROOT
       OLE::Storage_Lite::PPS::Root.new(
-        :$No, :$Name, :$Type, :$Size, :$StartBlock,
+        :$No, :$Name, :Type( 5 ), :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
         :@Time1st, :@Time2nd,
         :$Data, :@Child

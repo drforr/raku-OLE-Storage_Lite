@@ -112,7 +112,7 @@ sub test-dir( $node ) {
             'StartBlock';
   is-deeply $node.Time1st,     [ 0, 0, 0,  1, 0,  -299, 1, 0,   0 ], 'Time1st';
   is-deeply $node.Time2nd,     [ 0, 0, 16, 4, 10, 100,  6, 308, 0 ], 'Time2nd';
-  is        $node.Type,        Int,                                  'Type';
+  is        $node.Type,        2,                                    'Type';
 
   done-testing;
 }
@@ -144,7 +144,7 @@ sub test-root( $node ) {
 #
 # Writes to a tmp file, probably should use File::Temp. XXX
 
-constant FILENAME = 'sample/tsv.dat'; # XXX should use File::Temp?
+constant FILENAME = 'sample/temp-tsv.dat'; # XXX should use File::Temp?
 
 my @aL = localtime();
 splice( @aL, 6 );
@@ -204,7 +204,7 @@ subtest 'Root', {
   test-root( $root );
 };
 
-$root.save( 'new-' ~ FILENAME );
+$root.save( FILENAME );
 
 #my $ole = OLE::Storage_Lite.new( FILENAME );
 #my $pps = $ole.getPpsTree;

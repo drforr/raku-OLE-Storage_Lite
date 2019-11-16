@@ -7,7 +7,9 @@ use experimental :pack;
 
 unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 
-has $.FILE is rw; # XXX JMG Not sure why this wasn't factored out earlier.
+constant LONGINT-SIZE = 4;
+
+#has $.FILE is rw; # XXX JMG Not sure why this wasn't factored out earlier.
 
 multi method new ( @Time1st, @Time2nd, @Child ) {
   self.bless(
@@ -32,7 +34,8 @@ method save( Str $sFile, $bNoAs?, %hInfo? ) {
   # sFile is Ref of scalar
   #
 #  %hInfo<_FILEH_> = open $sFile;
-  $!FILE = open $sFile, :w;
+  $.FILE = open $sFile, :w;
+  $.FILE.encoding( Nil ); # Binary "encoding"
 
   my Int $iBlk = 0;
 
@@ -74,10 +77,10 @@ my @thisList = ( self );
 method _calcSize( @aList, %hInfo ) {
   my Int ( $iSBDcnt, $iBBcnt, $iPPScnt ) = ( 0, 0, 0 );
   my Int $iSmallLen = 0;
-  my Int $iSBcnt = 0;
+  my Int $iSBcnt    = 0;
 
   for @aList -> $oPps {
-    if $oPps ~~ OLE::Storage_Lite::PPS::File {
+    if $oPps.Type == 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
       $oPps.Size = $oPps._DataLen(); # Mod
       if $oPps.Size < %hInfo<_SMALL_SIZE> {
 	$iSBcnt += Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
@@ -115,8 +118,8 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # Calculate basic setting
   #
   # JMG added Int() around these divisions
-  my Int $iBlCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONGINT-SIZE
-  my Int $i1stBdl = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / 4 ); # LONGINT-SIZE
+  my Int $iBlCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
+  my Int $i1stBdl = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / LONGINT-SIZE );
   my Int $i1stBdMax = $i1stBdl * $iBlCnt - $i1stBdl;
   my Int $iBdExL    = 0;
   my Int $iAll      = $iBBcnt + $iPPScnt + $iSBDCnt;
@@ -149,7 +152,7 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # Save Header
   #
-  $.FILE.print(
+  $.FILE.write(
      "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" ~
      "\x00\x00\x00\x00" x 4 ~
      pack( "v", 0x3b ) ~
@@ -170,13 +173,13 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # Extra BDlist Start, Count
   #
   if $iAll <= $i1stBdMax {
-    $.FILE.print(
+    $.FILE.write(
       pack( "V", -2 ) ~ # Extra BDlist Start
       pack( "V", 0 )    # Extra BDList Count
     );
   }
   else {
-    $.FILE.print(
+    $.FILE.write(
       pack( "V", $iAll + $iBdCnt ) ~ # Extra BDlist Start
       pack( "V", $iBdExL )           # Extra BDList Count
     );
@@ -185,9 +188,9 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # BDlist
   #
   loop ( $i = 0 ; $i < $i1stBdl and $i < $iBdCnt ; $i++ ) {
-    $.FILE.print( pack( "V", $iAll + $i ) );
+    $.FILE.write( pack( "V", $iAll + $i ) );
   }
-  $.FILE.print( ( pack( "V", -1 ) xx ( $i1stBdl - $i ) ) ) if $i < $i1stBdl;
+#  $.FILE.write( ( pack( "V", -1 ) xx ( $i1stBdl - $i ) ) ) if $i < $i1stBdl;
 }
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.

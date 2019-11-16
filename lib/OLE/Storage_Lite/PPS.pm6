@@ -17,7 +17,7 @@ use experimental :pack;
 
 has Int $.No is rw;
 has Str $.Name is rw; # Gotten usually from Buffers, decoded to UTF-8...
-has Int $.Type is rw;
+has Int $.Type is rw is required;
 has Int $.PrevPps is rw;
 has Int $.NextPps is rw;
 has Int $.DirPps is rw;
@@ -30,6 +30,8 @@ has     @.Child is rw;
 
 has Str $._PPS_FILE;
 
+has $.FILE is rw; # XXX JMG Not sure why this wasn't factored out earlier.
+
 # The old 'new' methods really don't do anything special.
 
 method _DataLen {
@@ -41,7 +43,7 @@ method _DataLen {
 
 method _makeSmallData( @aList, %hInfo ) {
   my Str        $sRes;
-  my IO::Handle $FILE   = %hInfo<_FILEH_>;
+#  my IO::Handle $FILE   = %hInfo<_FILEH_>;
   my Int        $iSmBlk = 0;
 
   for @aList -> $oPps {
@@ -53,9 +55,9 @@ method _makeSmallData( @aList, %hInfo ) {
    	       ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
 
 	loop ( my Int $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
-	  $FILE.print( pack( "V", $i + $iSmBlk + 1 ) );
+	  $.FILE.write( pack( "V", $i + $iSmBlk + 1 ) );
 	}
-	$FILE.print( pack( "V", -2 ) );
+	$.FILE.write( pack( "V", -2 ) );
 
 	if $oPps._PPS_FILE {
 	  my Buf $sBuff;
@@ -80,16 +82,16 @@ method _makeSmallData( @aList, %hInfo ) {
   }
 
   my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
-  $FILE.print( -1.pack( "V" ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
+  $.FILE.write( pack( "V", -1 ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
     $iSmBlk % $iSbCnt;
 
   $sRes;
 }
 
 method _savePpsWk( %rhInfo ) {
-  my $FILE = %rhInfo.<_FILEH_>;
+#  my $FILE = %rhInfo.<_FILEH_>;
 
-  $FILE.print(
+  $.FILE.write(
     self.Name
     ~ "\x80" xx ( 64 - self.Name.chars )                                 # 64
     ~ ( self.Name.chars + 2 ).pack( "v" )                                # 66
