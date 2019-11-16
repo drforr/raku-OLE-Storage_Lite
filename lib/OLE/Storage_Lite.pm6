@@ -11,17 +11,13 @@ use P5localtime;
 
 # A couple of notes on how I translated (loosely) this from the Perl 5 module:
 #
-# To save time I've Raku-ified method names where appropriate, which is to say
-# pretty much everywhere. Camel case goes to kebab case, and I've dropped 'get'
-# because it seems redundant.
-#
 # I'm taking advantage of being able to pass along array and hash types, and
 # leaving hash "attribute"s as just that, attributes.
 #
 #   This is probably most notable with the %rhInfo and @Time{1st,2nd} vars.
 #
-# Dropping parens where unneeded, and also dropping parens around the new
-# unpack/pack methods so I can better delineate where they go.
+# Dropping parens where unneeded, using object notation only where needed, like
+# pack/unpack because they're "experimental".
 #
 # Dropping unneeded 'return's on the last line.
 #
@@ -652,7 +648,7 @@ Order number in saving.
 
 =item Name
 
-Its name in UCS2 (a.k.a Unicode).
+Its name (in UTF-8, the name is translated in/out of UCS-2)
 
 =item Type
 

@@ -16,13 +16,13 @@ multi method new ( @Time1st, @Time2nd, @Child ) {
   )
 }
 
-method save( $sFile, $bNoAs?, %hInfo? ) {
+method save( Str $sFile, $bNoAs?, %hInfo? ) {
   %hInfo<_BIG_BLOCK_SIZE> =
     2**( %hInfo<_BIG_BLOCK_SIZE> ??
-         _adjust2( %hInfo<_BIG_BLOCK_SIZE> ) !! 9 );
+         self._adjust2( %hInfo<_BIG_BLOCK_SIZE> ) !! 9 );
   %hInfo<_SMALL_BLOCK_SIZE> =
     2**( %hInfo<_SMALL_BLOCK_SIZE> ??
-         _adjust2( %hInfo<_SMALL_BLOCK_SIZE> ) !! 6 );
+         self._adjust2( %hInfo<_SMALL_BLOCK_SIZE> ) !! 6 );
   %hInfo<_SMALL_SIZE> = 0x1000;
   %hInfo<_PPS_SIZE>   = 0x80;
 
@@ -37,7 +37,7 @@ method save( $sFile, $bNoAs?, %hInfo? ) {
   my @aList = ( );
 my @thisList = ( self );
   if $bNoAs {
-    _savePpsSetPnt2( @thisList, @aList, %hInfo ); 
+    self._savePpsSetPnt2( @thisList, @aList, %hInfo ); 
   }
   else {
     _savePpsSetPnt( @thisList, @aList, %hInfo );
@@ -51,7 +51,7 @@ my @thisList = ( self );
   # Make small data string
   #
   my Str $sSmWk = self._makeSmallData( @aList, %hInfo );
-  self.Data = $sSmWk; # Small data's become RootEntry Data
+  self.Data     = $sSmWk; # Small data's become RootEntry Data
 
   # Write BB
   #
@@ -98,7 +98,7 @@ method _calcSize( @aList, %hInfo ) {
   return ( $iSBDcnt, $iBBcnt, $iPPScnt );
 }
 
-sub _adjust2( Int $i2 ) {
+method _adjust2( Int $i2 ) {
   my $iWk = log( $i2 ) / log(2);
 
   ( $iWk > Int( $iWk ) ) ?? Int( $iWk ) + 1 !! $iWk;
@@ -240,7 +240,7 @@ method _savePps( @aList, %hInfo ) {
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
 }
 
-sub _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
+method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
   # If no child relations
   #
   if @aThis.elems <= 0 {
@@ -252,7 +252,7 @@ sub _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
     @aThis[0]<PrevPps> = 0xffffffff;
     @aThis[0]<NextPps> = 0xffffffff;
     @aThis[0]<DirPps> =
-      _savePpsSetPnt2( @aThis[0]<Child>, @aList, %hInfo );
+      self._savePpsSetPnt2( @aThis[0]<Child>, @aList, %hInfo );
     return @aThis[0]<No>;
   }
   else {
@@ -263,59 +263,18 @@ sub _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
     my @aNext    = splice( @aWk, 1 );
 
     @aThis[$iPos]<PrevPps> =
-      _savePpsSetPnt2( @aPrev, @aList, %hInfo );
+      self._savePpsSetPnt2( @aPrev, @aList, %hInfo );
     append @aList, @aThis[$iPos];
     @aThis[$iPos]<No> = @aList.elems;
     @aThis[$iPos]<NextPps> =
-      _savePpsSetPnt2( @aNext, @aList, %hInfo );
+      self._savePpsSetPnt2( @aNext, @aList, %hInfo );
     @aThis[$iPos]<DirPps> =
-      _savePpsSetPnt2( @aThis[$iPos]<Child>, @aList, %hInfo );
+      self._savePpsSetPnt2( @aThis[$iPos]<Child>, @aList, %hInfo );
     return @aThis[$iPos]<No>;
   }
 }
 
-# Strangely _savePpsSetPnt2s doesn't call itself in the original source.
-#
-sub _savePpsSetPnt2s( @aThis, @aList, %hInfo ) {
-  # If no child relations
-  #
-  if @aThis.elems <= 0 {
-    return 0xffffffff;
-  }
-  elsif @aThis.elems == 1 {
-    # Just one element
-    #
-    append @aList, @aThis[0];
-    @aThis[0]<No> = @aList.elems;
-    @aThis[0]<PrevPps> = 0xffffffff;
-    @aThis[0]<NextPps> = 0xffffffff;
-    @aThis[0]<DirPps> = _savePpsSetPnt2( @aThis[0]<Child>, @aList, %hInfo );
-    return @aThis[0]<No>;
-  }
-  else {
-    # Array
-    #
-    my Int $iCnt = @aThis.elems;
-
-    # Define center
-    #
-    my Int $iPos = 0;
-    append @aList, @aThis[$iPos];
-    @aThis[$iPos]<No> = @aList.elems;
-
-    # Divide array into Previous, Next
-    #
-    my @aWk   = @aThis;
-    my @aPrev = splice( @aWk, 0, $iPos );
-    my @aNext = splice( @aWk, 1, $iCnt - $iPos - 1 );
-    @aThis[$iPos]<PrevPps> = _savePpsSetPnt2( @aPrev, @aList, %hInfo );
-    @aThis[$iPos]<NextPps> = _savePpsSetPnt2( @aNext, @aList, %hInfo );
-    @aThis[$iPos]<DirPps> =
-      _savePpsSetPnt2( @aThis[$iPos]<Child>, @aList, %hInfo );
-
-    return @aThis[$iPos]<No>;
-  }
-}
+# XXX Removed _savePpsSetPnt2s() - it's not used at all.
 
 sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
   # If no child relations
@@ -358,45 +317,7 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
   }
 }
 
-sub _savePpsSetPnt1( @aThis, @aList, %hInfo ) {
-  # If no child relations
-  #
-  if @aThis.elems <= 0 {
-    return 0xffffffff;
-  }
-  elsif @aThis.elems == 1 {
-    # Just one element
-    #
-    append @aList, @aThis[0];
-    @aThis[0]<No>      = @aList.elems;
-    @aThis[0]<PrevPps> = 0xffffffff;
-    @aThis[0]<NextPps> = 0xffffffff;
-    @aThis[0]<DirPps>  = _savePpsSetPnt( @aThis[0]<Child>, @aList, %hInfo );
-    return @aThis[0]<No>;
-  }
-  else {
-    # Array
-    #
-    my Int $iCnt = @aThis.elems;
-
-    # Define center
-    #
-    my Int $iPos = Int( $iCnt / 2 );
-    append @aList, @aThis[$iPos];
-    @aThis[$iPos]<No> = @aList.elems;
-    my @aWk = @aThis;
-
-    # Divide array into Previous, Next
-    #
-    my @aPrev = splice( @aWk, 0, $iPos );
-    my @aNext = splice( @aWk, 1, $iCnt - $iPos - 1 );
-    @aThis[$iPos]<PrevPps> = _savePpsSetPnt( @aPrev, @aList, %hInfo );
-    @aThis[$iPos]<NextPps> = _savePpsSetPnt( @aNext, @aList, %hInfo );
-    @aThis[$iPos]<DirPps> =
-      _savePpsSetPnt( @aThis[$iPos]<Child>, @aList, %hInfo );
-    return @aThis[$iPos]<No>;
-  }
-}
+# XXX _savePpsSetPnt1 isn't used anywhere in the source
 
 method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   my $FILE = %hInfo<_FILEH_>;
