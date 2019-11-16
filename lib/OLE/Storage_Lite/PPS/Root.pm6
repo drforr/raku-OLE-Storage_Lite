@@ -153,21 +153,24 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # Save Header
   #
   $.FILE.write(
-     "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" ~
-     "\x00\x00\x00\x00" x 4 ~
-     pack( "v", 0x3b ) ~
-     pack( "v", 0x03 ) ~
-     pack( "v", -2 ) ~
-     pack( "v", 9 ) ~
-     pack( "v", 6 ) ~
-     pack( "v", 0 ) ~
-     "\x00\x00\x00\x00" x 2 ~
-     pack( "V", $iBdCnt ) ~
-     pack( "V", $iBBcnt + $iSBDCnt ) ~ # ROOT START
-     pack( "V", 0 ) ~
-     pack( "V", 0x1000 ) ~
-     pack( "V", $iSBDCnt ?? 0 !! -2 ) ~
-     pack( "V", $iSBDCnt )
+#    "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" ~
+    pack( "C8", 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 ) ~
+#    "\x00\x00\x00\x00" x 4 ~
+    pack( "C16", 0x00 xx 16 ) ~
+    pack( "v", 0x3b ) ~
+    pack( "v", 0x03 ) ~
+    pack( "v", -2 ) ~
+    pack( "v", 9 ) ~
+    pack( "v", 6 ) ~
+    pack( "v", 0 ) ~
+#    "\x00\x00\x00\x00" x 2 ~
+    pack( "C8", 0x00 xx 8 ) ~
+    pack( "V", $iBdCnt ) ~
+    pack( "V", $iBBcnt + $iSBDCnt ) ~ # ROOT START
+    pack( "V", 0 ) ~
+    pack( "V", 0x1000 ) ~
+    pack( "V", $iSBDCnt ?? 0 !! -2 ) ~
+    pack( "V", $iSBDCnt )
   );
 
   # Extra BDlist Start, Count
@@ -219,7 +222,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	  }
 	}
 	else {
-	  $.FILE.print( $oPps.Data );
+	  $.FILE.write( $oPps.Data );
 	}
 	$.FILE.print(
 	  "\x00" xx ( %hInfo<_BIG_BLOCK_SIZE> -

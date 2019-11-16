@@ -82,8 +82,12 @@ method _makeSmallData( @aList, %hInfo ) {
   }
 
   my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
-  $.FILE.write( pack( "V", -1 ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
-    $iSmBlk % $iSbCnt;
+if $iSmBlk % $iSbCnt {
+  my $num-V = $iSbCnt - ( $iSmBlk % $iSbCnt );
+  $.FILE.write( pack( "V$num-V", (-1) xx $num-V ) );
+#  $.FILE.write( pack( "V", -1 ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
+#    $iSmBlk % $iSbCnt;
+}
 
   $sRes;
 }
