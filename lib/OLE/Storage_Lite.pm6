@@ -595,6 +595,12 @@ L<OLE::Storage_Lite> allows you to read and write an OLE structured file.
 L<OLE::Storage_Lite::PPS> is a class representing PPS. L<OLE::Storage_Lite::PPS::Root>, L<OLE::Storage_Lite::PPS::File> and L<OLE::Storage_Lite::PPS::Dir>
 are subclasses of L<OLE::Storage_Lite::PPS>.
 
+=head3 CAVEAT
+
+A PPS' name is maintained internally as UTF-8 with no restrictions, yet it seems that the code requires it to be ASCII, because of the Asc2Ucs and Ucs2Asc conversion functions.
+
+If it turns out that Excel can *only* handle ASCII names for these we'll place a 'where' constraint on the name blocking it to ASCII-only.
+
 =head2 new()
 
 Constructor.
@@ -628,19 +634,13 @@ Returns PPS as C<OLE::Storage_Lite::PPS> object specified number C<$iNth>.
 
 If C<$bData> is true, the objects will have data in the file.
 
-=head2 Asc2Ucs()
+=head2 Asc2Ucs(), Ucs2Asc()
 
     # XXX $sUcs2 = OLE::Storage_Lite::Asc2Ucs($sAsc);
 
 This utility function used to exist in the Perl 5 version. Now it's managed
 by the module itself. When the file is read it's transcoded to UTF-8, and when
 the UTF-8 string is written out it's transcoded to UTF-16LE.
-
-=head2 Ucs2Asc()
-
-    $sAsc = OLE::Storage_Lite::Ucs2Asc($sUcs2);
-
-Utility function. Just deletes 0x00 after words in C<$sUcs>.
 
 =head1 L<OLE::Storage_Lite::PPS>
 
