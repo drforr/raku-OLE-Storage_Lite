@@ -1,7 +1,7 @@
 use v6;
 
 use OLE::Storage_Lite::PPS;
-use OLE::Storage_Lite::PPS::File;
+#use OLE::Storage_Lite::PPS::File;
 
 use experimental :pack;
 
@@ -84,7 +84,7 @@ method _calcSize( @aList, %hInfo ) {
       $oPps.Size = $oPps._DataLen(); # Mod
       if $oPps.Size < %hInfo<_SMALL_SIZE> {
 	$iSBcnt += Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
-	              ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ?? 1 !! 0;
+	              ( ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ?? 1 !! 0 );
       }
       else {
 	$iBBcnt += Int( $oPps.Size / %hInfo<_BIG_BLOCK_SIZE> ) +

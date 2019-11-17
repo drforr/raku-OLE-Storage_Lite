@@ -372,13 +372,13 @@ method _getData( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
 }
 
 method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
-  my Str ( $sWk );
+  my Str $sWk;
 
   return '' unless _isNormalBlock( $iBlock );
 
   my Int $iRest = $iSize;
-  my Str $sRes = '';
-  my @aKeys = sort { $^a <=> $^b }, keys %( %hInfo<_BBD_INFO> );
+  my Str $sRes  = '';
+  my @aKeys     = sort { $^a <=> $^b }, keys %( %hInfo<_BBD_INFO> );
 
   while $iRest > 0 {
     my @aRes      = grep { $_ >= $iBlock }, @aKeys;
@@ -538,7 +538,7 @@ method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
   given $Type {
     when PPS-TYPE-FILE {
       OLE::Storage_Lite::PPS::File.new(
-        :$No, :$Name, :Type( PPS-TYPE-FILE ), :$Size, :$StartBlock,
+        :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
         :@Time1st, :@Time2nd,
         :$Data, :@Child
@@ -546,7 +546,7 @@ method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
     }
     when PPS-TYPE-DIR { #OLE::Storage_Lite::PPS-TYPE-DIR
       OLE::Storage_Lite::PPS::Dir.new(
-        :$No, :$Name, :Type( PPS-TYPE-DIR ), :$Size, :$StartBlock,
+        :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
         :@Time1st, :@Time2nd,
         :$Data, :@Child
@@ -554,7 +554,7 @@ method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
     }
     when PPS-TYPE-ROOT { #OLE::Storage_Lite::PPS-TYPE-ROOT
       OLE::Storage_Lite::PPS::Root.new(
-        :$No, :$Name, :Type( PPS-TYPE-ROOT ), :$Size, :$StartBlock,
+        :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
         :@Time1st, :@Time2nd,
         :$Data, :@Child

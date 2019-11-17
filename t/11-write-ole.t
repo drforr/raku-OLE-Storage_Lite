@@ -112,7 +112,7 @@ sub test-dir( $node ) {
             'StartBlock';
   is-deeply $node.Time1st,     [ 0, 0, 0,  1, 0,  -299, 1, 0,   0 ], 'Time1st';
   is-deeply $node.Time2nd,     [ 0, 0, 16, 4, 10, 100,  6, 308, 0 ], 'Time2nd';
-  is        $node.Type,        2,                                    'Type';
+  is        $node.Type,        1,                                    'Type';
 
   done-testing;
 }

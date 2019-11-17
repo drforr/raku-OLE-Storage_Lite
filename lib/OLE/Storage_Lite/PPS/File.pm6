@@ -23,11 +23,11 @@ multi method new( Str $Name, @Time1st?, @Time2nd?, @Child? ) {
   );
 }
 
-method newFile( Str $sNm, Str $sFile? ) {
-  my $oSelf = OLE::Storage::Lite::PPS.new(
-#    :Name( $sNm.encode('UTF-16LE') ),
-    :Name( $sNm ), # Encode/decode at the last possible point
-    :Type( 2 ),
+# Encode $Name to UCS2 at the last possible point.
+#
+method newFile( Str $Name, Str $sFile? ) {
+  my $oSelf = OLE::Storage::Lite::PPS::File.new(
+    :$Name,
     :Data( '' ),
   );
   $oSelf._PPS_FILE = $sFile if $sFile;

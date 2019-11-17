@@ -10,14 +10,22 @@ use v6;
 # It now just needs the PPS modules it's going to disgorge, so it's more like
 # a Factory pattern, I suppose.
 #
+# Also, anything that *needs* to do something type-specific to an object
+# of a particular subclass should just be a method on that subclass, so it
+# should never need to be invoked directly.
 
 unit class OLE::Storage_Lite::PPS;
 
 use experimental :pack;
 
+# $.Type is gone, because it's intimately tied to the subclass name(s). Instead,
+# when an instance of PPS:: is created, it's given a default Type at creation.
+#
+# This way we don't ever have to manually set it.
+
 has Int $.No is rw;
 has Str $.Name is rw; # Gotten usually from Buffers, decoded to UTF-8...
-has Int $.Type is rw is required;
+has Int $.Type;
 has Int $.PrevPps is rw;
 has Int $.NextPps is rw;
 has Int $.DirPps is rw;
