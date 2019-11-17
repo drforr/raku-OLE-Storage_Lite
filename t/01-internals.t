@@ -39,7 +39,7 @@ plan 9;
 # _SB_START: 4294967294
 # _SMALL_BLOCK_SIZE: 64
 
-my $header-info = OLE::Storage_Lite._initParse( FILENAME );
+my $header-info = OLE::Storage_Lite._getHeaderInfo( FILENAME );
 
 is $header-info.<_SMALL_BLOCK_SIZE>, 64;
 is $header-info.<_BIG_BLOCK_SIZE>, 512;
