@@ -12,8 +12,10 @@ plan 5;
 #
 # Rewritten to be a test by Jeff G. (drforr)
 
+# This time, actually load the data.
+#
 my $ole = OLE::Storage_Lite.new( FILENAME );
-my @pps = $ole.getPpsTree( 1 ); # This is the big difference.
+my @pps = $ole.getPpsTree( 1 );
 
 is @pps.elems, 1, "Single root object";
 

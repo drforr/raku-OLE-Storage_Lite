@@ -317,11 +317,11 @@ method _getNthPps( Int $iPos, %hInfo, $bData ) {
   # And that would be a dependency loop.
   #
   if $bData {
-    my Str $sData = self._getData( $iType, $iStart, $iSize, %hInfo );
+    my Buf $sData = self._getData( $iType, $iStart, $iSize, %hInfo );
 #    return OLE::Storage_Lite::PPS.new
     return self.createPps(
-      $iPos, $sNm.encode('UTF-16LE'), $iType, $lPpsPrev, $lPpsNext, $lDirPps,
-      @aTime1st, @aTime2nd, $iStart, $iSize, $sData, Nil
+      $iPos, $sNm.decode('UTF-16LE'), $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      @aTime1st, @aTime2nd, $iStart, $iSize, $sData, ( )
     );
   }
   else {
@@ -372,29 +372,29 @@ method _getData( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
 }
 
 method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
-  my Str $sWk;
-
-  return '' unless _isNormalBlock( $iBlock );
+  my $_iBlock = $iBlock;
+  return '' unless _isNormalBlock( $_iBlock );
 
   my Int $iRest = $iSize;
-  my Str $sRes  = '';
-  my @aKeys     = sort { $^a <=> $^b }, keys %( %hInfo<_BBD_INFO> );
+  my Buf $sRes  = Buf.new();
+  my @aKeys     = sort { $^a <=> $^b },
+                       map { +$_ }, keys %( %hInfo<_BBD_INFO> );
 
   while $iRest > 0 {
-    my @aRes      = grep { $_ >= $iBlock }, @aKeys;
+    my @aRes      = grep { $_ >= $_iBlock }, @aKeys;
     my Int $iNKey = @aRes[0];
-    my Int $i     = $iNKey - $iBlock;
+    my Int $i     = $iNKey - $_iBlock;
     my Int $iNext = %hInfo<_BBD_INFO>{$iNKey};
 
-    self._setFilePos( $iBlock, 0, %hInfo );
+    self._setFilePos( $_iBlock, 0, %hInfo );
 
     my Int $iGetSize = %hInfo<_BIG_BLOCK_SIZE> * ( $i + 1 );
 
     $iGetSize = $iRest if $iRest < $iGetSize;
-    $sWk      = %hInfo<_FILEH_>.read( $iGetSize );
-    $sRes    ~= $sWk;
-    $iRest   -= $iGetSize;
-    $iBlock   = $iNext;
+    my Buf $sWk = %hInfo<_FILEH_>.read( $iGetSize );
+    $sRes      ~= $sWk;
+    $iRest     -= $iGetSize;
+    $_iBlock     = $iNext;
   }
   $sRes;
 }
