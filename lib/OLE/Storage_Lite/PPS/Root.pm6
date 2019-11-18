@@ -1,15 +1,12 @@
 use v6;
 
 use OLE::Storage_Lite::PPS;
-#use OLE::Storage_Lite::PPS::File;
-
-use experimental :pack;
 
 unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 
-constant LONGINT-SIZE = 4;
+use experimental :pack;
 
-#has $.FILE is rw; # XXX JMG Not sure why this wasn't factored out earlier.
+constant LONGINT-SIZE = 4;
 
 multi method new ( @Time1st, @Time2nd, @Child ) {
   self.bless(

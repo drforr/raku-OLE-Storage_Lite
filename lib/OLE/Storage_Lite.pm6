@@ -163,7 +163,7 @@ method _getHeaderInfo( $filename ) {
 
   $file.seek( 0, SeekFromBeginning );
   my Str $sWk = $file.read( 8 ).unpack('A8');
-  die "Header ID missing" if $sWk ne HEADER-ID;
+  die "Header ID incorrect" if $sWk ne HEADER-ID;
 
   my Int $iWk = self._getInfoFromFile( $file, 0x1E, 2, "v" );
   die "Big block size missing" unless defined( $iWk );
@@ -250,10 +250,10 @@ method _getBbdInfo( %hInfo ) {
   while $iBdbCnt > 0 and _isNormalBlock( $iBlock ) {
     self._setFilePos( $iBlock, 0, %hInfo );
     $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
-    $sWk = $FILE.read( LONGINT-SIZE + $iGetCnt );
+    $sWk     = $FILE.read( LONGINT-SIZE + $iGetCnt );
     append @aBdList, $sWk.unpack( "V$iGetCnt" );
     $iBdbCnt -= $iGetCnt;
-    $sWk = $FILE.read( LONGINT-SIZE );
+    $sWk    = $FILE.read( LONGINT-SIZE );
     $iBlock = $sWk.unpack( "V" );
   }
 

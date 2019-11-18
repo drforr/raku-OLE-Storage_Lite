@@ -23,18 +23,18 @@ use experimental :pack;
 #
 # This way we don't ever have to manually set it.
 
-has Int $.No is rw;
-has Str $.Name is rw; # Gotten usually from Buffers, decoded to UTF-8...
-has Int $.Type;
-has Int $.PrevPps is rw;
-has Int $.NextPps is rw;
-has Int $.DirPps is rw;
-has     @.Time1st is rw;
-has     @.Time2nd is rw;
+has Str $.Name       is required; # Gotten from Buffers, decoded to UTF-8...
+has Int $.Type       is required;
+has Int $.No         is rw;
+has Int $.PrevPps    is rw;
+has Int $.NextPps    is rw;
+has Int $.DirPps     is rw;
+has     @.Time1st    is rw;
+has     @.Time2nd    is rw;
 has Int $.StartBlock is rw;
-has Int $.Size is rw;
-has     $.Data is rw;
-has     @.Child is rw;
+has Int $.Size       is rw;
+has     $.Data       is rw;
+has     @.Child      is rw;
 
 has Str $._PPS_FILE;
 
