@@ -198,7 +198,7 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
 # XXX
 method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
   my Int        $iRes = 0;
-#  my IO::Handle $FILE = %hInfo<_FILEH_>;
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
 
   # Write Big (>= 0x1000) into Block
   #
@@ -216,14 +216,14 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	  $oPps._PPS_FILE.seek( 0, SeekFromBeginning ); # 0, 0
 	  while $sBuff = $oPps._PPS_FILE.read: 4096 {
 	    $iLen += $sBuff.chars;
-	    %hInfo<_FILEH_>.print( $sBuff );
+	    $FILE.write( $sBuff );
 	  }
 	}
 	else {
 	  # XXX Not sure if this is where we want to encode...
-	  %hInfo<_FILEH_>.write( $oPps.Data.encode( OLE-ENCODING ) );
+	  $FILE.write( $oPps.Data.encode( OLE-ENCODING ) );
 	}
-	%hInfo<_FILEH_>.write(
+	$FILE.write(
 	  ( "\x00" x ( %hInfo<_BIG_BLOCK_SIZE> -
 	             ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) ).encode( OLE-ENCODING )
 	) if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
@@ -237,7 +237,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 }
 
 method _savePps( @aList, %hInfo ) {
-#  my $FILE = %hInfo<_FILEH_>;
+  my $FILE = %hInfo<_FILEH_>;
 
   for @aList -> $oItem {
     $oItem._savePpsWk( %hInfo );
@@ -246,7 +246,7 @@ method _savePps( @aList, %hInfo ) {
   my Int $iCnt  = @aList.elems;
   # XXX Added Int() here
   my Int $iBCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_PPS_SIZE> );
-  %hInfo<_FILEH_>.write( ( "\x00" x
+  $FILE.write( ( "\x00" x
                ( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> ) ).encode( OLE-ENCODING ) )
     if $iCnt % $iBCnt;
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
@@ -332,7 +332,7 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
 # XXX _savePpsSetPnt1 isn't used anywhere in the source
 
 method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
-#  my $FILE = %hInfo<_FILEH_>;
+  my $FILE = %hInfo<_FILEH_>;
 
   # Calculate basic setting
   #
@@ -367,41 +367,43 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   #
   if $iSbdSize > 0 {
     loop ( $i = 0 ; $i < $iSbdSize - 1 ; $i++ ) {
-      %hInfo<_FILEH_>.print( pack( "V", $i + 1 ) );
+      $FILE.write( pack( "V", $i + 1 ) );
     }
-    %hInfo<_FILEH_>.write( pack( "V", -2 ) );
+    $FILE.write( pack( "V", -2 ) );
   }
 
   # Set for B
   #
   loop ( $i = 0 ; $i < $iBsize - 1 ; $i++ ) {
-    %hInfo<_FILEH_>.write( pack( "V", $i + $iSbdSize + 1 ) );
+    $FILE.write( pack( "V", $i + $iSbdSize + 1 ) );
   }
-  %hInfo<_FILEH_>.write( pack( "V", -2 ) );
+  $FILE.write( pack( "V", -2 ) );
 
   # Set for PPS
   #
   loop ( $i = 0 ; $i < $iPpsCnt - 1 ; $i++ ) {
-    %hInfo<_FILEH_>.write( pack( "V", $i + $iSbdSize + $iBsize + 1 ) );
+    $FILE.write( pack( "V", $i + $iSbdSize + $iBsize + 1 ) );
   }
-  %hInfo<_FILEH_>.write( pack( "V", -2 ) );
+  $FILE.write( pack( "V", -2 ) );
 
   # Set for BBD itself ( 0xFFFFFFFD : BBD )
   #
   loop ( $i = 0 ; $i < $iBdCnt ; $i++ ) {
-    %hInfo<_FILEH_>.write( pack( "V", 0xFFFFFFFD ) );
+    $FILE.write( pack( "V", 0xFFFFFFFD ) );
   }
 
   # Set for ExtraBDList
   #
   loop ( $i = 0 ; $i < $iBdExL ; $i++ ) {
-    %hInfo<_FILEH_>.write( pack( "V", 0xFFFFFFFC ) );
+    $FILE.write( pack( "V", 0xFFFFFFFC ) );
   }
 
   # Adjust for Block
   #
-  %hInfo<_FILEH>.write( pack( "V", -1 ) x
-                        ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
+#  $FILE.write( pack( "V", -1 ) x
+#                   ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
+  $FILE.write( pack( "V{ $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt )}",
+                     -1 xx $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
     if $iAllW + $iBdCnt % $iBbCnt;
 
   # Extra BDList
@@ -413,12 +415,15 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
       if $iN >= $iBbCnt - 1 {
 	$iN = 0;
 	$iNb++;
-	%hInfo<_FILEH_>.write( pack( "V", $iAll + $iBdCnt + $iNb ) );
+	$FILE.write( pack( "V", $iAll + $iBdCnt + $iNb ) );
       }
-      %hInfo<_FILEH_>.write( ( pack( "V", -1 ) ) xx
-                   ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) )
+#      $FILE.write( ( pack( "V", -1 ) ) x
+#                   ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) )
+#        if $iBdCnt - $i1stBdL % $iBbCnt - 1;
+      $FILE.write( pack( "V{ ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 )}",
+                         -1 x ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) ) )
         if $iBdCnt - $i1stBdL % $iBbCnt - 1;
-      %hInfo<_FILEH_>.print( pack( "V", -2 ) );
+      $FILE.write( pack( "V", -2 ) );
     }
   }
 }
