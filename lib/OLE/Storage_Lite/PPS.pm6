@@ -104,23 +104,23 @@ method _savePpsWk( %rhInfo ) {
   my $FILE = %rhInfo.<_FILEH_>;
 
   $FILE.write(
-#    self.Name.encode( OLE-ENCODING )
-#    ~ "\x80" x ( 64 - self.Name.chars )                                  # 64
-#    ~ ( self.Name.chars + 2 ).pack( "v" )                                # 66
-#    ~ self.Type.pack( "c" )                                              # 67
-#    ~ 0x00.pack( "c" )                                                   # 68
-#    ~ self.PrevPps.pack( "V" )                                           # 72
-#    ~ self.NextPps.pack( "V" )                                           # 76
-       pack( "V", self.DirPps )                                           # 80
-#    ~ "\x00\x09\x02\x00"                                                 # 84
-#    ~ "\x00\x00\x00\x00"                                                 # 88
-#    ~ "\xc0\x00\x00\x00"                                                 # 92
-#    ~ "\x00\x00\x00\x46"                                                 # 96
-#    ~ "\x00\x00\x00\x00"                                                 # 100
-#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )                   # 108
-#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )                   # 116
-#    ~ ( defined( self.StartBlock ?? self.StartBlock !! 0 ) ).pack( "V" ) # 120
-#    ~ ( defined( self.size ?? self.Size !! 0 ) ).pack( "V" )             # 124
-#    ~ 0.pack( "V" )                                                      # 128
+    self.Name.encode( OLE-ENCODING )
+#    ~ "\x80" x ( 64 - self.Name.chars )                              # 64
+#    ~ ( self.Name.chars + 2 ).pack( "v" )                            # 66
+    ~ pack( "C", self.Type )                                          # 67
+    ~ pack( "C", 0x00 )                                               # 68
+    ~ pack( "V", self.PrevPps )                                       # 72
+    ~ pack( "V", self.NextPps )                                       # 76
+    ~ pack( "V", self.DirPps )                                        # 80
+#    ~ "\x00\x09\x02\x00"                                             # 84
+#    ~ "\x00\x00\x00\x00"                                             # 88
+#    ~ "\xc0\x00\x00\x00"                                             # 92
+#    ~ "\x00\x00\x00\x46"                                             # 96
+#    ~ "\x00\x00\x00\x00"                                             # 100
+#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )               # 108
+#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )               # 116
+    ~ pack( "V", defined( self.StartBlock ?? self.StartBlock !! 0 ) ) # 120
+    ~ pack( "V", defined( self.Size ?? self.Size !! 0 ) )             # 124
+    ~ pack( "V", 0 )                                                  # 128
   );
 }
