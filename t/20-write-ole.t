@@ -186,7 +186,6 @@ subtest 'File_4', {
 };
 
 my $dir = OLE::Storage_Lite::PPS::Dir.new(
-#  'Dir', @aL, @aL, ($oF2, $oF3, $oF4)
   'Dir', @Time1st, @Time2nd, ( $file_2, $file_3, $file_4 )
 );
 
@@ -206,7 +205,11 @@ subtest 'Root', {
 
 $root.save( FILENAME );
 
-#my $ole = OLE::Storage_Lite.new( FILENAME );
-#my $pps = $ole.getPpsTree;
+my $ole = OLE::Storage_Lite.new( FILENAME );
+my $new-root = $ole.getPpsTree;
+
+subtest 'Root', {
+  test-root( $root );
+};
 
 done-testing;

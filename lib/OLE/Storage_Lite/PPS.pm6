@@ -112,11 +112,16 @@ method _savePpsWk( %rhInfo ) {
     ~ pack( "V", self.PrevPps )                                       # 72
     ~ pack( "V", self.NextPps )                                       # 76
     ~ pack( "V", self.DirPps )                                        # 80
-#    ~ "\x00\x09\x02\x00"                                             # 84
-#    ~ "\x00\x00\x00\x00"                                             # 88
-#    ~ "\xc0\x00\x00\x00"                                             # 92
-#    ~ "\x00\x00\x00\x46"                                             # 96
-#    ~ "\x00\x00\x00\x00"                                             # 100
+    ~ pack( "V", 0x00, 0x09, 0x02, 0x00 )                             # 84
+    # ~ "\x00\x09\x02\x00"
+    ~ pack( "V", 0x00, 0x00, 0x00, 0x00 )                             # 84
+    # ~ "\x00\x00\x00\x00"
+    ~ pack( "V", 0xc0, 0x00, 0x00, 0x00 )                             # 88
+    # ~ "\xc0\x00\x00\x00"
+    ~ pack( "V", 0x00, 0x00, 0x00, 0x46 )                             # 92
+    # ~ "\x00\x00\x00\x46"
+    ~ pack( "V", 0x00, 0x00, 0x00, 0x00 )                             # 100
+    # ~ "\x00\x00\x00\x00"
 #    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )               # 108
 #    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )               # 116
     ~ pack( "V", defined( self.StartBlock ?? self.StartBlock !! 0 ) ) # 120
