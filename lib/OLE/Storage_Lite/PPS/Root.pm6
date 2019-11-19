@@ -6,6 +6,8 @@ unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 
 use experimental :pack;
 
+constant OLE-ENCODING = 'UTF-16LE';
+
 constant LONGINT-SIZE = 4;
 
 multi method new ( @Time1st, @Time2nd, @Child ) {
@@ -30,9 +32,8 @@ method save( Str $sFile, $bNoAs?, %hInfo? ) {
 
   # sFile is Ref of scalar
   #
-#  %hInfo<_FILEH_> = open $sFile;
-  $.FILE = open $sFile, :w;
-  $.FILE.encoding( Nil ); # Binary "encoding"
+  %hInfo<_FILEH_> = open $sFile, :w;
+  %hInfo<_FILEH_>.encoding( Nil ); # Binary "encoding"
 
   my Int $iBlk = 0;
 
@@ -91,7 +92,7 @@ method _calcSize( @aList, %hInfo ) {
   }
 
   $iSmallLen = $iSBcnt * %hInfo<_SMALL_BLOCK_SIZE>;
-  my Int $iSlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
+  my Int $iSlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   $iSBDcnt = Int( $iSBcnt / $iSlCnt ) + ( ( $iSBcnt % $iSlCnt ) ?? 1 !! 0 );
   $iSBcnt += Int( $iSmallLen / %hInfo<_BIG_BLOCK_SIZE> ) +
                  ( ( $iSmallLen % %hInfo<_BIG_BLOCK_SIZE> ) ?? 1 !! 0 );
@@ -149,7 +150,7 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # Save Header
   #
-  $.FILE.write(
+  %hInfo<_FILEH_>.write(
 #    "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" ~
     pack( "C8", 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 ) ~
 #    "\x00\x00\x00\x00" x 4 ~
@@ -173,13 +174,13 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # Extra BDlist Start, Count
   #
   if $iAll <= $i1stBdMax {
-    $.FILE.write(
+    %hInfo<_FILEH_>.write(
       pack( "V", -2 ) ~ # Extra BDlist Start
       pack( "V", 0 )    # Extra BDList Count
     );
   }
   else {
-    $.FILE.write(
+    %hInfo<_FILEH_>.write(
       pack( "V", $iAll + $iBdCnt ) ~ # Extra BDlist Start
       pack( "V", $iBdExL )           # Extra BDList Count
     );
@@ -188,9 +189,9 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # BDlist
   #
   loop ( $i = 0 ; $i < $i1stBdl and $i < $iBdCnt ; $i++ ) {
-    $.FILE.write( pack( "V", $iAll + $i ) );
+    %hInfo<_FILEH_>.write( pack( "V", $iAll + $i ) );
   }
-#  $.FILE.write( ( pack( "V", -1 ) xx ( $i1stBdl - $i ) ) ) if $i < $i1stBdl;
+#  %hInfo<_FILEH_>.write( ( pack( "V", -1 ) xx ( $i1stBdl - $i ) ) ) if $i < $i1stBdl;
 }
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.
@@ -215,15 +216,16 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	  $oPps._PPS_FILE.seek( 0, SeekFromBeginning ); # 0, 0
 	  while $sBuff = $oPps._PPS_FILE.read: 4096 {
 	    $iLen += $sBuff.chars;
-	    $.FILE.print( $sBuff );
+	    %hInfo<_FILEH_>.print( $sBuff );
 	  }
 	}
 	else {
-	  $.FILE.write( $oPps.Data );
+	  # XXX Not sure if this is where we want to encode...
+	  %hInfo<_FILEH_>.write( $oPps.Data.encode( OLE-ENCODING ) );
 	}
-	$.FILE.print(
-	  "\x00" xx ( %hInfo<_BIG_BLOCK_SIZE> -
-	              ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) )
+	%hInfo<_FILEH_>.write(
+	  ( "\x00" x ( %hInfo<_BIG_BLOCK_SIZE> -
+	             ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) ).encode( OLE-ENCODING )
 	) if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
 
 	$oPps.StartBlock = $iStBlk;
@@ -242,9 +244,10 @@ method _savePps( @aList, %hInfo ) {
   }
 
   my Int $iCnt  = @aList.elems;
-  my Int $iBCnt = %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_PPS_SIZE>;
-  $.FILE.print( "\x00" xx
-               ( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> ) )
+  # XXX Added Int() here
+  my Int $iBCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_PPS_SIZE> );
+  %hInfo<_FILEH_>.write( ( "\x00" x
+               ( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> ) ).encode( OLE-ENCODING ) )
     if $iCnt % $iBCnt;
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
 }
@@ -333,9 +336,10 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
 
   # Calculate basic setting
   #
-  my Int $iBbCnt  = %hInfo<_BIG_BLOCK_SIZE> / 4; # LONG-INT-SIZE
+  # XXX JMG Added Int() here
+  my Int $iBbCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   my Int $iBlCnt  = $iBbCnt - 1;
-  my Int $i1stBdL = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / 4 ); # LONG-INT-SIZE
+  my Int $i1stBdL = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
   my Int $i1stBdMax = $i1stBdL * $iBbCnt - $i1stBdL;
   my Int $iBdExL    = 0;
   my Int $iAll      = $iBsize + $iPpsCnt + $iSbdSize;
@@ -363,41 +367,41 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   #
   if $iSbdSize > 0 {
     loop ( $i = 0 ; $i < $iSbdSize - 1 ; $i++ ) {
-      $.FILE.print( pack( "V", $i + 1 ) );
+      %hInfo<_FILEH_>.print( pack( "V", $i + 1 ) );
     }
-    $.FILE.print( pack( "V", -2 ) );
+    %hInfo<_FILEH_>.write( pack( "V", -2 ) );
   }
 
   # Set for B
   #
   loop ( $i = 0 ; $i < $iBsize - 1 ; $i++ ) {
-    $.FILE.print( pack( "V", $i + $iSbdSize + 1 ) );
+    %hInfo<_FILEH_>.write( pack( "V", $i + $iSbdSize + 1 ) );
   }
-  $.FILE.print( pack( "V", -2 ) );
+  %hInfo<_FILEH_>.write( pack( "V", -2 ) );
 
   # Set for PPS
   #
   loop ( $i = 0 ; $i < $iPpsCnt - 1 ; $i++ ) {
-    $.FILE.print( pack( "V", $i + $iSbdSize + $iBsize + 1 ) );
+    %hInfo<_FILEH_>.write( pack( "V", $i + $iSbdSize + $iBsize + 1 ) );
   }
-  $.FILE.print( pack( "V", -2 ) );
+  %hInfo<_FILEH_>.write( pack( "V", -2 ) );
 
   # Set for BBD itself ( 0xFFFFFFFD : BBD )
   #
   loop ( $i = 0 ; $i < $iBdCnt ; $i++ ) {
-    $.FILE.print( pack( "V", 0xFFFFFFFD ) );
+    %hInfo<_FILEH_>.write( pack( "V", 0xFFFFFFFD ) );
   }
 
   # Set for ExtraBDList
   #
   loop ( $i = 0 ; $i < $iBdExL ; $i++ ) {
-    $.FILE.print( pack( "V", 0xFFFFFFFC ) );
+    %hInfo<_FILEH_>.write( pack( "V", 0xFFFFFFFC ) );
   }
 
   # Adjust for Block
   #
-  $.FILE.print( ( pack( "V", -1 ) ) xx
-                 ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
+  %hInfo<_FILEH>.write( pack( "V", -1 ) x
+                        ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
     if $iAllW + $iBdCnt % $iBbCnt;
 
   # Extra BDList
@@ -409,12 +413,12 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
       if $iN >= $iBbCnt - 1 {
 	$iN = 0;
 	$iNb++;
-	$.FILE.print( pack( "V", $iAll + $iBdCnt + $iNb ) );
+	%hInfo<_FILEH_>.write( pack( "V", $iAll + $iBdCnt + $iNb ) );
       }
-      $.FILE.print( ( pack( "V", -1 ) ) xx
+      %hInfo<_FILEH_>.write( ( pack( "V", -1 ) ) xx
                    ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) )
         if $iBdCnt - $i1stBdL % $iBbCnt - 1;
-      $.FILE.print( pack( "V", -2 ) );
+      %hInfo<_FILEH_>.print( pack( "V", -2 ) );
     }
   }
 }

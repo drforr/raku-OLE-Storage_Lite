@@ -18,6 +18,8 @@ unit class OLE::Storage_Lite::PPS;
 
 use experimental :pack;
 
+constant OLE-ENCODING = 'UTF-16LE';
+
 # $.Type is gone, because it's intimately tied to the subclass name(s). Instead,
 # when an instance of PPS:: is created, it's given a default Type at creation.
 #
@@ -38,8 +40,6 @@ has     @.Child      is rw;
 
 has Str $._PPS_FILE;
 
-has $.FILE is rw; # XXX JMG Not sure why this wasn't factored out earlier.
-
 # The old 'new' methods really don't do anything special.
 
 method _DataLen {
@@ -51,7 +51,7 @@ method _DataLen {
 
 method _makeSmallData( @aList, %hInfo ) {
   my Str        $sRes;
-#  my IO::Handle $FILE   = %hInfo<_FILEH_>;
+  my IO::Handle $FILE   = %hInfo<_FILEH_>;
   my Int        $iSmBlk = 0;
 
   for @aList -> $oPps {
@@ -63,9 +63,9 @@ method _makeSmallData( @aList, %hInfo ) {
    	       ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
 
 	loop ( my Int $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
-	  $.FILE.write( pack( "V", $i + $iSmBlk + 1 ) );
+	  $FILE.write( pack( "V", $i + $iSmBlk + 1 ) );
 	}
-	$.FILE.write( pack( "V", -2 ) );
+	$FILE.write( pack( "V", -2 ) );
 
 	if $oPps._PPS_FILE {
 	  my Buf $sBuff;
@@ -92,8 +92,8 @@ method _makeSmallData( @aList, %hInfo ) {
   my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
 if $iSmBlk % $iSbCnt {
   my $num-V = $iSbCnt - ( $iSmBlk % $iSbCnt );
-  $.FILE.write( pack( "V$num-V", (-1) xx $num-V ) );
-#  $.FILE.write( pack( "V", -1 ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
+  $FILE.write( pack( "V$num-V", (-1) xx $num-V ) );
+#  $FILE.write( pack( "V", -1 ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
 #    $iSmBlk % $iSbCnt;
 }
 
@@ -101,26 +101,26 @@ if $iSmBlk % $iSbCnt {
 }
 
 method _savePpsWk( %rhInfo ) {
-#  my $FILE = %rhInfo.<_FILEH_>;
+  my $FILE = %rhInfo.<_FILEH_>;
 
-  $.FILE.write(
-    self.Name
-    ~ "\x80" xx ( 64 - self.Name.chars )                                 # 64
-    ~ ( self.Name.chars + 2 ).pack( "v" )                                # 66
-    ~ self.Type.pack( "c" )                                              # 67
-    ~ 0x00.pack( "c" )                                                   # 68
-    ~ self.PrevPps.pack( "V" )                                           # 72
-    ~ self.NextPps.pack( "V" )                                           # 76
-    ~ self.DirPps.pack( "V" )                                            # 80
-    ~ "\x00\x09\x02\x00"                                                 # 84
-    ~ "\x00\x00\x00\x00"                                                 # 88
-    ~ "\xc0\x00\x00\x00"                                                 # 92
-    ~ "\x00\x00\x00\x46"                                                 # 96
-    ~ "\x00\x00\x00\x00"                                                 # 100
-    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )                   # 108
-    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )                   # 116
-    ~ ( defined( self.StartBlock ?? self.StartBlock !! 0 ) ).pack( "V" ) # 120
-    ~ ( defined( self.size ?? self.Size !! 0 ) ).pack( "V" )             # 124
-    ~ 0.pack( "V" )                                                      # 128
+  $FILE.write(
+#    self.Name.encode( OLE-ENCODING )
+#    ~ "\x80" x ( 64 - self.Name.chars )                                  # 64
+#    ~ ( self.Name.chars + 2 ).pack( "v" )                                # 66
+#    ~ self.Type.pack( "c" )                                              # 67
+#    ~ 0x00.pack( "c" )                                                   # 68
+#    ~ self.PrevPps.pack( "V" )                                           # 72
+#    ~ self.NextPps.pack( "V" )                                           # 76
+       pack( "V", self.DirPps )                                           # 80
+#    ~ "\x00\x09\x02\x00"                                                 # 84
+#    ~ "\x00\x00\x00\x00"                                                 # 88
+#    ~ "\xc0\x00\x00\x00"                                                 # 92
+#    ~ "\x00\x00\x00\x46"                                                 # 96
+#    ~ "\x00\x00\x00\x00"                                                 # 100
+#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )                   # 108
+#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )                   # 116
+#    ~ ( defined( self.StartBlock ?? self.StartBlock !! 0 ) ).pack( "V" ) # 120
+#    ~ ( defined( self.size ?? self.Size !! 0 ) ).pack( "V" )             # 124
+#    ~ 0.pack( "V" )                                                      # 128
   );
 }

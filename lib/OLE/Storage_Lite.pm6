@@ -44,6 +44,8 @@ use P5localtime;
 # Consts for OLE::Storage_Lite
 #------------------------------------------------------------------------------
 #
+constant OLE-ENCODING = 'UTF-16LE';
+
 constant HEADER-ID = "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1";
 
 constant PPS-TYPE-DIR  = 1;
@@ -320,14 +322,16 @@ method _getNthPps( Int $iPos, %hInfo, $bData ) {
     my Buf $sData = self._getData( $iType, $iStart, $iSize, %hInfo );
 #    return OLE::Storage_Lite::PPS.new
     return self.createPps(
-      $iPos, $sNm.decode('UTF-16LE'), $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      $iPos, $sNm.decode( OLE-ENCODING ),
+      $iType, $lPpsPrev, $lPpsNext, $lDirPps,
       @aTime1st, @aTime2nd, $iStart, $iSize, $sData, ( )
     );
   }
   else {
 #    return OLE::Storage_Lite::PPS.new
     return self.createPps(
-      $iPos, $sNm.decode('UTF-16LE'), $iType, $lPpsPrev, $lPpsNext, $lDirPps,
+      $iPos, $sNm.decode( OLE-ENCODING ),
+      $iType, $lPpsPrev, $lPpsNext, $lDirPps,
       @aTime1st, @aTime2nd, $iStart, $iSize
     );
   }
