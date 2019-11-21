@@ -1,6 +1,7 @@
 use v6;
 
 use OLE::Storage_Lite::PPS;
+use OLE::Storage_Lite::Utils;
 
 unit class OLE::Storage_Lite::PPS::Root is OLE::Storage_Lite::PPS;
 
@@ -116,8 +117,8 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   # Calculate basic setting
   #
   # JMG added Int() around these divisions
-  my Int $iBlCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
-  my Int $i1stBdl = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / LONGINT-SIZE );
+  my Int $iBlCnt    = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
+  my Int $i1stBdl   = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / LONGINT-SIZE );
   my Int $i1stBdMax = $i1stBdl * $iBlCnt - $i1stBdl;
   my Int $iBdExL    = 0;
   my Int $iAll      = $iBBcnt + $iPPScnt + $iSBDCnt;
@@ -150,26 +151,44 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # Save Header
   #
-  %hInfo<_FILEH_>.write(
-#    "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" ~
-    pack( "C8", 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 ) ~
-#    "\x00\x00\x00\x00" x 4 ~
-    pack( "C16", 0x00 xx 16 ) ~
-    pack( "v", 0x3b ) ~
-    pack( "v", 0x03 ) ~
-    pack( "v", -2 ) ~
-    pack( "v", 9 ) ~
-    pack( "v", 6 ) ~
-    pack( "v", 0 ) ~
-#    "\x00\x00\x00\x00" x 2 ~
-    pack( "C8", 0x00 xx 8 ) ~
-    pack( "V", $iBdCnt ) ~
-    pack( "V", $iBBcnt + $iSBDCnt ) ~ # ROOT START
-    pack( "V", 0 ) ~
-    pack( "V", 0x1000 ) ~
-    pack( "V", $iSBDCnt ?? 0 !! -2 ) ~
-    pack( "V", $iSBDCnt )
-  );
+  my uint8 @values = flat
+    0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1,
+    _int32( 0 ) xx 4,
+    _int16( 0x3b ),               # pack("v", 0x3b)
+    _int16( 0x03 ),               # pack("v", 0x03)
+    _int16( -2 ),                 # pack("v", -2)
+    _int16( 9 ),                  # pack("v", 9)
+    _int16( 6 ),                  # pack("v", 6)
+    _int16( 0 ),                  # pack("v", 0)
+    _int32( 0 ) xx 2,
+    _int16( $iBdCnt ),            # pack("V", $iBdCnt),
+    _int16( $iBBcnt + $iSBDCnt ), # pack("V", $iBBcnt+$iSBDcnt), #ROOT START
+    _int16( 0 ),                  # pack("V", 0)
+    _int16( 0x1000 ),             # pack("V", 0x1000)
+    _int16( $iSBDCnt ?? 0 !! -2 ), # pack("V", $iSBDcnt ? 0 : -2) Small Block Depot
+    _int16( $iSBDCnt )             # pack("V", $iSBDcnt)
+  ;
+  %hInfo<_FILEH_>.write( Blob.new( @values ) );
+
+#  print {$FILE} (
+#            "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"
+#            , "\x00\x00\x00\x00" x 4
+#            , pack("v", 0x3b)
+#            , pack("v", 0x03)
+#            , pack("v", -2)
+#            , pack("v", 9)
+#            , pack("v", 6)
+#            , pack("v", 0)
+#            , "\x00\x00\x00\x00" x 2
+#            , pack("V", $iBdCnt),
+#            , pack("V", $iBBcnt+$iSBDcnt), #ROOT START
+#            , pack("V", 0)
+#            , pack("V", 0x1000)
+#            , pack("V", $iSBDcnt ? 0 : -2)                  #Small Block Depot
+#            , pack("V", $iSBDcnt)
+#    );
+
+#`{
 
   # Extra BDlist Start, Count
   #
@@ -192,6 +211,7 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
     %hInfo<_FILEH_>.write( pack( "V", $iAll + $i ) );
   }
 #  %hInfo<_FILEH_>.write( ( pack( "V", -1 ) xx ( $i1stBdl - $i ) ) ) if $i < $i1stBdl;
+  }
 }
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.
