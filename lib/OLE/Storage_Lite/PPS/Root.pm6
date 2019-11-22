@@ -374,41 +374,41 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   #
   if $iSbdSize > 0 {
     loop ( $i = 0 ; $i < $iSbdSize - 1 ; $i++ ) {
-      $FILE.write( pack( "V", $i + 1 ) );
+      $FILE.write( Blob.new( _int32( $i + 1 ) ) );
     }
-    $FILE.write( pack( "V", -2 ) );
+    $FILE.write( Blob.new( _int32( -2 ) ) );
   }
 
   # Set for B
   #
   loop ( $i = 0 ; $i < $iBsize - 1 ; $i++ ) {
-    $FILE.write( pack( "V", $i + $iSbdSize + 1 ) );
+    $FILE.write( Blob.new( _int32( $i + $iSbdSize + 1 ) ) );
   }
-  $FILE.write( pack( "V", -2 ) );
+  $FILE.write( Blob.new( _int32( -2 ) ) );
 
   # Set for PPS
   #
   loop ( $i = 0 ; $i < $iPpsCnt - 1 ; $i++ ) {
-    $FILE.write( pack( "V", $i + $iSbdSize + $iBsize + 1 ) );
+    $FILE.write( Blob.new( _int32( $i + $iSbdSize + $iBsize + 1 ) ) );
   }
-  $FILE.write( pack( "V", -2 ) );
+  $FILE.write( Blob.new( _int32( -2 ) ) );
 
   # Set for BBD itself ( 0xFFFFFFFD : BBD )
   #
   loop ( $i = 0 ; $i < $iBdCnt ; $i++ ) {
-    $FILE.write( pack( "V", 0xFFFFFFFD ) );
+    $FILE.write( Blob.new( _int32( 0xFFFFFFFD ) ) );
   }
 
   # Set for ExtraBDList
   #
   loop ( $i = 0 ; $i < $iBdExL ; $i++ ) {
-    $FILE.write( pack( "V", 0xFFFFFFFC ) );
+    $FILE.write( Blob.new( _int32( 0xFFFFFFFC ) ) );
   }
 
   # Adjust for Block
   #
-#  $FILE.write( pack( "V", -1 ) x
-#                   ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
+#  $FILE.write( Blob.new( _int32( -1 ) xx
+#                   ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) ) )
   $FILE.write( pack( "V{ $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt )}",
                      -1 xx $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
     if $iAllW + $iBdCnt % $iBbCnt;
