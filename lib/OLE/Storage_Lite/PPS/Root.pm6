@@ -9,6 +9,10 @@ use experimental :pack;
 
 constant OLE-ENCODING = 'UTF-16LE';
 
+constant PPS-TYPE-DIR  = 1;
+constant PPS-TYPE-FILE = 2;
+constant PPS-TYPE-ROOT = 5;
+
 constant LONGINT-SIZE = 4;
 
 multi method new ( @Time1st, @Time2nd, @Child ) {
@@ -172,16 +176,16 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
   # Extra BDlist Start, Count
   #
   if $iAll <= $i1stBdMax {
-    %hInfo<_FILEH_>.write( Blob.new(
+    %hInfo<_FILEH_>.write( Blob.new( flat
       _int32( -2 ), # Extra BDList Start
       _int32( 0 )   # Extra BDList Count
     ) );
   }
   else {
-    %hInfo<_FILEH_>.write(
+    %hInfo<_FILEH_>.write( Blob.new( flat
       _int32( $iAll + $iBdCnt ), # Extra BDList Start
       _int32( $iBdExL )          # Extra BDlist Count
-    );
+    ) );
   }
 
   # BDlist
@@ -210,10 +214,10 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
   # Write Big (>= 0x1000) into Block
   #
   for @aList -> $oPps {
-    if $oPps.Type != 1 { # PPS-TYPE-DIR
+    if $oPps.Type != PPS-TYPE-DIR {
       $oPps.Size = $oPps._DataLen(); # Mod
       if ( $oPps.Size >= %hInfo<_SMALL_SIZE> ) ||
-         ( ( $oPps.Type == 5 ) && defined( $oPps.Data ) ) { # PPS-TYPE-ROOT
+         ( ( $oPps.Type == PPS-TYPE-ROOT ) && defined( $oPps.Data ) ) {
 
 	# Check for update
 	#
@@ -228,7 +232,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	}
 	else {
 	  # XXX Not sure if this is where we want to encode...
-	  $FILE.write( $oPps.Data.encode( OLE-ENCODING ) );
+	  $FILE.write( $oPps.Data.encode( 'ASCII' ) );#.encode( OLE-ENCODING ) );
 	}
 	$FILE.write(
 	  ( "\x00" x ( %hInfo<_BIG_BLOCK_SIZE> -

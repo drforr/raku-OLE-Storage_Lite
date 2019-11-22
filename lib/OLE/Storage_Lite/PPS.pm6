@@ -18,7 +18,13 @@ unit class OLE::Storage_Lite::PPS;
 
 use experimental :pack;
 
+use OLE::Storage_Lite::Utils;
+
 constant OLE-ENCODING = 'UTF-16LE';
+
+constant PPS-TYPE-DIR  = 1;
+constant PPS-TYPE-FILE = 2;
+constant PPS-TYPE-ROOT = 5;
 
 # $.Type is gone, because it's intimately tied to the subclass name(s). Instead,
 # when an instance of PPS:: is created, it's given a default Type at creation.
@@ -55,17 +61,18 @@ method _makeSmallData( @aList, %hInfo ) {
   my Int        $iSmBlk = 0;
 
   for @aList -> $oPps {
-    if $oPps.Type == 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
+    if $oPps.Type == PPS-TYPE-FILE {
       next if $oPps.Size <= 0;
       if $oPps.Size < %hInfo<_SMALL_SIZE> {
         my Int $iSmbCnt =
-	  ( Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
-   	       ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ?? 1 !! 0;
+	  Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
+   	       ( ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ?? 1 !! 0 );
 
-	loop ( my Int $i = 0 ; $i < $iSmbCnt - 1 ; $i++ ) {
-	  $FILE.write( pack( "V", $i + $iSmBlk + 1 ) );
+	loop ( my Int $i = 0 ; $i < ( $iSmbCnt - 1 ) ; $i++ ) {
+          $FILE.write( Blob.new( _int32( $i + $iSmBlk + 1 ) ) );
 	}
-	$FILE.write( pack( "V", -2 ) );
+#	$FILE.write( pack( "V", -2 ) );
+        $FILE.write( Blob.new( _int32( -2 ) ) );
 
 	if $oPps._PPS_FILE {
 	  my Buf $sBuff;
