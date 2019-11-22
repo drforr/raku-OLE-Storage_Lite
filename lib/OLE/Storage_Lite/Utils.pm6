@@ -7,8 +7,8 @@ sub _int16( Int $v ) is export {
 }
 
 sub _int32( Int $v ) is export {
-        $v +& 0xff
+        $v +& 0xff,
   $v +> 8  +& 0xff,
   $v +> 16 +& 0xff,
-  $v +> 24 +& 0xff,
+  $v +> 24 +& 0xff
 }

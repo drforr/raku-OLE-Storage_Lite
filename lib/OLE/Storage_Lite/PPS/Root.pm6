@@ -95,7 +95,7 @@ method _calcSize( @aList, %hInfo ) {
   $iSmallLen = $iSBcnt * %hInfo<_SMALL_BLOCK_SIZE>;
   my Int $iSlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   $iSBDcnt = Int( $iSBcnt / $iSlCnt ) + ( ( $iSBcnt % $iSlCnt ) ?? 1 !! 0 );
-  $iSBcnt += Int( $iSmallLen / %hInfo<_BIG_BLOCK_SIZE> ) +
+  $iBBcnt += Int( $iSmallLen / %hInfo<_BIG_BLOCK_SIZE> ) +
                  ( ( $iSmallLen % %hInfo<_BIG_BLOCK_SIZE> ) ?? 1 !! 0 );
 
   my Int $iCnt   = @aList.elems;
@@ -111,7 +111,7 @@ method _adjust2( Int $i2 ) {
   ( $iWk > Int( $iWk ) ) ?? Int( $iWk ) + 1 !! $iWk;
 }
 
-method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
+method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 #  my $FILE = %hInfo<_FILEH_>; # pFile originally?
 
   # Calculate basic setting
@@ -121,7 +121,7 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   my Int $i1stBdL   = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / LONGINT-SIZE );
   my Int $i1stBdMax = $i1stBdL * $iBlCnt - $i1stBdL;
   my Int $iBdExL    = 0;
-  my Int $iAll      = $iBBcnt + $iPPScnt + $iSBDCnt;
+  my Int $iAll      = $iBBcnt + $iPPScnt + $iSBDcnt;
   my Int $iAllW     = $iAll;
   my Int $iBdCntW   = Int( $iAllW / $iBlCnt ) + ( $iAllW % $iBlCnt ?? 1 !! 0 );
   my Int $iBdCnt =
@@ -160,27 +160,27 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
     _int16( 9 ),                  # pack("v", 9)
     _int16( 6 ),                  # pack("v", 6)
     _int16( 0 ),                  # pack("v", 0)
-    _int32( 0 ) xx 2,
-    _int16( $iBdCnt ),            # pack("V", $iBdCnt),
-    _int16( $iBBcnt + $iSBDCnt ), # pack("V", $iBBcnt+$iSBDcnt), #ROOT START
-    _int16( 0 ),                  # pack("V", 0)
-    _int16( 0x1000 ),             # pack("V", 0x1000)
-    _int16( $iSBDCnt ?? 0 !! -2 ), # pack("V", $iSBDcnt ? 0 : -2) Small Block Depot
-    _int16( $iSBDCnt )             # pack("V", $iSBDcnt)
+    _int32( 0 ) xx 2,             # "\x00\x00\x00\x00" x 2
+    _int32( $iBdCnt ),            # pack("V", $iBdCnt),
+    _int32( $iBBcnt + $iSBDcnt ), # pack("V", $iBBcnt+$iSBDcnt), #ROOT START
+    _int32( 0 ),                  # pack("V", 0)
+    _int32( 0x1000 ),             # pack("V", 0x1000)
+    _int32( $iSBDcnt ?? 0 !! -2 ), # pack("V", $iSBDcnt ? 0 : -2) Small Block Depot
+    _int32( $iSBDcnt )             # pack("V", $iSBDcnt)
   ) );
 
   # Extra BDlist Start, Count
   #
   if $iAll <= $i1stBdMax {
     %hInfo<_FILEH_>.write( Blob.new(
-      _int16( -2 ), # Extra BDList Start
-      _int16( 0 )   # Extra BDList Count
+      _int32( -2 ), # Extra BDList Start
+      _int32( 0 )   # Extra BDList Count
     ) );
   }
   else {
     %hInfo<_FILEH_>.write(
-      _int16( $iAll + $iBdCnt ), # Extra BDList Start
-      _int16( $iBdExL )          # Extra BDlist Count
+      _int32( $iAll + $iBdCnt ), # Extra BDList Start
+      _int32( $iBdExL )          # Extra BDlist Count
     );
   }
 
@@ -188,15 +188,16 @@ method _saveHeader( %hInfo, Int $iSBDCnt, Int $iBBcnt, Int $iPPScnt ) {
   #
   my uint8 @bd-list;
   loop ( $i = 0 ; $i < $i1stBdL and $i < $iBdCnt ; $i++ ) {
-    append( @bd-list, _int16( $iAll - $i ) );
+    append( @bd-list, _int32( $iAll - $i ) );
   }
   %hInfo<_FILEH_>.write( Blob.new( @bd-list ) );
+
   if $i < $i1stBdL {
     my uint8 @bd-remain;
     for 0 .. $i1stBdL - $i {
-      append( @bd-remain, _int16( -1 ) );
+      append( @bd-remain, _int32( -1 ) );
     }
-    %hInfo<_FILEH_>.write( Blob.new( @bd-list ) );
+    %hInfo<_FILEH_>.write( Blob.new( @bd-remain ) );
   }
 }
 
