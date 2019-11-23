@@ -228,6 +228,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	  # XXX Not sure if this is where we want to encode...
 	  $FILE.write( $oPps.Data.encode( 'ASCII' ) );#.encode( OLE-ENCODING ) );
 	}
+exit 0;
 	$FILE.write(
 	  ( "\x00" x ( %hInfo<_BIG_BLOCK_SIZE> -
 	             ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) ).encode( OLE-ENCODING )
@@ -239,6 +240,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
       }
     }
   }
+exit 0;
 }
 
 method _savePps( @aList, %hInfo ) {
