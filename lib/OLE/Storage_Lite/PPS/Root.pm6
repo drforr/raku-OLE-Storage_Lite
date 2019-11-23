@@ -127,7 +127,8 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
   my Int $iBdExL    = 0;
   my Int $iAll      = $iBBcnt + $iPPScnt + $iSBDcnt;
   my Int $iAllW     = $iAll;
-  my Int $iBdCntW   = Int( $iAllW / $iBlCnt ) + ( $iAllW % $iBlCnt ?? 1 !! 0 );
+  my Int $iBdCntW   = Int( $iAllW / $iBlCnt ) +
+                         ( ( $iAllW % $iBlCnt ) ?? 1 !! 0 );
   my Int $iBdCnt =
     Int( ( $iAll + $iBdCntW ) / $iBlCnt ) +
        ( ( ( $iAllW + $iBdCntW ) % $iBlCnt ) ?? 1 !! 0 );
@@ -190,19 +191,12 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # BDlist
   #
-  my uint8 @bd-list;
   loop ( $i = 0 ; $i < $i1stBdL and $i < $iBdCnt ; $i++ ) {
-    append( @bd-list, _int32( $iAll - $i ) );
+    %hInfo<_FILEH_>.write( Blob.new( _int32( $iAll + $i ) ) );
   }
-  %hInfo<_FILEH_>.write( Blob.new( @bd-list ) );
-
-  if $i < $i1stBdL {
-    my uint8 @bd-remain;
-    for 0 .. $i1stBdL - $i {
-      append( @bd-remain, _int32( -1 ) );
-    }
-    %hInfo<_FILEH_>.write( Blob.new( @bd-remain ) );
-  }
+  %hInfo<_FILEH_>.write( Blob.new( flat
+    ( _int32( -1 ) ) xx ( $i1stBdL - $i )
+  ) ) if $i < $i1stBdL;
 }
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.

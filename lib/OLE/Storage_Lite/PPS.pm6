@@ -66,13 +66,12 @@ method _makeSmallData( @aList, %hInfo ) {
       if $oPps.Size < %hInfo<_SMALL_SIZE> {
         my Int $iSmbCnt =
 	  Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
-   	       ( ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ?? 1 !! 0 );
+   	     ( ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ?? 1 !! 0 );
 
 	loop ( my Int $i = 0 ; $i < ( $iSmbCnt - 1 ) ; $i++ ) {
           $FILE.write( Blob.new( _int32( $i + $iSmBlk + 1 ) ) );
 	}
-#	$FILE.write( pack( "V", -2 ) );
-        $FILE.write( Blob.new( _int32( -2 ) ) );
+	$FILE.write( Blob.new( _int32( -2 ) ) );
 
 	if $oPps._PPS_FILE {
 	  my Buf $sBuff;
