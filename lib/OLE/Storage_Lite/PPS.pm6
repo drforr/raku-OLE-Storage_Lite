@@ -84,7 +84,7 @@ method _makeSmallData( @aList, %hInfo ) {
 	  $sRes ~= $oPps.Data;
 	}
 
-	$sRes ~= ( "\x00" xx 
+	$sRes ~= ( "\x00" x
 	           ( %hInfo<_SMALL_BLOCK_SIZE> -
 		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ) if
 	  $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE>;

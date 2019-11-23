@@ -65,7 +65,8 @@ my @thisList = ( self );
 
   # Write BB
   #
-  my Int $iBBlk = $iSBDcnt;
+  # This is a weird bit. 
+  my Int $iBBlk := $iSBDcnt;
   self._saveBigData( $iBBlk, @aList, %hInfo );
 
   # Write PPS
@@ -228,19 +229,19 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	  # XXX Not sure if this is where we want to encode...
 	  $FILE.write( $oPps.Data.encode( 'ASCII' ) );#.encode( OLE-ENCODING ) );
 	}
-exit 0;
 	$FILE.write(
 	  ( "\x00" x ( %hInfo<_BIG_BLOCK_SIZE> -
 	             ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) ).encode( OLE-ENCODING )
 	) if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
 
+	# Set for PPS
+	#
 	$oPps.StartBlock = $iStBlk;
 	$iStBlk += Int( $oPps.Size / %hInfo<_BIG_BLOCK_SIZE> ) +
 	              ( ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ?? 1 !! 0 );
       }
     }
   }
-exit 0;
 }
 
 method _savePps( @aList, %hInfo ) {
