@@ -95,13 +95,12 @@ method _makeSmallData( @aList, %hInfo ) {
     }
   }
 
+  # Adjust for SBD block size
+  #
   my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
-if $iSmBlk % $iSbCnt {
-  my $num-V = $iSbCnt - ( $iSmBlk % $iSbCnt );
-  $FILE.write( pack( "V$num-V", (-1) xx $num-V ) );
-#  $FILE.write( pack( "V", -1 ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) ) ) if
-#    $iSmBlk % $iSbCnt;
-}
+  $FILE.write( Blob.new( flat
+    ( _int32( -1 ) ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) )
+  ) ) if $iSmBlk % $iSbCnt;
 
   $sRes;
 }
