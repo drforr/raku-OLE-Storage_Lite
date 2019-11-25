@@ -202,6 +202,9 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.
 # XXX
+# XXX Later on I bind to another variable to reflect better what might be going
+# XXX on in the code.
+# XXX
 method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
   my Int        $iRes = 0;
   my IO::Handle $FILE = %hInfo<_FILEH_>;
@@ -227,11 +230,12 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	}
 	else {
 	  # XXX Not sure if this is where we want to encode...
-	  $FILE.write( $oPps.Data.encode( 'ASCII' ) );#.encode( OLE-ENCODING ) );
+	  $FILE.write( $oPps.Data.encode( 'ASCII' ) );
 	}
 	$FILE.write(
-	  ( "\x00" x ( %hInfo<_BIG_BLOCK_SIZE> -
-	             ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) ).encode( OLE-ENCODING )
+	  Blob.new(
+	    0x00 xx ( %hInfo<_BIG_BLOCK_SIZE> -
+	              ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) )
 	) if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
 
 	# Set for PPS
