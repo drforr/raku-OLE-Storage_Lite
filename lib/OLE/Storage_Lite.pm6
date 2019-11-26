@@ -470,7 +470,7 @@ method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
 # We first convert the FILETIME to seconds and then subtract the difference
 # between the 1601 epoch and the 1970 Unix epoch.
 #
-sub OLEDate2Local( Buf $oletime ) {
+sub OLEDate2Local( Buf $oletime ) is export {
 
   # Unpack FILETIME into high and low longs
   #
@@ -516,16 +516,16 @@ sub LocalDate2OLE( @localtime? ) is export {
 #                    0     1     2      3      4     5
 
   my $dt = DateTime.new(
-    year    => @localtime[5],
+    year    => @localtime[5] + 1900,
     month   => @localtime[4] + 1,
     day     => @localtime[3],
     hour    => @localtime[2],
     minute  => @localtime[1],
-    second  => @localtime[0],
+    second  => @localtime[0]
   );
   
   # Convert from localtime (actually gmtime) to seconds.
-  my $time = $dt.posix;
+  my $time = $dt.posix( :ignore-timezone( True ) );
 
   # Add the number of seconds between the 1601 and 1970 epochs.
   $time += 11644473600;
