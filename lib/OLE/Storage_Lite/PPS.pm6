@@ -105,32 +105,36 @@ method _makeSmallData( @aList, %hInfo ) {
   $sRes;
 }
 
-method _savePpsWk( %rhInfo ) {
-  my $FILE = %rhInfo.<_FILEH_>;
+method _savePpsWk( %hInfo ) {
 
-  $FILE.write(
-    self.Name.encode( OLE-ENCODING )
-#    ~ "\x80" x ( 64 - self.Name.chars )                              # 64
-#    ~ ( self.Name.chars + 2 ).pack( "v" )                            # 66
-    ~ pack( "C", self.Type )                                          # 67
-    ~ pack( "C", 0x00 )                                               # 68
-    ~ pack( "V", self.PrevPps )                                       # 72
-    ~ pack( "V", self.NextPps )                                       # 76
-    ~ pack( "V", self.DirPps )                                        # 80
-    ~ pack( "V", 0x00, 0x09, 0x02, 0x00 )                             # 84
-    # ~ "\x00\x09\x02\x00"
-    ~ pack( "V", 0x00, 0x00, 0x00, 0x00 )                             # 84
-    # ~ "\x00\x00\x00\x00"
-    ~ pack( "V", 0xc0, 0x00, 0x00, 0x00 )                             # 88
-    # ~ "\xc0\x00\x00\x00"
-    ~ pack( "V", 0x00, 0x00, 0x00, 0x46 )                             # 92
-    # ~ "\x00\x00\x00\x46"
-    ~ pack( "V", 0x00, 0x00, 0x00, 0x00 )                             # 100
-    # ~ "\x00\x00\x00\x00"
-#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time1st )               # 108
-#    ~ OLE::Storage_Lite::LocalDate2OLE( self.Time2nd )               # 116
-    ~ pack( "V", defined( self.StartBlock ?? self.StartBlock !! 0 ) ) # 120
-    ~ pack( "V", defined( self.Size ?? self.Size !! 0 ) )             # 124
-    ~ pack( "V", 0 )                                                  # 128
+  my $name = self.Name.encode( OLE-ENCODING );
+  %hInfo<_FILEH_>.write( $name );
+  %hInfo<_FILEH_>.write(
+    Blob.new( flat
+      0x00 xx ( 64 - $name.bytes ),
+      _int16( $name.bytes + 2 ),
+      _int8( self.Type ),     # 67
+      _int8( 0 ),             # 68
+      _int32( self.PrevPps ), # 72
+      _int32( self.NextPps ), # 76
+      _int32( self.DirPps ),  # 80
+      0x00, 0x09, 0x02, 0x00, # 84
+      0x00, 0x00, 0x00, 0x00, # 88
+      0xc0, 0x00, 0x00, 0x00, # 92
+      0x00, 0x00, 0x00, 0x46, # 96
+      0x00, 0x00, 0x00, 0x00, # 100
+    )
   );
+
+#  print {$FILE} (
+#            , OLE::Storage_Lite::LocalDate2OLE($oThis->{Time1st})       #108
+#            , OLE::Storage_Lite::LocalDate2OLE($oThis->{Time2nd})       #116
+#            , pack("V", defined($oThis->{StartBlock})?
+#                      $oThis->{StartBlock}:0)       #116
+#            , pack("V", defined($oThis->{Size})?
+#                 $oThis->{Size} : 0)            #124
+#            , pack("V", 0),                  #128
+#        );
+
+exit 0;
 }

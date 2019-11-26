@@ -2,6 +2,10 @@ use v6;
 
 unit class OLE::Storage_Lite::Utils;
 
+sub _int8( Int $v ) is export {
+       $v +& 0xff
+}
+
 sub _int16( Int $v ) is export {
        $v +& 0xff,
   $v +> 8 +& 0xff
@@ -32,21 +36,26 @@ sub _unpack( Str $format, *@args ) is export {
     my $count = $term.<count> // 1;
     given $term.<format> {
       when 'C' {
-        append( @bytes, @args[ $arg-index++ ] +& 0xff ) for ^$count;
+        append( @bytes,
+	          @args[ $arg-index ] +& 0xff
+	  ) for ^$count;
+	$arg-index++;
       }
       when 'v' {
         append( @bytes,
-   	          @args[ $arg-index++ ]      +& 0xff,
-	          @args[ $arg-index++ ] +> 8 +& 0xff
+   	          @args[ $arg-index ]      +& 0xff,
+	          @args[ $arg-index ] +> 8 +& 0xff
 	  ) for ^$count;
+	$arg-index++;
       }
       when 'V' {
         append( @bytes,
-                  @args[ $arg-index++ ]       +& 0xff,
-	          @args[ $arg-index++ ] +> 8  +& 0xff,
-	          @args[ $arg-index++ ] +> 16 +& 0xff,
-	          @args[ $arg-index++ ] +> 24 +& 0xff
+                  @args[ $arg-index ]       +& 0xff,
+	          @args[ $arg-index ] +> 8  +& 0xff,
+	          @args[ $arg-index ] +> 16 +& 0xff,
+	          @args[ $arg-index ] +> 24 +& 0xff
 	  ) for ^$count;
+	$arg-index++;
       }
     }
   }

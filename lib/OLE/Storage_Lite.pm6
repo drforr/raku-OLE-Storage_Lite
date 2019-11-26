@@ -505,14 +505,27 @@ sub OLEDate2Local( Buf $oletime ) {
 # 100 nanosecond units, divide it into high and low longs and return it as a
 # packed 64bit structure.
 #
-sub LocalDate2OLE( @localtime? ) {
-	die "XXX Need timegm()....";
+sub LocalDate2OLE( @localtime? ) is export {
 
   return "\x00" x 8 unless @localtime;
+
+# Perl 5 spec worked like this:
+#
+# Jan is 0
+# my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
+#                    0     1     2      3      4     5
+
+  my $dt = DateTime.new(
+    year    => @localtime[5],
+    month   => @localtime[4] + 1,
+    day     => @localtime[3],
+    hour    => @localtime[2],
+    minute  => @localtime[1],
+    second  => @localtime[0],
+  );
   
   # Convert from localtime (actually gmtime) to seconds.
-#    my $time = timegm( @localtime );
-my $time;
+  my $time = $dt.posix;
 
   # Add the number of seconds between the 1601 and 1970 epochs.
   $time += 11644473600;
@@ -520,11 +533,11 @@ my $time;
   # The FILETIME seconds are in units of 100 nanoseconds.
   my $nanoseconds = $time * 1E7;
 
-#use POSIX 'fmod';
-
   # Pack the total nanoseconds into 64 bits...
-  my $hi = Int( $nanoseconds / 2**32 );
-  my $lo = $nanoseconds % 2**32;
+#  my Int $hi = Int( $nanoseconds / 2**32 );
+#  my Int $lo = $nanoseconds % 2**32;
+  my Int $hi = $nanoseconds +> 32 +& ( 2**32 - 1 );
+  my Int $lo = $nanoseconds +& ( 2**32 - 1 );
 
   my $oletime = pack( "VV", $lo, $hi );
 
