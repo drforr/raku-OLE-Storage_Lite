@@ -16,8 +16,6 @@ use v6;
 
 unit class OLE::Storage_Lite::PPS;
 
-use experimental :pack;
-
 use OLE::Storage_Lite::Utils;
 
 constant OLE-ENCODING = 'UTF-16LE';
@@ -111,24 +109,24 @@ method _savePpsWk( %hInfo ) {
   %hInfo<_FILEH_>.write( $name );
   %hInfo<_FILEH_>.write(
     Blob.new( flat
-      0x00 xx ( 64 - $name.bytes ),
-      _int16( $name.bytes + 2 ),
-      _int8( self.Type ),     # 67
-      _int8( 0 ),             # 68
-      _int32( self.PrevPps ), # 72
-      _int32( self.NextPps ), # 76
-      _int32( self.DirPps ),  # 80
-      0x00, 0x09, 0x02, 0x00, # 84
-      0x00, 0x00, 0x00, 0x00, # 88
-      0xc0, 0x00, 0x00, 0x00, # 92
-      0x00, 0x00, 0x00, 0x46, # 96
-      0x00, 0x00, 0x00, 0x00, # 100
+      0x00 xx ( 64 - $name.bytes ),  # 0..64
+      _int16( $name.bytes + 2 ),     # 65
+      _int8( self.Type ),            # 67
+      _int8( 0 ),                    # 68
+      _int32( self.PrevPps ),        # 72
+#      _int32( self.NextPps ),        # 76
+#      _int32( self.DirPps ),         # 80
+#      0x00, 0x09, 0x02, 0x00,        # 84
+#      0x00, 0x00, 0x00, 0x00,        # 88
+#      0xc0, 0x00, 0x00, 0x00,        # 92
+#      0x00, 0x00, 0x00, 0x46,        # 96
+#      0x00, 0x00, 0x00, 0x00,        # 100
+#      LocalDate2OLE( self.Time1st ), # 108
+#      LocalDate2OLE( self.Time2nd ), # 116
     )
   );
 
 #  print {$FILE} (
-#            , OLE::Storage_Lite::LocalDate2OLE($oThis->{Time1st})       #108
-#            , OLE::Storage_Lite::LocalDate2OLE($oThis->{Time2nd})       #116
 #            , pack("V", defined($oThis->{StartBlock})?
 #                      $oThis->{StartBlock}:0)       #116
 #            , pack("V", defined($oThis->{Size})?

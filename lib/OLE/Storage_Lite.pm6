@@ -2,12 +2,12 @@ use v6;
 
 unit class OLE::Storage_Lite;
 
+use OLE::Storage_Lite::Utils;
 use OLE::Storage_Lite::PPS::Dir;
 use OLE::Storage_Lite::PPS::File;
 use OLE::Storage_Lite::PPS::Root;
 
 use experimental :pack;
-use P5localtime;
 
 # A couple of notes on how I translated (loosely) this from the Perl 5 module:
 #
@@ -460,89 +460,89 @@ method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
 #
 # Same for Ucs2Asc
 
-#------------------------------------------------------------------------------
-# OLEDate2Local()
+##------------------------------------------------------------------------------
+## OLEDate2Local()
+##
+## Convert from a Windows FILETIME structure to a localtime array. FILETIME is
+## a 64-bit value representing the number of 100-nanosecond intervals since
+## January 1 1601.
+##
+## We first convert the FILETIME to seconds and then subtract the difference
+## between the 1601 epoch and the 1970 Unix epoch.
+##
+#sub OLEDate2Local( Buf $oletime ) is export {
 #
-# Convert from a Windows FILETIME structure to a localtime array. FILETIME is
-# a 64-bit value representing the number of 100-nanosecond intervals since
-# January 1 1601.
+#  # Unpack FILETIME into high and low longs
+#  #
+#  my ( $lo, $hi ) = $oletime.unpack( "V2" );
 #
-# We first convert the FILETIME to seconds and then subtract the difference
-# between the 1601 epoch and the 1970 Unix epoch.
+#  # Convert the longs to a double
+#  #
+#  my $nanoseconds = $hi * 2**32 + $lo;
 #
-sub OLEDate2Local( Buf $oletime ) is export {
-
-  # Unpack FILETIME into high and low longs
-  #
-  my ( $lo, $hi ) = $oletime.unpack( "V2" );
-
-  # Convert the longs to a double
-  #
-  my $nanoseconds = $hi * 2**32 + $lo;
-
-  # Convert the 100ns units to seconds
-  #
-  my $time = $nanoseconds / 1e7;
-
-  # Subtract the number of seconds between the 1601 and 1970 epocs
-  #
-  $time -= 11644473600;
-
-  my @localtime = gmtime( $time );
-
-  @localtime;
-}
-
-#------------------------------------------------------------------------------
-# LocalDate2OLE()
+#  # Convert the 100ns units to seconds
+#  #
+#  my $time = $nanoseconds / 1e7;
 #
-# Convert from a a localtime array to a Window FILETIME structure. FILETIME is
-# a 64-bit value representing the number of 100-nanosecond intervals since
-# January 1 1601.
+#  # Subtract the number of seconds between the 1601 and 1970 epocs
+#  #
+#  $time -= 11644473600;
 #
-# We first convert the localtime (actually gmtime) to seconds and then add the
-# difference between the 1601 epoch and the 1970 Unix epoch. We convert that to
-# 100 nanosecond units, divide it into high and low longs and return it as a
-# packed 64bit structure.
+#  my @localtime = gmtime( $time );
 #
-sub LocalDate2OLE( @localtime? ) is export {
-
-  return "\x00" x 8 unless @localtime;
-
-# Perl 5 spec worked like this:
+#  @localtime;
+#}
 #
-# Jan is 0
-# my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
-#                    0     1     2      3      4     5
-
-  my $dt = DateTime.new(
-    year    => @localtime[5] + 1900,
-    month   => @localtime[4] + 1,
-    day     => @localtime[3],
-    hour    => @localtime[2],
-    minute  => @localtime[1],
-    second  => @localtime[0]
-  );
-  
-  # Convert from localtime (actually gmtime) to seconds.
-  my $time = $dt.posix( :ignore-timezone( True ) );
-
-  # Add the number of seconds between the 1601 and 1970 epochs.
-  $time += 11644473600;
-  
-  # The FILETIME seconds are in units of 100 nanoseconds.
-  my $nanoseconds = $time * 1E7;
-
-  # Pack the total nanoseconds into 64 bits...
-#  my Int $hi = Int( $nanoseconds / 2**32 );
-#  my Int $lo = $nanoseconds % 2**32;
-  my Int $hi = $nanoseconds +> 32 +& ( 2**32 - 1 );
-  my Int $lo = $nanoseconds +& ( 2**32 - 1 );
-
-  my $oletime = pack( "VV", $lo, $hi );
-
-  return $oletime;
-}
+##------------------------------------------------------------------------------
+## LocalDate2OLE()
+##
+## Convert from a a localtime array to a Window FILETIME structure. FILETIME is
+## a 64-bit value representing the number of 100-nanosecond intervals since
+## January 1 1601.
+##
+## We first convert the localtime (actually gmtime) to seconds and then add the
+## difference between the 1601 epoch and the 1970 Unix epoch. We convert that to
+## 100 nanosecond units, divide it into high and low longs and return it as a
+## packed 64bit structure.
+##
+#sub LocalDate2OLE( @localtime? ) is export {
+#
+#  return "\x00" x 8 unless @localtime;
+#
+## Perl 5 spec worked like this:
+##
+## Jan is 0
+## my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
+##                    0     1     2      3      4     5
+#
+#  my $dt = DateTime.new(
+#    year    => @localtime[5] + 1900,
+#    month   => @localtime[4] + 1,
+#    day     => @localtime[3],
+#    hour    => @localtime[2],
+#    minute  => @localtime[1],
+#    second  => @localtime[0]
+#  );
+#  
+#  # Convert from localtime (actually gmtime) to seconds.
+#  my $time = $dt.posix( :ignore-timezone( True ) );
+#
+#  # Add the number of seconds between the 1601 and 1970 epochs.
+#  $time += 11644473600;
+#  
+#  # The FILETIME seconds are in units of 100 nanoseconds.
+#  my $nanoseconds = $time * 1E7;
+#
+#  # Pack the total nanoseconds into 64 bits...
+##  my Int $hi = Int( $nanoseconds / 2**32 );
+##  my Int $lo = $nanoseconds % 2**32;
+#  my Int $hi = $nanoseconds +> 32 +& ( 2**32 - 1 );
+#  my Int $lo = $nanoseconds +& ( 2**32 - 1 );
+#
+#  my $oletime = pack( "VV", $lo, $hi );
+#
+#  return $oletime;
+#}
 
 # Rename 'new' to 'create', for the moment.
 # The bless() mechanism isn't working for me...
