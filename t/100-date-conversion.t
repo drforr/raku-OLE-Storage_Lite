@@ -4,7 +4,7 @@ use experimental :pack;
 
 use Test;
 
-use OLE::Storage_Lite;
+use OLE::Storage_Lite::Utils;
 
 plan 198;
 

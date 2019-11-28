@@ -110,10 +110,9 @@ sub OLEDate2Local( Buf $oletime ) is export {
 # 100 nanosecond units, divide it into high and low longs and return it as a
 # packed 64bit structure.
 #
-sub LocalDate2OLE( @localtime? ) returns List is export {
+sub LocalDate2OLE( @localtime? ) is export {
 
-  return ( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ) unless @localtime;
-#  return "\x00" x 8 unless @localtime;
+  return 0x00 x 8 unless @localtime;
 
 # Perl 5 spec worked like this:
 #
@@ -140,13 +139,9 @@ sub LocalDate2OLE( @localtime? ) returns List is export {
   my $nanoseconds = $time * 1E7;
 
   # Pack the total nanoseconds into 64 bits...
-#  my Int $hi = Int( $nanoseconds / 2**32 );
-#  my Int $lo = $nanoseconds % 2**32;
+  #
   my Int $hi = $nanoseconds +> 32 +& ( 2**32 - 1 );
   my Int $lo = $nanoseconds +& ( 2**32 - 1 );
 
-#  my $oletime = pack( "VV", $lo, $hi );
-  return ( _int32( $lo ), _int32( $hi ) );
-
-#  return $oletime;
+  return Buf.new( _int32( $lo ), _int32( $hi ) );
 }
