@@ -50,7 +50,7 @@ subtest 'Root Entry', {
 subtest 'Workbook', {
   my $elem = @pps[0].Child[0];
 
-  plan 12;
+  plan 13;
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
 
@@ -60,18 +60,21 @@ subtest 'Workbook', {
   is        $elem.Name,        'Workbook', 'Name';
   is-deeply $elem.Time1st,     [ Any ],    'Time1st';
   is-deeply $elem.Time2nd,     [ Any ],    'Time2nd';
-#  is        $elem.Data,        '',         'Data';
   is        $elem.StartBlock,  0,          'StartBlock';
   is        $elem.PrevPps,     2**32 - 1,  'PrevPps';
   is        $elem.NextPps,     2**32 - 1,  'NextPps';
   is        $elem.DirPps,      2**32 - 1,  'DirPps';
   is        $elem.Child.elems, 0,          'Child';
+
+  is        $elem.Data.[0],    9,          'Data';
+
+  done-testing;
 };
 
 subtest 'SummaryInformation', {
   my $elem = @pps[0].Child[1];
 
-  plan 12;
+  plan 13;
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
 
@@ -82,19 +85,21 @@ subtest 'SummaryInformation', {
             qq{\x[05]SummaryInformation}, 'Name';
   is-deeply $elem.Time1st,    [ Any ],    'Time1st';
   is-deeply $elem.Time2nd,    [ Any ],    'Time2nd';
-#  is        $elem.Data,       Any,        'Data';
   is        $elem.StartBlock, 8,          'StartBlock';
   is        $elem.PrevPps,    1,          'PrevPps';
   is        $elem.NextPps,    3,          'NextPps';
   is        $elem.DirPps,     2**32 - 1,  'DirPps';
 
-  is        $elem.Child.elems, 0, 'Child';
+  is        $elem.Child.elems, 0,         'Child';
+  is        $elem.Data.[31],   242,       'Data';
+
+  done-testing;
 };
 
 subtest 'DocumentSummaryInformation', {
   my $elem = @pps[0].Child[2];
 
-  plan 12;
+  plan 13;
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
 
@@ -105,12 +110,13 @@ subtest 'DocumentSummaryInformation', {
             qq{\x[05]DocumentSummaryInformation}, 'Name';
   is-deeply $elem.Time1st,     [ Any ],           'Time1st';
   is-deeply $elem.Time2nd,     [ Any ],           'Time2nd';
-#  is        $elem.Data,        Any,               'Data';
   is        $elem.StartBlock,  16,                'StartBlock';
   is        $elem.PrevPps,     2**32 - 1,         'PrevPps';
   is        $elem.NextPps,     2**32 - 1,         'NextPps';
   is        $elem.DirPps,      2**32 - 1,         'DirPps';
+
   is        $elem.Child.elems, 0,                 'Child';
+  is        $elem.Data.[31],   213,               'Data';
 
   done-testing;
 };

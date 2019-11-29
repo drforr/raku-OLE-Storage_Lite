@@ -357,22 +357,24 @@ method _getNthBlockNo( Int $iStBlock, Int $iNth, %hInfo ) {
 }
 
 method _getData( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
+  my $buf;
   given $iType {
     when PPS-TYPE-FILE {
       if $iSize < DATA-SIZE {
-        return self._getSmallData( $iBlock, $iSize, %hInfo );
+        $buf = self._getSmallData( $iBlock, $iSize, %hInfo );
       }
       else {
-        return self._getBigData( $iBlock, $iSize, %hInfo );
+        $buf = self._getBigData( $iBlock, $iSize, %hInfo );
       }
     }
     when PPS-TYPE-ROOT {
-      return self._getBigData( $iBlock, $iSize, %hInfo );
+      $buf = self._getBigData( $iBlock, $iSize, %hInfo );
     }
     when PPS-TYPE-DIR {
       return;
     }
   }
+  return $buf;
 }
 
 method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
@@ -398,7 +400,7 @@ method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
     my Buf $sWk = %hInfo<_FILEH_>.read( $iGetSize );
     $sRes      ~= $sWk;
     $iRest     -= $iGetSize;
-    $_iBlock     = $iNext;
+    $_iBlock    = $iNext;
   }
   $sRes;
 }
