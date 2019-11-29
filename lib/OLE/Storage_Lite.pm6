@@ -319,7 +319,7 @@ method _getNthPps( Int $iPos, %hInfo, $bData ) {
   # And that would be a dependency loop.
   #
   if $bData {
-    my Buf $sData = self._getData( $iType, $iStart, $iSize, %hInfo );
+    my $sData = self._getData( $iType, $iStart, $iSize, %hInfo );
 #    return OLE::Storage_Lite::PPS.new
     return self.createPps(
       $iPos, $sNm.decode( OLE-ENCODING ),
