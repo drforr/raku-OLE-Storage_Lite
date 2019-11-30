@@ -230,7 +230,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 	}
 	else {
 	  # XXX Not sure if this is where we want to encode...
-	  $FILE.write( $oPps.Data.encode( 'ASCII' ) );
+	  $FILE.write( $oPps.Data );
 	}
 	$FILE.write(
 	  Blob.new(
@@ -272,12 +272,12 @@ method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
   }
   elsif @aThis.elems == 1 {
     append @aList, @aThis[0];
-    @aThis[0]<No>      = @aList.elems;
-    @aThis[0]<PrevPps> = 0xffffffff;
-    @aThis[0]<NextPps> = 0xffffffff;
-    @aThis[0]<DirPps> =
-      self._savePpsSetPnt2( @aThis[0]<Child>, @aList, %hInfo );
-    return @aThis[0]<No>;
+    @aThis[0].No      = @aList.elems;
+    @aThis[0].PrevPps = 0xffffffff;
+    @aThis[0].NextPps = 0xffffffff;
+    @aThis[0].DirPps =
+      self._savePpsSetPnt2( @aThis[0].Child, @aList, %hInfo );
+    return @aThis[0].No;
   }
   else {
     my Int $iCnt = @aThis.elems;
@@ -286,15 +286,15 @@ method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
     my @aPrev    = @aThis.elems > 1 ?? splice( @aWk, 1, 1 ) !! ( );
     my @aNext    = splice( @aWk, 1 );
 
-    @aThis[$iPos]<PrevPps> =
+    @aThis[$iPos].PrevPps =
       self._savePpsSetPnt2( @aPrev, @aList, %hInfo );
     append @aList, @aThis[$iPos];
-    @aThis[$iPos]<No> = @aList.elems;
-    @aThis[$iPos]<NextPps> =
+    @aThis[$iPos].No = @aList.elems;
+    @aThis[$iPos].NextPps =
       self._savePpsSetPnt2( @aNext, @aList, %hInfo );
-    @aThis[$iPos]<DirPps> =
-      self._savePpsSetPnt2( @aThis[$iPos]<Child>, @aList, %hInfo );
-    return @aThis[$iPos]<No>;
+    @aThis[$iPos].DirPps =
+      self._savePpsSetPnt2( @aThis[$iPos].Child, @aList, %hInfo );
+    return @aThis[$iPos].No;
   }
 }
 
@@ -412,11 +412,9 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
 
   # Adjust for Block
   #
-#  $FILE.write( Blob.new( _int32( -1 ) xx
-#                   ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) ) )
-  $FILE.write( pack( "V{ $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt )}",
-                     -1 xx $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) ) )
-    if $iAllW + $iBdCnt % $iBbCnt;
+  $FILE.write( Blob.new( flat
+    _int32( -1 ) xx ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) )
+  ) ) if $iAllW + $iBdCnt % $iBbCnt;
 
   # Extra BDList
   #

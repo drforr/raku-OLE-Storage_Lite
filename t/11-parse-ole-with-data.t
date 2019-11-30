@@ -12,10 +12,11 @@ plan 5;
 #
 # Rewritten to be a test by Jeff G. (drforr)
 
-# This time, actually load the data.
+# This time, actually load the data. That's what the 1 is in getPpsTree...
+# Should make that an optional flag in the full Raku version.
 #
 my $ole = OLE::Storage_Lite.new( FILENAME );
-my @pps = $ole.getPpsTree( 1 );
+my @pps = $ole.getPpsTree( 1 ); 
 
 is @pps.elems, 1, "Single root object";
 
@@ -23,13 +24,15 @@ is @pps.elems, 1, "Single root object";
 # different than Perl 5's.
 #
 # Also, 'Type' is redundant, we have that information in the object name.
+#
+# I want to fix that later on for the final Raku API.
 
 subtest 'Root Entry', {
   my $elem = @pps[0];
 
-  plan 12;
+  plan 13;
 
-  isa-ok $elem, 'OLE::Storage_Lite::PPS::Root';
+  isa-ok    $elem,             'OLE::Storage_Lite::PPS::Root';
 
   is        $elem.No,          0,                           'No';
   is        $elem.Type,        5,                           'Type';
@@ -39,12 +42,14 @@ subtest 'Root Entry', {
             [ 2, 28, 18, 5, 9, -240, 2, 278, 0, 0, 'GMT' ], 'Time1st';
   is-deeply $elem.Time2nd,
             [ 31, 58, 21, 28, 1, 101, 3, 58, 0, 0, 'GMT' ], 'Time2nd';
-#  is        $elem.Data,        '',                          'Data';
+  is        $elem.Data,        '',                          'Data';
   is        $elem.StartBlock,  2**32 - 2,                   'StartBlock';
   is        $elem.PrevPps,     2**32 - 1,                   'PrevPps';
   is        $elem.NextPps,     2**32 - 1,                   'NextPps';
   is        $elem.DirPps,      2,                           'DirPps';
   is        $elem.Child.elems, 3,                           'Child';
+
+  done-testing;
 };
 
 subtest 'Workbook', {
@@ -52,7 +57,7 @@ subtest 'Workbook', {
 
   plan 13;
 
-  isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
+  isa-ok    $elem,             'OLE::Storage_Lite::PPS::File';
 
   is        $elem.No,          1,          'No';
   is        $elem.Type,        2,          'Type';
@@ -76,7 +81,7 @@ subtest 'SummaryInformation', {
 
   plan 13;
 
-  isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
+  isa-ok    $elem,            'OLE::Storage_Lite::PPS::File';
 
   is        $elem.No,         2,          'No';
   is        $elem.Type,       2,          'Type';
@@ -101,7 +106,7 @@ subtest 'DocumentSummaryInformation', {
 
   plan 13;
 
-  isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
+  isa-ok    $elem,             'OLE::Storage_Lite::PPS::File';
 
   is        $elem.No,          3,                 'No';
   is        $elem.Type,        2,                 'Type';

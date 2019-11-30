@@ -50,7 +50,7 @@ method _DataLen {
   return 0 unless self.Data;
   self._PPS_FILE ??
     self._PPS_FILE.stat()[7] !!
-    self.Data.chars;
+    self.Data.bytes;
 }
 
 method _makeSmallData( @aList, %hInfo ) {
@@ -114,15 +114,15 @@ method _savePpsWk( %hInfo ) {
       _int8( self.Type ),            # 67
       _int8( 0 ),                    # 68
       _int32( self.PrevPps ),        # 72
-#      _int32( self.NextPps ),        # 76
-#      _int32( self.DirPps ),         # 80
-#      0x00, 0x09, 0x02, 0x00,        # 84
-#      0x00, 0x00, 0x00, 0x00,        # 88
-#      0xc0, 0x00, 0x00, 0x00,        # 92
-#      0x00, 0x00, 0x00, 0x46,        # 96
-#      0x00, 0x00, 0x00, 0x00,        # 100
+      _int32( self.NextPps ),        # 76
+      _int32( self.DirPps ),         # 80
+      0x00, 0x09, 0x02, 0x00,        # 84
+      0x00, 0x00, 0x00, 0x00,        # 88
+      0xc0, 0x00, 0x00, 0x00,        # 92
+      0x00, 0x00, 0x00, 0x46,        # 96
+      0x00, 0x00, 0x00, 0x00,        # 100
 #      LocalDate2OLE( self.Time1st ), # 108
-#      LocalDate2OLE( self.Time2nd ), # 116
+#      LocalDate2OLE( self.Time2nd )  # 116
     )
   );
 
@@ -134,5 +134,4 @@ method _savePpsWk( %hInfo ) {
 #            , pack("V", 0),                  #128
 #        );
 
-exit 0;
 }
