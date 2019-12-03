@@ -29,20 +29,18 @@ subtest 'Root Entry', {
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::Root';
 
-  is        $elem.No,          0,                           'No';
-  is        $elem.Type,        5,                           'Type';
-  is        $elem.Size,        0,                           'Size';
-  is        $elem.Name,        'Root Entry',                'Name';
-  is-deeply $elem.Time1st,
-            [ 2, 28, 18, 5, 9, -240, 2, 278, 0, 0, 'GMT' ], 'Time1st';
-  is-deeply $elem.Time2nd,
-            [ 31, 58, 21, 28, 1, 101, 3, 58, 0, 0, 'GMT' ], 'Time2nd';
-  is        $elem.Data,        Any,                         'Data';
-  is        $elem.StartBlock,  2**32 - 2,                   'StartBlock';
-  is        $elem.PrevPps,     2**32 - 1,                   'PrevPps';
-  is        $elem.NextPps,     2**32 - 1,                   'NextPps';
-  is        $elem.DirPps,      2,                           'DirPps';
-  is        $elem.Child.elems, 3,                           'Child';
+  is        $elem.No,          0,                          'No';
+  is        $elem.Type,        5,                          'Type';
+  is        $elem.Size,        0,                          'Size';
+  is        $elem.Name,        'Root Entry',               'Name';
+  is-deeply $elem.Time1st,     [ 2, 28, 18, 5, 9, -240 ],  'Time1st';
+  is-deeply $elem.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
+  is        $elem.Data,        Any,                        'Data';
+  is        $elem.StartBlock,  2**32 - 2,                  'StartBlock';
+  is        $elem.PrevPps,     2**32 - 1,                  'PrevPps';
+  is        $elem.NextPps,     2**32 - 1,                  'NextPps';
+  is        $elem.DirPps,      2,                          'DirPps';
+  is        $elem.Child.elems, 3,                          'Child';
 };
 
 subtest 'Workbook', {

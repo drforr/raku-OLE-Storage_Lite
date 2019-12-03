@@ -93,7 +93,9 @@ sub OLEDate2Local( Buf $oletime ) is export {
   #
   $time -= 11644473600;
 
-  my @localtime = gmtime( $time );
+  # The Microsoft API only uses [sec..year-1900]
+  #
+  my @localtime = (gmtime( $time ))[0 .. 5];
 
   @localtime;
 }
