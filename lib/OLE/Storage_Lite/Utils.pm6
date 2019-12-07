@@ -114,21 +114,22 @@ sub OLEDate2Local( Buf $oletime ) is export {
 #
 sub LocalDate2OLE( @localtime? ) is export {
 
-  return 0x00 x 8 unless @localtime;
+  return Buf.new( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ) unless
+    @localtime;
 
-# Perl 5 spec worked like this:
-#
-# Jan is 0
-# my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
-#                    0     1     2      3      4     5
+  # Perl 5 spec worked like this:
+  #
+  # Jan is 0
+  # my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
+  #                    0     1     2      3      4     5
 
   my $dt = DateTime.new(
-    year    => @localtime[5] + 1900,
-    month   => @localtime[4] + 1,
-    day     => @localtime[3],
-    hour    => @localtime[2],
-    minute  => @localtime[1],
-    second  => @localtime[0]
+    year   => @localtime[5] + 1900,
+    month  => @localtime[4] + 1,
+    day    => @localtime[3],
+    hour   => @localtime[2],
+    minute => @localtime[1],
+    second => @localtime[0]
   );
   
   # Convert from localtime (actually gmtime) to seconds.
@@ -142,8 +143,8 @@ sub LocalDate2OLE( @localtime? ) is export {
 
   # Pack the total nanoseconds into 64 bits...
   #
-  my Int $hi = $nanoseconds +> 32 +& ( 2**32 - 1 );
-  my Int $lo = $nanoseconds +& ( 2**32 - 1 );
+  my Int $hi = $nanoseconds +> 32 +& 0xffffffff;
+  my Int $lo = $nanoseconds       +& 0xffffffff;
 
   return Buf.new( _int32( $lo ), _int32( $hi ) );
 }

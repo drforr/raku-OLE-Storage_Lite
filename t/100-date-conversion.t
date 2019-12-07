@@ -135,3 +135,5 @@ for $testdata.lines -> $line {
 
   is($got_localtime, $expected_localtime, "OLEDate2Local: $comment");
 }
+
+done-testing;

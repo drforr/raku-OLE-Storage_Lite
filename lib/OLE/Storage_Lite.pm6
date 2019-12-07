@@ -103,7 +103,7 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
 
   my OLE::Storage_Lite::PPS $oPps = self._getNthPps( $iNo, %hInfo, $bData );
 
-  if $oPps.DirPps != 2**32 - 1 {
+  if $oPps.DirPps != 0xffffffff {
     my OLE::Storage_Lite::PPS @aChildL =
       self._getPpsTree( $oPps.DirPps, %hInfo, $bData, @aDone );
     $oPps.Child = @aChildL;
@@ -114,10 +114,10 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
 
   my OLE::Storage_Lite::PPS @aList = ( );
   append @aList, self._getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
-    $oPps.PrevPps != 2**32 - 1;
+    $oPps.PrevPps != 0xffffffff;
   append @aList, $oPps;
   append @aList, self._getPpsTree( $oPps.NextPps, %hInfo, $bData, @aDone ) if
-    $oPps.NextPps != 2**32 - 1;
+    $oPps.NextPps != 0xffffffff;
   @aList;
 }
 
@@ -146,13 +146,13 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
 
   append @aRes,
     self._getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone )
-      if $oPps.DirPps != 2**32 - 1;
+      if $oPps.DirPps != 0xffffffff;
   append @aRes,
     self._getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone )
-      if $oPps.PrevPps != 2**32 - 1;
+      if $oPps.PrevPps != 0xffffffff;
   append @aRes,
     self._getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone )
-      if $oPps.NextPps != 2**32 - 1;
+      if $oPps.NextPps != 0xffffffff;
 
   @aRes;
 }
@@ -458,93 +458,11 @@ method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
   return $sWk.unpack( "V" );
 }
 
-# Asc2Ucs2 was used, now just use proper encoding methods please.
+# Asc2Ucs2 has been removed - just use 'encode'
+# Ucs2Asc has been removed - just use 'encode'
 #
-# Same for Ucs2Asc
-
-##------------------------------------------------------------------------------
-## OLEDate2Local()
-##
-## Convert from a Windows FILETIME structure to a localtime array. FILETIME is
-## a 64-bit value representing the number of 100-nanosecond intervals since
-## January 1 1601.
-##
-## We first convert the FILETIME to seconds and then subtract the difference
-## between the 1601 epoch and the 1970 Unix epoch.
-##
-#sub OLEDate2Local( Buf $oletime ) is export {
-#
-#  # Unpack FILETIME into high and low longs
-#  #
-#  my ( $lo, $hi ) = $oletime.unpack( "V2" );
-#
-#  # Convert the longs to a double
-#  #
-#  my $nanoseconds = $hi * 2**32 + $lo;
-#
-#  # Convert the 100ns units to seconds
-#  #
-#  my $time = $nanoseconds / 1e7;
-#
-#  # Subtract the number of seconds between the 1601 and 1970 epocs
-#  #
-#  $time -= 11644473600;
-#
-#  my @localtime = gmtime( $time );
-#
-#  @localtime;
-#}
-#
-##------------------------------------------------------------------------------
-## LocalDate2OLE()
-##
-## Convert from a a localtime array to a Window FILETIME structure. FILETIME is
-## a 64-bit value representing the number of 100-nanosecond intervals since
-## January 1 1601.
-##
-## We first convert the localtime (actually gmtime) to seconds and then add the
-## difference between the 1601 epoch and the 1970 Unix epoch. We convert that to
-## 100 nanosecond units, divide it into high and low longs and return it as a
-## packed 64bit structure.
-##
-#sub LocalDate2OLE( @localtime? ) is export {
-#
-#  return "\x00" x 8 unless @localtime;
-#
-## Perl 5 spec worked like this:
-##
-## Jan is 0
-## my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
-##                    0     1     2      3      4     5
-#
-#  my $dt = DateTime.new(
-#    year    => @localtime[5] + 1900,
-#    month   => @localtime[4] + 1,
-#    day     => @localtime[3],
-#    hour    => @localtime[2],
-#    minute  => @localtime[1],
-#    second  => @localtime[0]
-#  );
-#  
-#  # Convert from localtime (actually gmtime) to seconds.
-#  my $time = $dt.posix( :ignore-timezone( True ) );
-#
-#  # Add the number of seconds between the 1601 and 1970 epochs.
-#  $time += 11644473600;
-#  
-#  # The FILETIME seconds are in units of 100 nanoseconds.
-#  my $nanoseconds = $time * 1E7;
-#
-#  # Pack the total nanoseconds into 64 bits...
-##  my Int $hi = Int( $nanoseconds / 2**32 );
-##  my Int $lo = $nanoseconds % 2**32;
-#  my Int $hi = $nanoseconds +> 32 +& ( 2**32 - 1 );
-#  my Int $lo = $nanoseconds +& ( 2**32 - 1 );
-#
-#  my $oletime = pack( "VV", $lo, $hi );
-#
-#  return $oletime;
-#}
+# OLE2LocalDate has moved to OLE::Storage_Lite::Utils
+# LocalDate2OLE has moved to OLE::Storage_Lite::Utils
 
 # Rename 'new' to 'create', for the moment.
 # The bless() mechanism isn't working for me...

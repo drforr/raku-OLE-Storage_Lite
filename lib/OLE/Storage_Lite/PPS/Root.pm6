@@ -157,7 +157,8 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # Save Header
   #
-  %hInfo<_FILEH_>.write( Blob.new( flat
+  my $fh = %hInfo<_FILEH_>;
+  $fh.write( Blob.new( flat
     0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1,
     _int32( 0 ) xx 4,
     _int16( 0x3b ),               # pack("v", 0x3b)
@@ -401,13 +402,13 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   # Set for BBD itself ( 0xFFFFFFFD : BBD )
   #
   loop ( $i = 0 ; $i < $iBdCnt ; $i++ ) {
-    $FILE.write( Blob.new( _int32( 0xFFFFFFFD ) ) );
+    $FILE.write( Blob.new( _int32( 0xfffffffd ) ) );
   }
 
   # Set for ExtraBDList
   #
   loop ( $i = 0 ; $i < $iBdExL ; $i++ ) {
-    $FILE.write( Blob.new( _int32( 0xFFFFFFFC ) ) );
+    $FILE.write( Blob.new( _int32( 0xfffffffc ) ) );
   }
 
   # Adjust for Block

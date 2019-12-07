@@ -109,29 +109,23 @@ method _savePpsWk( %hInfo ) {
   %hInfo<_FILEH_>.write( $name );
   %hInfo<_FILEH_>.write(
     Blob.new( flat
-      0x00 xx ( 64 - $name.bytes ),  # 0..64
-      _int16( $name.bytes + 2 ),     # 65
-      _int8( self.Type ),            # 67
-      _int8( 0 ),                    # 68
-      _int32( self.PrevPps ),        # 72
-      _int32( self.NextPps ),        # 76
-      _int32( self.DirPps ),         # 80
-      0x00, 0x09, 0x02, 0x00,        # 84
-      0x00, 0x00, 0x00, 0x00,        # 88
-      0xc0, 0x00, 0x00, 0x00,        # 92
-      0x00, 0x00, 0x00, 0x46,        # 96
-      0x00, 0x00, 0x00, 0x00,        # 100
-#      LocalDate2OLE( self.Time1st ), # 108
-#      LocalDate2OLE( self.Time2nd )  # 116
+      0x00 xx ( 64 - $name.bytes ),                                 # 0..64
+      _int16( $name.bytes + 2 ),                                    # 65
+      _int8( self.Type ),                                           # 67
+      _int8( 0 ),                                                   # 68
+      _int32( self.PrevPps ),                                       # 72
+      _int32( self.NextPps ),                                       # 76
+      _int32( self.DirPps ),                                        # 80
+      0x00, 0x09, 0x02, 0x00,                                       # 84
+      0x00, 0x00, 0x00, 0x00,                                       # 88
+      0xc0, 0x00, 0x00, 0x00,                                       # 92
+      0x00, 0x00, 0x00, 0x46,                                       # 96
+      0x00, 0x00, 0x00, 0x00,                                       # 100
+      LocalDate2OLE( self.Time1st ).list,                           # 108
+      LocalDate2OLE( self.Time2nd ).list,                           # 116
+      _int32( defined( self.StartBlock ) ?? self.StartBlock !! 0 ), # 124
+      _int32( defined( self.Size ) ?? self.Size !! 0 ),             # 128
+      _int32( 0 )                                                   # 132
     )
   );
-
-#  print {$FILE} (
-#            , pack("V", defined($oThis->{StartBlock})?
-#                      $oThis->{StartBlock}:0)       #116
-#            , pack("V", defined($oThis->{Size})?
-#                 $oThis->{Size} : 0)            #124
-#            , pack("V", 0),                  #128
-#        );
-
 }

@@ -6,3 +6,4 @@ lib/.precomp
 
 # Sample data that's created on the fly
 sample/temp-tsv.dat
+sample/raku-test.xls
