@@ -273,7 +273,7 @@ method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
   }
   elsif @aThis.elems == 1 {
     append @aList, @aThis[0];
-    @aThis[0].No      = @aList.elems;
+    @aThis[0].No      = @aList.elems - 1;
     @aThis[0].PrevPps = 0xffffffff;
     @aThis[0].NextPps = 0xffffffff;
     @aThis[0].DirPps =
@@ -290,7 +290,7 @@ method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
     @aThis[$iPos].PrevPps =
       self._savePpsSetPnt2( @aPrev, @aList, %hInfo );
     append @aList, @aThis[$iPos];
-    @aThis[$iPos].No = @aList.elems;
+    @aThis[$iPos].No = @aList.elems - 1;
     @aThis[$iPos].NextPps =
       self._savePpsSetPnt2( @aNext, @aList, %hInfo );
     @aThis[$iPos].DirPps =

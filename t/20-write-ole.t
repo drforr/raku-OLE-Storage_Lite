@@ -123,7 +123,8 @@ my $root =  OLE::Storage_Lite::PPS::Root.new(
   ( $workbook, $summary-information, $document-summary-information )
 );
 
-constant WITH-DATA = 0;
+#constant WITH-DATA = 0;
+constant WITH-DATA = 1;
 
 $root.save( FILENAME, WITH-DATA );
 

@@ -113,7 +113,7 @@ method _savePpsWk( %hInfo ) {
       0x00 xx ( 64 - $name.bytes ),                                 # 0..64
       _int16( $name.bytes + 2 ),                                    # 65
       self.Type,                                                    # 67
-      0,                                                            # 68
+      0x00,                                                         # 68
       _int32( self.PrevPps ),                                       # 72
       _int32( self.NextPps ),                                       # 76
       _int32( self.DirPps ),                                        # 80
