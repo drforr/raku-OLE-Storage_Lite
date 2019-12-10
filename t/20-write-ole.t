@@ -113,7 +113,7 @@ my $summary-information = OLE::Storage_Lite::PPS::File.new(
 );
 
 my $document-summary-information = OLE::Storage_Lite::PPS::File.new(
-  "\x05DocumentSummaryInformation",
+  "\x[05]DocumentSummaryInformation",
   $buf-document-summary-information
 );
 

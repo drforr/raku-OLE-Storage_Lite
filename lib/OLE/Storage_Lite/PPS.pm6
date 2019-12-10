@@ -104,15 +104,16 @@ method _makeSmallData( @aList, %hInfo ) {
 }
 
 method _savePpsWk( %hInfo ) {
+  my $FILE = %hInfo<_FILEH_>;
 
   my $name = self.Name.encode( OLE-ENCODING );
-  %hInfo<_FILEH_>.write( $name );
-  %hInfo<_FILEH_>.write(
+  $FILE.write( $name );
+  $FILE.write(
     Blob.new( flat
       0x00 xx ( 64 - $name.bytes ),                                 # 0..64
       _int16( $name.bytes + 2 ),                                    # 65
-      _int8( self.Type ),                                           # 67
-      _int8( 0 ),                                                   # 68
+      self.Type,                                                    # 67
+      0,                                                            # 68
       _int32( self.PrevPps ),                                       # 72
       _int32( self.NextPps ),                                       # 76
       _int32( self.DirPps ),                                        # 80
