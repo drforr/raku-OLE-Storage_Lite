@@ -415,9 +415,11 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
 
   # Adjust for Block
   #
-  $FILE.write( Blob.new( flat
-    _int32( -1 ) xx ( $iBbCnt - ( $iAllW + $iBdCnt % $iBbCnt ) )
-  ) ) if $iAllW + $iBdCnt % $iBbCnt;
+  if ( $iAllW + $iBdCnt ) % $iBbCnt {
+    loop ( $i = 0 ; $i < $iBbCnt - ( ( $iAllW + $iBdCnt ) % $iBbCnt ) ; $i++ ) {
+      $FILE.write( Blob.new( _int32( -1 ) ) );
+    }
+  }
 
   # Extra BDList
   #
@@ -431,18 +433,13 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
           $iNb++;
 
           $FILE.write( Blob.new( _int32( $iAll + $iBdCnt + $iNb ) ) );
-#          print {$FILE} (pack("V", $iAll+$iBdCnt+$iNb));
       }
       $FILE.write( Blob.new( _int32( $iBsize + $iSbdSize + $iPpsCnt + $i ) ) );
-#      print {$FILE} (pack("V", $iBsize+$iSbdSize+$iPpsCnt+$i));
     }
     if ( $iBdCnt - $i1stBdL ) % ( $iBbCnt - 1 ) {
       $FILE.write( Blob.new( _int32( -1 ) ) ) for
         (($iBbCnt-1) - (($iBdCnt-$i1stBdL) % ($iBbCnt-1)));
     }
-#    print {$FILE} (pack("V", -1) x (($iBbCnt-1) - (($iBdCnt-$i1stBdL) % ($iBbCnt-1))))
-#        if(($iBdCnt-$i1stBdL) % ($iBbCnt-1));
     $FILE.write( Blob.new( _int32( -2 ) ) );
-#    print {$FILE} (pack("V", -2));
   }
 }
