@@ -66,7 +66,8 @@ my @thisList = ( self );
   # Write BB
   #
   # This is a weird bit. 
-  my Int $iBBlk := $iSBDcnt;
+#  my Int $iBBlk := $iSBDcnt;
+  my Int $iBBlk = $iSBDcnt;
   self._saveBigData( $iBBlk, @aList, %hInfo );
 
   # Write PPS
@@ -379,16 +380,17 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   # Making BD
   #
   if $iSbdSize > 0 {
-    loop ( $i = 0 ; $i < $iSbdSize - 1 ; $i++ ) {
+    loop ( $i = 0 ; $i < ( $iSbdSize - 1 ) ; $i++ ) {
       $FILE.write( Blob.new( _int32( $i + 1 ) ) );
     }
+#1..0x17 count
     $FILE.write( Blob.new( _int32( -2 ) ) );
   }
 
   # Set for B
   #
-  loop ( $i = 0 ; $i < $iBsize - 1 ; $i++ ) {
-    $FILE.write( Blob.new( _int32( $i + $iSbdSize + 1 ) ) );
+  loop ( $i = 0 ; $i < ( $iBsize - 1 ) ; $i++ ) {
+    $FILE.write( Blob.new( _int32( $i + $iSbdSize + 1 ) ) )
   }
   $FILE.write( Blob.new( _int32( -2 ) ) );
 
@@ -420,21 +422,27 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   # Extra BDList
   #
   if $iBdCnt > $i1stBdL {
-    my Int $iN = 0;
-    my Int $iNb = 0;
-    loop ( $i = $i1stBdL ; $i < $iBdCnt ; $i++, $iN++ ) {
-      if $iN >= $iBbCnt - 1 {
-	$iN = 0;
-	$iNb++;
-	$FILE.write( pack( "V", $iAll + $iBdCnt + $iNb ) );
+    my $iN  = 0;
+    my $iNb = 0;
+
+    loop ( my $i = $i1stBdL ; $i < $iBdCnt ; $i++, $iN++ ) {
+      if $iN >= ( $iBbCnt - 1 ) {
+          $iN = 0;
+          $iNb++;
+
+          $FILE.write( Blob.new( _int32( $iAll + $iBdCnt + $iNb ) ) );
+#          print {$FILE} (pack("V", $iAll+$iBdCnt+$iNb));
       }
-#      $FILE.write( ( pack( "V", -1 ) ) x
-#                   ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) )
-#        if $iBdCnt - $i1stBdL % $iBbCnt - 1;
-      $FILE.write( pack( "V{ ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 )}",
-                         -1 x ( ( $iBbCnt - 1 ) - ( $iBdCnt - $i1stBdL % $iBbCnt - 1 ) ) ) )
-        if $iBdCnt - $i1stBdL % $iBbCnt - 1;
-      $FILE.write( pack( "V", -2 ) );
+      $FILE.write( Blob.new( _int32( $iBsize + $iSbdSize + $iPpsCnt + $i ) ) );
+#      print {$FILE} (pack("V", $iBsize+$iSbdSize+$iPpsCnt+$i));
     }
+    if ( $iBdCnt - $i1stBdL ) % ( $iBbCnt - 1 ) {
+      $FILE.write( Blob.new( _int32( -1 ) ) ) for
+        (($iBbCnt-1) - (($iBdCnt-$i1stBdL) % ($iBbCnt-1)));
+    }
+#    print {$FILE} (pack("V", -1) x (($iBbCnt-1) - (($iBdCnt-$i1stBdL) % ($iBbCnt-1))))
+#        if(($iBdCnt-$i1stBdL) % ($iBbCnt-1));
+    $FILE.write( Blob.new( _int32( -2 ) ) );
+#    print {$FILE} (pack("V", -2));
   }
 }
