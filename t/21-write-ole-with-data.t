@@ -76,24 +76,22 @@ sub test-document-summary-information( $node ) {
 }
 
 sub test-root( $node ) {
-  plan 13;
+  plan 6;
 
   isa-ok $node, 'OLE::Storage_Lite::PPS::Root';
 
-  is        $node.Child.elems, 3,                 'Child count';
-  is        $node.Data,        Any,               'Data';
-  is        $node.DirPps,      Int,               'DirPps';
-  is        $node.Name,        'Root Entry',      'Name';
-  is        $node.NextPps,     Int,               'NextPps';
-  is        $node.No,          Int,               'No';
-  is        $node.PrevPps,     Int,               'PrevPps';
-  is        $node.Size,        Int,               'Size';
-  is        $node.StartBlock,  Int,               'StartBlock';
-  is-deeply $node.Time1st,
-            [ 1, 28, 18, 5, 9, -240, 2, 278, 0 ], 'Time1st';
-  is-deeply $node.Time2nd,
-            [ 31, 58, 21, 28, 1, 101, 3, 58, 0 ], 'Time2nd';
-  is        $node.Type,        5,                 'Type';
+  is        $node.Child.elems, 3,                           'Child count';
+#  is        $node.Data,        Any,                         'Data';
+#  is        $node.DirPps,      Int,                         'DirPps';
+  is        $node.Name,        'Root Entry',                'Name';
+#  is        $node.NextPps,     Int,                         'NextPps';
+#  is        $node.No,          Int,                         'No';
+#  is        $node.PrevPps,     Int,                         'PrevPps';
+#  is        $node.Size,        Int,                         'Size';
+#  is        $node.StartBlock,  Int,                         'StartBlock';
+  is-deeply $node.Time1st,      [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
+  is-deeply $node.Time2nd,      [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
+  is        $node.Type,         5,                          'Type';
 
   done-testing;
 }
@@ -126,8 +124,8 @@ my $document-summary-information = OLE::Storage_Lite::PPS::File.new(
 );
 
 my $root = OLE::Storage_Lite::PPS::Root.new(
-  ( 1, 28, 18, 5, 9, -240, 2, 278, 0 ),
-  ( 31, 58, 21, 28, 1, 101, 3, 58, 0 ),
+  ( 1, 28, 18, 5, 9, -240 ), #, 2, 278, 0 ),
+  ( 31, 58, 21, 28, 1, 101 ), #, 3, 58, 0 ),
   ( $workbook, $summary-information, $document-summary-information )
 );
 
@@ -155,5 +153,25 @@ $root.save( FILENAME, 1 );
 
 my $ole      = OLE::Storage_Lite.new( FILENAME );
 my $new-root = $ole.getPpsTree( 1 );
+
+subtest 'after writing', {
+
+#  subtest 'workbook', {
+#    test-workbook( $workbook );
+#  };
+#
+#  subtest 'summary information', {
+#    test-summary-information( $summary-information );
+#  };
+#
+#  subtest 'document summary information', {
+#    test-document-summary-information( $document-summary-information );
+#  };
+
+  subtest 'root', {
+    test-root( $new-root.[0] );
+  };
+
+};
 
 done-testing;
