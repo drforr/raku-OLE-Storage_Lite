@@ -4,59 +4,65 @@ use Test;
 
 use OLE::Storage_Lite;
 
-constant FILENAME = 'sample/raku-test.xls';
+constant FILENAME = 'sample/raku-test-with-data.xls';
 
 sub test-workbook( $node ) {
-  plan 13;
+  plan 14;
 
   isa-ok $node, 'OLE::Storage_Lite::PPS::File';
 
-  is        $node.Child.elems, 0,          'Child count';
-#  is        $node.Data,        'ABCDEF',   'Data';
-  is        $node.DirPps,      Int,        'DirPps';
-  is        $node.Name,        'Workbook', 'Name';
-  is        $node.NextPps,     Int,        'NextPps';
-  is        $node.No,          Int,        'No';
-  is        $node.PrevPps,     Int,        'PrevPps';
-  is        $node.Size,        Int,        'Size';
-  is        $node.StartBlock,  Int,        'StartBlock';
-  is-deeply $node.Time1st,     [],         'Time1st';
-  is-deeply $node.Time2nd,     [],         'Time2nd';
-  is        $node.Type,        2,          'Type';
+  is        $node.Child.elems, 0,     'Child count';
+  is        $node.Data[0],     0x09,  'Data 0';
+  is        $node.Data[1],     0x08,  'Data 1';
+  is        $node.DirPps,      Int,   'DirPps';
+  is        $node.Name,
+            "Workbook",               'Name';
+  is        $node.NextPps,     Int,   'NextPps';
+  is        $node.No,          Int,   'No';
+  is        $node.PrevPps,     Int,   'PrevPps';
+  is        $node.Size,        Int,   'Size';
+  is        $node.StartBlock,  Int,   'StartBlock';
+  is-deeply $node.Time1st,     [],    'Time1st';
+  is-deeply $node.Time2nd,     [],    'Time2nd';
+  is        $node.Type,        2,     'Type';
 
   done-testing;
 }
 
 sub test-summary-information( $node ) {
-  plan 13;
+  plan 14;
 
   isa-ok $node, 'OLE::Storage_Lite::PPS::File';
 
-  is        $node.Child.elems, 0,            'Child count';
-  is        $node.Data,        'A' x 0x1000, 'Data';
-  is        $node.DirPps,      Int,          'DirPps';
-  is        $node.Name,        'File_2',     'Name';
-  is        $node.NextPps,     Int,          'NextPps';
-  is        $node.No,          Int,          'No';
-  is        $node.PrevPps,     Int,          'PrevPps';
-  is        $node.Size,        Int,          'Size';
-  is        $node.StartBlock,  Int,          'StartBlock';
-  is-deeply $node.Time1st,     [],           'Time1st';
-  is-deeply $node.Time2nd,     [],           'Time2nd';
-  is        $node.Type,        2,            'Type';
+  is        $node.Child.elems, 0,      'Child count';
+  is        $node.Data[0],     0xfe, 'Data 0';
+  is        $node.Data[1],     0xff, 'Data 1';
+  is        $node.DirPps,      Int,    'DirPps';
+  is        $node.Name,
+            "\x05SummaryInformation",  'Name';
+  is        $node.NextPps,     Int,    'NextPps';
+  is        $node.No,          Int,    'No';
+  is        $node.PrevPps,     Int,    'PrevPps';
+  is        $node.Size,        Int,    'Size';
+  is        $node.StartBlock,  Int,    'StartBlock';
+  is-deeply $node.Time1st,     [],     'Time1st';
+  is-deeply $node.Time2nd,     [],     'Time2nd';
+  is        $node.Type,        2,      'Type';
 
   done-testing;
 }
 
 sub test-document-summary-information( $node ) {
-  plan 13;
+  plan 14;
 
   isa-ok $node, 'OLE::Storage_Lite::PPS::File';
 
   is        $node.Child.elems, 0,           'Child count';
-  is        $node.Data,        'B' x 0x100, 'Data';
+  is        $node.Data[30],    0xcd,      'Data 0';
+  is        $node.Data[31],    0xd5,      'Data 1';
   is        $node.DirPps,      Int,         'DirPps';
-  is        $node.Name,        'File_3',    'Name';
+  is        $node.Name,
+            "\x[05]DocumentSummaryInformation", 'Name';
   is        $node.NextPps,     Int,         'NextPps';
   is        $node.No,          Int,         'No';
   is        $node.PrevPps,     Int,         'PrevPps';
@@ -74,18 +80,20 @@ sub test-root( $node ) {
 
   isa-ok $node, 'OLE::Storage_Lite::PPS::Root';
 
-  is        $node.Child.elems, 2,                        'Child count';
-  is        $node.Data,        Any,                      'Data';
-  is        $node.DirPps,      Int,                      'DirPps';
-  is        $node.Name,        'Root Entry',             'Name';
-  is        $node.NextPps,     Int,                      'NextPps';
-  is        $node.No,          Int,                      'No';
-  is        $node.PrevPps,     Int,                      'PrevPps';
-  is        $node.Size,        Int,                      'Size';
-  is        $node.StartBlock,  Int,                      'StartBlock';
-  is-deeply $node.Time1st,     [ ],                      'Time1st';
-  is-deeply $node.Time2nd,     [ 0, 0, 16, 4, 10, 100 ], 'Time2nd';
-  is        $node.Type,        5,                        'Type';
+  is        $node.Child.elems, 3,                 'Child count';
+  is        $node.Data,        Any,               'Data';
+  is        $node.DirPps,      Int,               'DirPps';
+  is        $node.Name,        'Root Entry',      'Name';
+  is        $node.NextPps,     Int,               'NextPps';
+  is        $node.No,          Int,               'No';
+  is        $node.PrevPps,     Int,               'PrevPps';
+  is        $node.Size,        Int,               'Size';
+  is        $node.StartBlock,  Int,               'StartBlock';
+  is-deeply $node.Time1st,
+            [ 1, 28, 18, 5, 9, -240, 2, 278, 0 ], 'Time1st';
+  is-deeply $node.Time2nd,
+            [ 31, 58, 21, 28, 1, 101, 3, 58, 0 ], 'Time2nd';
+  is        $node.Type,        5,                 'Type';
 
   done-testing;
 }
@@ -117,18 +125,35 @@ my $document-summary-information = OLE::Storage_Lite::PPS::File.new(
   $buf-document-summary-information
 );
 
-my $root =  OLE::Storage_Lite::PPS::Root.new(
+my $root = OLE::Storage_Lite::PPS::Root.new(
   ( 1, 28, 18, 5, 9, -240, 2, 278, 0 ),
   ( 31, 58, 21, 28, 1, 101, 3, 58, 0 ),
   ( $workbook, $summary-information, $document-summary-information )
 );
 
-#constant WITH-DATA = 0;
-constant WITH-DATA = 1;
+subtest 'before writing', {
 
-$root.save( FILENAME, WITH-DATA );
+  subtest 'workbook', {
+    test-workbook( $workbook );
+  };
 
-my $ole = OLE::Storage_Lite.new( FILENAME );
-#my $new-root = $ole.getPpsTree( WITH-DATA );
+  subtest 'summary information', {
+    test-summary-information( $summary-information );
+  };
+
+  subtest 'document summary information', {
+    test-document-summary-information( $document-summary-information );
+  };
+
+  subtest 'root', {
+    test-root( $root );
+  };
+
+};
+
+$root.save( FILENAME, 1 );
+
+#my $ole = OLE::Storage_Lite.new( FILENAME );
+#my $new-root = $ole.getPpsTree( 1 );
 
 done-testing;

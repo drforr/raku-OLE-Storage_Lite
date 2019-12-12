@@ -158,7 +158,7 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
 }
 
 method _getHeaderInfo( $filename ) {
-  my $file = open $filename, :r;
+  my $file = open $filename, :r, :bin;
   my %hInfo =
     _FILEH_ => $file
   ;
