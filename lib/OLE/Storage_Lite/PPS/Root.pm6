@@ -66,7 +66,6 @@ my @thisList = ( self );
   # Write BB
   #
   # This is a weird bit. 
-#  my Int $iBBlk := $iSBDcnt;
   my Int $iBBlk = $iSBDcnt;
   self._saveBigData( $iBBlk, @aList, %hInfo );
 
@@ -77,6 +76,7 @@ my @thisList = ( self );
   # Write BD and BDList and Adding Header Information
   #
   self._saveBbd( $iSBDcnt, $iBBcnt, $iPPScnt, %hInfo );
+  close %hInfo<_FILEH_>;
 }
 
 method _calcSize( @aList, %hInfo ) {

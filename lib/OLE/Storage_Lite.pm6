@@ -60,17 +60,20 @@ constant PPS-SIZE     = 0x80;
 has Str $._FILE; # String or IO::Handle or ...
 
 multi method new( Str $_FILE ) {
-  self.bless( :$_FILE );
+  self.new( :$_FILE );
 }
 
 # I really don't think @aDone is useful in general
 # But I'll keep it around until I have actual tests.
 #
 method getPpsTree( $bData? ) {
-  my %hInfo = self._getHeaderInfo( $._FILE );
+  my $file  = open $._FILE, :r, :bin;
+  my %hInfo = self._getHeaderInfo( $file );
 my @aDone;
   my OLE::Storage_Lite::PPS @oPps =
     self._getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
+
+  close %hInfo<_FILEH_>;
   @oPps;
 }
 
@@ -157,8 +160,7 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
   @aRes;
 }
 
-method _getHeaderInfo( $filename ) {
-  my $file = open $filename, :r, :bin;
+method _getHeaderInfo( $file ) {
   my %hInfo =
     _FILEH_ => $file
   ;
@@ -255,8 +257,8 @@ method _getBbdInfo( %hInfo ) {
     $sWk     = $FILE.read( LONGINT-SIZE + $iGetCnt );
     append @aBdList, $sWk.unpack( "V$iGetCnt" );
     $iBdbCnt -= $iGetCnt;
-    $sWk    = $FILE.read( LONGINT-SIZE );
-    $iBlock = $sWk.unpack( "V" );
+    $sWk      = $FILE.read( LONGINT-SIZE );
+    $iBlock   = $sWk.unpack( "V" );
   }
 
   # Get BDs
