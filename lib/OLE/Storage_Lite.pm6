@@ -211,10 +211,9 @@ method _getHeaderInfo( $file ) {
 
   # Get Root PPS
   #
-  my OLE::Storage_Lite::PPS $oRoot =
-     self._getNthPps( 0, %hInfo, Nil );
-  %hInfo<_SB_START> = $oRoot.StartBlock;
-  %hInfo<_SB_SIZE>  = $oRoot.Size;
+  my OLE::Storage_Lite::PPS $oRoot = self._getNthPps( 0, %hInfo, Nil );
+  %hInfo<_SB_START>                = $oRoot.StartBlock;
+  %hInfo<_SB_SIZE>                 = $oRoot.Size;
 
   %hInfo;
 }
@@ -244,7 +243,7 @@ method _getBbdInfo( %hInfo ) {
   #
   $FILE.seek( 0x4c, SeekFromBeginning );
   my Int $iGetCnt = ( $iBdbCnt < $i1stCnt ) ?? $iBdbCnt !! $i1stCnt;
-  my Buf $sWk = $FILE.read( LONGINT-SIZE + $iGetCnt );
+  my Buf $sWk     = $FILE.read( LONGINT-SIZE + $iGetCnt );
   append @aBdList, $sWk.unpack( "V$iGetCnt" );
   $iBdbCnt -= $iGetCnt;
 
@@ -256,6 +255,7 @@ method _getBbdInfo( %hInfo ) {
     $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
     $sWk     = $FILE.read( LONGINT-SIZE + $iGetCnt );
     append @aBdList, $sWk.unpack( "V$iGetCnt" );
+
     $iBdbCnt -= $iGetCnt;
     $sWk      = $FILE.read( LONGINT-SIZE );
     $iBlock   = $sWk.unpack( "V" );

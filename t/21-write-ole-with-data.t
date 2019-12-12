@@ -124,8 +124,8 @@ my $document-summary-information = OLE::Storage_Lite::PPS::File.new(
 );
 
 my $root = OLE::Storage_Lite::PPS::Root.new(
-  ( 1, 28, 18, 5, 9, -240 ), #, 2, 278, 0 ),
-  ( 31, 58, 21, 28, 1, 101 ), #, 3, 58, 0 ),
+  ( 1, 28, 18, 5, 9, -240 ),
+  ( 31, 58, 21, 28, 1, 101 ),
   ( $workbook, $summary-information, $document-summary-information )
 );
 
