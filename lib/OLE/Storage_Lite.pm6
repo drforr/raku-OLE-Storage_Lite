@@ -67,9 +67,10 @@ multi method new( Str $_FILE ) {
 # But I'll keep it around until I have actual tests.
 #
 method getPpsTree( $bData? ) {
-  my IO::Handle $file  = open $._FILE, :r, :bin;
-  my %hInfo = self._getHeaderInfo( $file );
-my @aDone;
+  my IO::Handle $file = open $._FILE, :r, :bin;
+  my %hInfo           = self._getHeaderInfo( $file );
+  my @aDone;
+
   my OLE::Storage_Lite::PPS @oPps =
     self._getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
 
@@ -78,18 +79,21 @@ my @aDone;
 }
 
 method getPpsSearch( @aName, $bData?, $iCase? ) {
-  my IO::Handle $file  = open $._FILE, :r, :bin;
-  my %hInfo = self._getHeaderInfo( $file );
+  my IO::Handle $file = open $._FILE, :r, :bin;
+  my %hInfo           = self._getHeaderInfo( $file );
+  my @aDone;
+
   my OLE::Storage_Lite::PPS @aList =
-    self._getPpsSearch( 0, %hInfo, @aName, $bData, $iCase );
+    self._getPpsSearch( 0, %hInfo, @aName, @aDone, $bData, $iCase );
 
   close %hInfo<_FILEH_>;
   @aList;
 }
 
 method getNthPps( Int $iNo, $bData? ) {
-  my IO::Handle $file  = open $._FILE, :r, :bin;
-  my %hInfo = self._getHeaderInfo( $file );
+  my IO::Handle $file = open $._FILE, :r, :bin;
+  my %hInfo           = self._getHeaderInfo( $file );
+
   my OLE::Storage_Lite::PPS $oPps =
     self._getNthPps( $iNo, %hInfo, $bData );
 
@@ -108,8 +112,7 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   }
   append @aDone, $iNo;
 
-  my Int $iRootBlock = %hInfo<_ROOT_START>;
-
+  my Int $iRootBlock              = %hInfo<_ROOT_START>;
   my OLE::Storage_Lite::PPS $oPps = self._getNthPps( $iNo, %hInfo, $bData );
 
   if $oPps.DirPps != 0xffffffff {
@@ -130,7 +133,7 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   @aList;
 }
 
-method _getPpsSearch( Int $iNo, %hInfo, @aName, Int $bData, Int $iCase, @aDone ) {
+method _getPpsSearch( Int $iNo, %hInfo, @aName, @aDone, $bData, $iCase ) {
   my Int $iRootBlock = %hInfo<_ROOT_START>;
   my OLE::Storage_Lite::PPS @aRes;
 
@@ -154,13 +157,13 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, Int $bData, Int $iCase, @aDone )
   }
 
   append @aRes,
-    self._getPpsSearch( $oPps.DirPps, %hInfo, @aName, $bData, $iCase, @aDone )
+    self._getPpsSearch( $oPps.DirPps, %hInfo, @aName, @aDone, $bData, $iCase )
       if $oPps.DirPps != 0xffffffff;
   append @aRes,
-    self._getPpsSearch( $oPps.PrevPps, %hInfo, @aName, $bData, $iCase, @aDone )
+    self._getPpsSearch( $oPps.PrevPps, %hInfo, @aName, @aDone, $bData, $iCase )
       if $oPps.PrevPps != 0xffffffff;
   append @aRes,
-    self._getPpsSearch( $oPps.NextPps, %hInfo, @aName, $bData, $iCase, @aDone )
+    self._getPpsSearch( $oPps.NextPps, %hInfo, @aName, @aDone, $bData, $iCase )
       if $oPps.NextPps != 0xffffffff;
 
   @aRes;

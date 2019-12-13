@@ -116,108 +116,163 @@ subtest 'before writing', {
 
 $root.save( FILENAME, 1 );
 
-my $ole      = OLE::Storage_Lite.new( FILENAME );
-my $new-root = $ole.getPpsTree( 1 );
+my $ole = OLE::Storage_Lite.new( FILENAME );
 
-# Fields like *Pps, Size and StartBlock aren't populated until reading.
-#
-subtest 'after writing', {
+subtest 'getPpsTree', {
+  my $new-root = $ole.getPpsTree( 1 );
 
-  subtest 'summary information', {
-    my $node = $new-root.[0].Child.[0];
-
-    plan 14;
-
-    isa-ok $node, 'OLE::Storage_Lite::PPS::File';
-
-    is        $node.Child.elems, 0,          'Child count';
-    is        $node.Data[0],     0xfe,       'Data 0';
-    is        $node.Data[1],     0xff,       'Data 1';
-    is        $node.DirPps,      0xffffffff, 'DirPps';
-    is        $node.Name,                    
-              "\x05SummaryInformation",      'Name';
-    is        $node.NextPps,     0xffffffff, 'NextPps';
-    is        $node.No,          1,          'No';
-    is        $node.PrevPps,     0xffffffff, 'PrevPps';
-    is        $node.Size,        4096,       'Size';
-    is        $node.StartBlock,  0,          'StartBlock';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
-    is        $node.Type,        2,          'Type';
-
+  # Fields like *Pps, Size and StartBlock aren't populated until reading.
+  #
+  subtest 'after writing', {
+  
+    subtest 'summary information', {
+      my $node = $new-root.[0].Child.[0];
+  
+      plan 14;
+  
+      isa-ok $node, 'OLE::Storage_Lite::PPS::File';
+  
+      is        $node.Child.elems, 0,          'Child count';
+      is        $node.Data[0],     0xfe,       'Data 0';
+      is        $node.Data[1],     0xff,       'Data 1';
+      is        $node.DirPps,      0xffffffff, 'DirPps';
+      is        $node.Name,                    
+                "\x05SummaryInformation",      'Name';
+      is        $node.NextPps,     0xffffffff, 'NextPps';
+      is        $node.No,          1,          'No';
+      is        $node.PrevPps,     0xffffffff, 'PrevPps';
+      is        $node.Size,        4096,       'Size';
+      is        $node.StartBlock,  0,          'StartBlock';
+      is-deeply $node.Time1st,     [ Any ],    'Time1st';
+      is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+      is        $node.Type,        2,          'Type';
+  
+      done-testing;
+    };
+  
+    subtest 'workbook', {
+      my $node = $new-root.[0].Child.[1];
+  
+      plan 14;
+  
+      isa-ok $node, 'OLE::Storage_Lite::PPS::File';
+  
+      is        $node.Child.elems, 0,          'Child count';
+      is        $node.Data[0],     0x9,        'Data 0';
+      is        $node.Data[1],     0x8,        'Data 1';
+      is        $node.DirPps,      0xffffffff, 'DirPps';
+      is        $node.Name,        "Workbook", 'Name';
+      is        $node.NextPps,     3,          'NextPps';
+      is        $node.No,          2,          'No';
+      is        $node.PrevPps,     1,          'PrevPps';
+      is        $node.Size,        4096,       'Size';
+      is        $node.StartBlock,  8,          'StartBlock';
+      is-deeply $node.Time1st,     [ Any ],    'Time1st';
+      is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+      is        $node.Type,        2,          'Type';
+  
+      done-testing;
+    };
+  
+    subtest 'summary information', {
+      my $node = $new-root.[0].Child.[2];
+  
+      plan 14;
+  
+      isa-ok $node, 'OLE::Storage_Lite::PPS::File';
+  
+      is        $node.Child.elems, 0,               'Child count';
+      is        $node.Data[0],     0xfe,            'Data 0';
+      is        $node.Data[1],     0xff,            'Data 1';
+      is        $node.DirPps,      0xffffffff,      'DirPps';
+      is        $node.Name,                    
+                "\x[05]DocumentSummaryInformation", 'Name';
+      is        $node.NextPps,     0xffffffff,      'NextPps';
+      is        $node.No,          3,               'No';
+      is        $node.PrevPps,     0xffffffff,      'PrevPps';
+      is        $node.Size,        4096,            'Size';
+      is        $node.StartBlock,  16,              'StartBlock';
+      is-deeply $node.Time1st,     [ Any ],         'Time1st';
+      is-deeply $node.Time2nd,     [ Any ],         'Time2nd';
+      is        $node.Type,        2,               'Type';
+  
+      done-testing;
+    };
+  
+    subtest 'root', {
+      plan 12;
+  
+      my $node = $new-root.[0];
+   
+      isa-ok $node, 'OLE::Storage_Lite::PPS::Root';
+   
+      is        $node.Child.elems, 3,                          'Child count';
+      is        $node.DirPps,      2,                          'DirPps';
+      is        $node.Name,        'Root Entry',               'Name';
+      is        $node.NextPps,     0xffffffff,                 'NextPps';
+      is        $node.No,          0,                          'No';
+      is        $node.PrevPps,     0xffffffff,                 'PrevPps';
+      is        $node.Size,        0,                          'Size';
+      is        $node.StartBlock,  0,                          'StartBlock';
+      is-deeply $node.Time1st,     [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
+      is-deeply $node.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
+      is        $node.Type,        5,                          'Type';
+   
+      done-testing;
+    };
+  
     done-testing;
   };
 
-  subtest 'workbook', {
-    my $node = $new-root.[0].Child.[1];
+  done-testing;
+};
 
-    plan 14;
-
-    isa-ok $node, 'OLE::Storage_Lite::PPS::File';
-
-    is        $node.Child.elems, 0,          'Child count';
-    is        $node.Data[0],     0x9,        'Data 0';
-    is        $node.Data[1],     0x8,        'Data 1';
-    is        $node.DirPps,      0xffffffff, 'DirPps';
-    is        $node.Name,        "Workbook", 'Name';
-    is        $node.NextPps,     3,          'NextPps';
-    is        $node.No,          2,          'No';
-    is        $node.PrevPps,     1,          'PrevPps';
-    is        $node.Size,        4096,       'Size';
-    is        $node.StartBlock,  8,          'StartBlock';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
-    is        $node.Type,        2,          'Type';
-
-    done-testing;
-  };
-
-  subtest 'summary information', {
-    my $node = $new-root.[0].Child.[2];
-
-    plan 14;
-
-    isa-ok $node, 'OLE::Storage_Lite::PPS::File';
-
-    is        $node.Child.elems, 0,               'Child count';
-    is        $node.Data[0],     0xfe,            'Data 0';
-    is        $node.Data[1],     0xff,            'Data 1';
-    is        $node.DirPps,      0xffffffff,      'DirPps';
-    is        $node.Name,                    
-              "\x[05]DocumentSummaryInformation", 'Name';
-    is        $node.NextPps,     0xffffffff,      'NextPps';
-    is        $node.No,          3,               'No';
-    is        $node.PrevPps,     0xffffffff,      'PrevPps';
-    is        $node.Size,        4096,            'Size';
-    is        $node.StartBlock,  16,              'StartBlock';
-    is-deeply $node.Time1st,     [ Any ],         'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],         'Time2nd';
-    is        $node.Type,        2,               'Type';
-
-    done-testing;
-  };
-
-  subtest 'root', {
-    plan 12;
-
-    my $node = $new-root.[0];
+subtest 'getPpsSearch', {
+  my @search-names = "\x05SummaryInformation";
+  my @new-nodes    = $ole.getPpsSearch( @search-names, 1, 0 );
+  my $node         = @new-nodes[0];
  
-    isa-ok $node, 'OLE::Storage_Lite::PPS::Root';
- 
-    is        $node.Child.elems, 3,                          'Child count';
-    is        $node.DirPps,      2,                          'DirPps';
-    is        $node.Name,        'Root Entry',               'Name';
-    is        $node.NextPps,     0xffffffff,                 'NextPps';
-    is        $node.No,          0,                          'No';
-    is        $node.PrevPps,     0xffffffff,                 'PrevPps';
-    is        $node.Size,        0,                          'Size';
-    is        $node.StartBlock,  0,                          'StartBlock';
-    is-deeply $node.Time1st,     [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
-    is-deeply $node.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
-    is        $node.Type,        5,                          'Type';
- 
-    done-testing;
-  };
+  plan 14;
+
+  isa-ok $node, 'OLE::Storage_Lite::PPS::File';
+
+  is        $node.Child.elems, 0,          'Child count';
+  is        $node.Data[0],     0xfe,       'Data 0';
+  is        $node.Data[1],     0xff,       'Data 1';
+  is        $node.DirPps,      0xffffffff, 'DirPps';
+  is        $node.Name,                    
+            "\x05SummaryInformation",      'Name';
+  is        $node.NextPps,     0xffffffff, 'NextPps';
+  is        $node.No,          1,          'No';
+  is        $node.PrevPps,     0xffffffff, 'PrevPps';
+  is        $node.Size,        4096,       'Size';
+  is        $node.StartBlock,  0,          'StartBlock';
+  is-deeply $node.Time1st,     [ Any ],    'Time1st';
+  is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+  is        $node.Type,        2,          'Type';
+
+  done-testing;
+};
+
+subtest 'getNthPps', {
+  my $node = $ole.getNthPps( 2, 1 );
+  plan 14;
+
+  isa-ok $node, 'OLE::Storage_Lite::PPS::File';
+
+  is        $node.Child.elems, 0,          'Child count';
+  is        $node.Data[0],     0x9,        'Data 0';
+  is        $node.Data[1],     0x8,        'Data 1';
+  is        $node.DirPps,      0xffffffff, 'DirPps';
+  is        $node.Name,        "Workbook", 'Name';
+  is        $node.NextPps,     3,          'NextPps';
+  is        $node.No,          2,          'No';
+  is        $node.PrevPps,     1,          'PrevPps';
+  is        $node.Size,        4096,       'Size';
+  is        $node.StartBlock,  8,          'StartBlock';
+  is-deeply $node.Time1st,     [ Any ],    'Time1st';
+  is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+  is        $node.Type,        2,          'Type';
 
   done-testing;
 };
