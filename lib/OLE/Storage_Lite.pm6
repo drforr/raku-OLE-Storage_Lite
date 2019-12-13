@@ -57,17 +57,17 @@ constant INT-SIZE     = 2;
 constant LONGINT-SIZE = 4;
 constant PPS-SIZE     = 0x80;
 
-has Str $._FILE; # String or IO::Handle or ...
+has Str $.FILE; # String or IO::Handle or ...
 
-multi method new( Str $_FILE ) {
-  self.new( :$_FILE );
+multi method new( Str $FILE ) {
+  self.new( :$FILE );
 }
 
 # I really don't think @aDone is useful in general
 # But I'll keep it around until I have actual tests.
 #
 method getPpsTree( $bData? ) {
-  my IO::Handle $file = open $._FILE, :r, :bin;
+  my IO::Handle $file = open $.FILE, :r, :bin;
   my %hInfo           = self._getHeaderInfo( $file );
   my @aDone;
 
@@ -79,7 +79,7 @@ method getPpsTree( $bData? ) {
 }
 
 method getPpsSearch( @aName, $bData?, $iCase? ) {
-  my IO::Handle $file = open $._FILE, :r, :bin;
+  my IO::Handle $file = open $.FILE, :r, :bin;
   my %hInfo           = self._getHeaderInfo( $file );
   my @aDone;
 
@@ -91,7 +91,7 @@ method getPpsSearch( @aName, $bData?, $iCase? ) {
 }
 
 method getNthPps( Int $iNo, $bData? ) {
-  my IO::Handle $file = open $._FILE, :r, :bin;
+  my IO::Handle $file = open $.FILE, :r, :bin;
   my %hInfo           = self._getHeaderInfo( $file );
 
   my OLE::Storage_Lite::PPS $oPps =
@@ -124,7 +124,7 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
     $oPps.Child = ();
   }
 
-  my OLE::Storage_Lite::PPS @aList = ( );
+  my OLE::Storage_Lite::PPS @aList;
   append @aList, self._getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
     $oPps.PrevPps != 0xffffffff;
   append @aList, $oPps;
