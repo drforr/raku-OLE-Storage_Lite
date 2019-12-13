@@ -6,25 +6,22 @@ use OLE::Storage_Lite;
 
 constant FILENAME = 'sample/raku-test-no-data.xls';
 
-my $workbook = OLE::Storage_Lite::PPS::File.new(
-  "Workbook"
-);
-
-my $summary-information = OLE::Storage_Lite::PPS::File.new(
-  "\x05SummaryInformation"
-);
-
-my $document-summary-information = OLE::Storage_Lite::PPS::File.new(
-  "\x[05]DocumentSummaryInformation"
-);
-
-my $root = OLE::Storage_Lite::PPS::Root.new(
-  ( 1, 28, 18, 5, 9, -240, 2, 278, 0 ),
-  ( 31, 58, 21, 28, 1, 101, 3, 58, 0 ),
-  ( $workbook, $summary-information, $document-summary-information )
-);
-
 subtest 'before writing', {
+  my $workbook =
+    OLE::Storage_Lite::PPS::File.new( "Workbook" );
+
+  my $summary-information =
+    OLE::Storage_Lite::PPS::File.new( "\x05SummaryInformation" );
+
+  my $document-summary-information =
+    OLE::Storage_Lite::PPS::File.new( "\x[05]DocumentSummaryInformation" );
+
+  my $root = OLE::Storage_Lite::PPS::Root.new(
+    ( 1, 28, 18, 5, 9, -240, 2, 278, 0 ),
+    ( 31, 58, 21, 28, 1, 101, 3, 58, 0 ),
+    ( $workbook, $summary-information, $document-summary-information )
+  );
+  $root.save( FILENAME );
 
   subtest 'workbook', {
     my $node = $workbook;
@@ -89,15 +86,11 @@ subtest 'before writing', {
  
     done-testing;
   };
-
 };
 
-$root.save( FILENAME );
-
-my $ole = OLE::Storage_Lite.new( FILENAME );
-my $new-root = $ole.getPpsTree;
-
 subtest 'after writing', {
+  my $ole      = OLE::Storage_Lite.new( FILENAME );
+  my $new-root = $ole.getPpsTree;
 
 	#`{
   subtest 'summary information', {

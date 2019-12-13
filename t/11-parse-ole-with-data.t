@@ -28,98 +28,91 @@ is @pps.elems, 1, "Single root object";
 # I want to fix that later on for the final Raku API.
 
 subtest 'Root Entry', {
-  my $elem = @pps[0];
-
   plan 13;
 
-  isa-ok    $elem,             'OLE::Storage_Lite::PPS::Root';
+  my $node = @pps[0];
 
-  is        $elem.No,          0,                          'No';
-  is        $elem.Type,        5,                          'Type';
-  is        $elem.Size,        0,                          'Size';
-  is        $elem.Name,        'Root Entry',               'Name';
-  is-deeply $elem.Time1st,     [ 2, 28, 18, 5, 9, -240 ],  'Time1st';
-  is-deeply $elem.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
-  is        $elem.Data,        '',                         'Data';
-  is        $elem.StartBlock,  2**32 - 2,                  'StartBlock';
-  is        $elem.PrevPps,     2**32 - 1,                  'PrevPps';
-  is        $elem.NextPps,     2**32 - 1,                  'NextPps';
-  is        $elem.DirPps,      2,                          'DirPps';
-  is        $elem.Child.elems, 3,                          'Child';
+  isa-ok    $node,             'OLE::Storage_Lite::PPS::Root';
+  is        $node.No,          0,                          'No';
+  is        $node.Type,        5,                          'Type';
+  is        $node.Size,        0,                          'Size';
+  is        $node.Name,        'Root Entry',               'Name';
+  is-deeply $node.Time1st,     [ 2, 28, 18, 5, 9, -240 ],  'Time1st';
+  is-deeply $node.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
+  is        $node.Data,        '',                         'Data';
+  is        $node.StartBlock,  2**32 - 2,                  'StartBlock';
+  is        $node.PrevPps,     2**32 - 1,                  'PrevPps';
+  is        $node.NextPps,     2**32 - 1,                  'NextPps';
+  is        $node.DirPps,      2,                          'DirPps';
+  is        $node.Child.elems, 3,                          'Child';
 
   done-testing;
 };
 
 subtest 'Workbook', {
-  my $elem = @pps[0].Child[0];
-
   plan 13;
 
-  isa-ok    $elem,             'OLE::Storage_Lite::PPS::File';
+  my $node = @pps[0].Child[0];
 
-  is        $elem.No,          1,          'No';
-  is        $elem.Type,        2,          'Type';
-  is        $elem.Size,        4096,       'Size';
-  is        $elem.Name,        'Workbook', 'Name';
-  is-deeply $elem.Time1st,     [ Any ],    'Time1st';
-  is-deeply $elem.Time2nd,     [ Any ],    'Time2nd';
-  is        $elem.StartBlock,  0,          'StartBlock';
-  is        $elem.PrevPps,     2**32 - 1,  'PrevPps';
-  is        $elem.NextPps,     2**32 - 1,  'NextPps';
-  is        $elem.DirPps,      2**32 - 1,  'DirPps';
-  is        $elem.Child.elems, 0,          'Child';
-
-  is        $elem.Data.[0],    9,          'Data';
+  isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+  is        $node.No,          1,          'No';
+  is        $node.Type,        2,          'Type';
+  is        $node.Size,        4096,       'Size';
+  is        $node.Name,        'Workbook', 'Name';
+  is-deeply $node.Time1st,     [ Any ],    'Time1st';
+  is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+  is        $node.StartBlock,  0,          'StartBlock';
+  is        $node.PrevPps,     2**32 - 1,  'PrevPps';
+  is        $node.NextPps,     2**32 - 1,  'NextPps';
+  is        $node.DirPps,      2**32 - 1,  'DirPps';
+  is        $node.Child.elems, 0,          'Child';
+  is        $node.Data.[0],    9,          'Data';
 
   done-testing;
 };
 
 subtest 'SummaryInformation', {
-  my $elem = @pps[0].Child[1];
-
   plan 13;
 
-  isa-ok    $elem,            'OLE::Storage_Lite::PPS::File';
+  my $node = @pps[0].Child[1];
 
-  is        $elem.No,         2,          'No';
-  is        $elem.Type,       2,          'Type';
-  is        $elem.Size,       4096,       'Size';
-  is        $elem.Name,
+  isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+  is        $node.No,          2,          'No';
+  is        $node.Type,        2,          'Type';
+  is        $node.Size,        4096,       'Size';
+  is        $node.Name,
             qq{\x[05]SummaryInformation}, 'Name';
-  is-deeply $elem.Time1st,    [ Any ],    'Time1st';
-  is-deeply $elem.Time2nd,    [ Any ],    'Time2nd';
-  is        $elem.StartBlock, 8,          'StartBlock';
-  is        $elem.PrevPps,    1,          'PrevPps';
-  is        $elem.NextPps,    3,          'NextPps';
-  is        $elem.DirPps,     2**32 - 1,  'DirPps';
-
-  is        $elem.Child.elems, 0,         'Child';
-  is        $elem.Data.[31],   242,       'Data';
+  is-deeply $node.Time1st,     [ Any ],    'Time1st';
+  is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+  is        $node.StartBlock,  8,          'StartBlock';
+  is        $node.PrevPps,     1,          'PrevPps';
+  is        $node.NextPps,     3,          'NextPps';
+  is        $node.DirPps,      2**32 - 1,  'DirPps';
+  is        $node.Child.elems, 0,         'Child';
+  is        $node.Data.[31],   242,       'Data';
 
   done-testing;
 };
 
 subtest 'DocumentSummaryInformation', {
-  my $elem = @pps[0].Child[2];
-
   plan 13;
 
-  isa-ok    $elem,             'OLE::Storage_Lite::PPS::File';
+  my $node = @pps[0].Child[2];
 
-  is        $elem.No,          3,                 'No';
-  is        $elem.Type,        2,                 'Type';
-  is        $elem.Size,	       4096,              'Size';
-  is        $elem.Name,
+  isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+  is        $node.No,          3,                 'No';
+  is        $node.Type,        2,                 'Type';
+  is        $node.Size,	       4096,              'Size';
+  is        $node.Name,
             qq{\x[05]DocumentSummaryInformation}, 'Name';
-  is-deeply $elem.Time1st,     [ Any ],           'Time1st';
-  is-deeply $elem.Time2nd,     [ Any ],           'Time2nd';
-  is        $elem.StartBlock,  16,                'StartBlock';
-  is        $elem.PrevPps,     2**32 - 1,         'PrevPps';
-  is        $elem.NextPps,     2**32 - 1,         'NextPps';
-  is        $elem.DirPps,      2**32 - 1,         'DirPps';
-
-  is        $elem.Child.elems, 0,                 'Child';
-  is        $elem.Data.[31],   213,               'Data';
+  is-deeply $node.Time1st,     [ Any ],           'Time1st';
+  is-deeply $node.Time2nd,     [ Any ],           'Time2nd';
+  is        $node.StartBlock,  16,                'StartBlock';
+  is        $node.PrevPps,     2**32 - 1,         'PrevPps';
+  is        $node.NextPps,     2**32 - 1,         'NextPps';
+  is        $node.DirPps,      2**32 - 1,         'DirPps';
+  is        $node.Child.elems, 0,                 'Child';
+  is        $node.Data.[31],   213,               'Data';
 
   done-testing;
 };
