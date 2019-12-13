@@ -101,22 +101,17 @@ subtest 'before writing', {
     my $node = $root;
     isa-ok $node, 'OLE::Storage_Lite::PPS::Root';
     
-    is        $node.Child.elems, 3,                           'Child count';
-    is        $node.Data,        Any,                         'Data';
-    is        $node.DirPps,      Int,                         'DirPps';
-    is        $node.Name,        'Root Entry',                'Name';
-    is        $node.NextPps,     Int,                         'NextPps';
-    is        $node.No,          Int,                         'No';
-    is        $node.PrevPps,     Int,                         'PrevPps';
-    is        $node.Size,        Int,                         'Size';
-    is        $node.StartBlock,  Int,                         'StartBlock';
-    is-deeply $node.Time1st,      [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
-    is-deeply $node.Time2nd,      [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
-    is        $node.Type,         5,                          'Type';
+    is        $node.Child.elems, 3,                          'Child count';
+    is        $node.Data,        Any,                        'Data';
+    is        $node.Name,        'Root Entry',               'Name';
+    is-deeply $node.Time1st,     [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
+    is-deeply $node.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
+    is        $node.Type,        5,                          'Type';
     
     done-testing;
   };
 
+  done-testing;
 };
 
 $root.save( FILENAME, 1 );
@@ -209,18 +204,17 @@ subtest 'after writing', {
  
     isa-ok $node, 'OLE::Storage_Lite::PPS::Root';
  
-    is        $node.Child.elems, 3,                           'Child count';
-#    is        $node.Data,        Any,                         'Data';
-    is        $node.DirPps,      2,                           'DirPps';
-    is        $node.Name,        'Root Entry',                'Name';
-    is        $node.NextPps,     0xffffffff,                  'NextPps';
-    is        $node.No,          0,                           'No';
-    is        $node.PrevPps,     0xffffffff,                  'PrevPps';
-    is        $node.Size,        0,                           'Size';
-    is        $node.StartBlock,  0,                           'StartBlock';
-    is-deeply $node.Time1st,      [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
-    is-deeply $node.Time2nd,      [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
-    is        $node.Type,         5,                          'Type';
+    is        $node.Child.elems, 3,                          'Child count';
+    is        $node.DirPps,      2,                          'DirPps';
+    is        $node.Name,        'Root Entry',               'Name';
+    is        $node.NextPps,     0xffffffff,                 'NextPps';
+    is        $node.No,          0,                          'No';
+    is        $node.PrevPps,     0xffffffff,                 'PrevPps';
+    is        $node.Size,        0,                          'Size';
+    is        $node.StartBlock,  0,                          'StartBlock';
+    is-deeply $node.Time1st,     [ 1, 28, 18, 5, 9, -240 ],  'Time1st';
+    is-deeply $node.Time2nd,     [ 31, 58, 21, 28, 1, 101 ], 'Time2nd';
+    is        $node.Type,        5,                          'Type';
  
     done-testing;
   };
