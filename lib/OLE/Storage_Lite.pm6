@@ -67,7 +67,7 @@ multi method new( Str $_FILE ) {
 # But I'll keep it around until I have actual tests.
 #
 method getPpsTree( $bData? ) {
-  my $file  = open $._FILE, :r, :bin;
+  my IO::Handle $file  = open $._FILE, :r, :bin;
   my %hInfo = self._getHeaderInfo( $file );
 my @aDone;
   my OLE::Storage_Lite::PPS @oPps =
@@ -77,17 +77,23 @@ my @aDone;
   @oPps;
 }
 
-method getPpsSearch( @aName, $bData?, Int $iCase? ) {
-  my %hInfo = self._getHeaderInfo( $._FILE );
+method getPpsSearch( @aName, $bData?, $iCase? ) {
+  my IO::Handle $file  = open $._FILE, :r, :bin;
+  my %hInfo = self._getHeaderInfo( $file );
   my OLE::Storage_Lite::PPS @aList =
     self._getPpsSearch( 0, %hInfo, @aName, $bData, $iCase );
+
+  close %hInfo<_FILEH_>;
   @aList;
 }
 
 method getNthPps( Int $iNo, $bData? ) {
-  my %hInfo = self._getHeaderInfo( $._FILE );
+  my IO::Handle $file  = open $._FILE, :r, :bin;
+  my %hInfo = self._getHeaderInfo( $file );
   my OLE::Storage_Lite::PPS $oPps =
     self._getNthPps( $iNo, %hInfo, $bData );
+
+  close %hInfo<_FILEH_>;
   $oPps;
 }
 
@@ -124,7 +130,7 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   @aList;
 }
 
-method _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
+method _getPpsSearch( Int $iNo, %hInfo, @aName, Int $bData, Int $iCase, @aDone ) {
   my Int $iRootBlock = %hInfo<_ROOT_START>;
   my OLE::Storage_Lite::PPS @aRes;
 
@@ -160,7 +166,7 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, $bData, Int $iCase, @aDone ) {
   @aRes;
 }
 
-method _getHeaderInfo( $file ) {
+method _getHeaderInfo( IO::Handle $file ) {
   my %hInfo =
     _FILEH_ => $file
   ;
@@ -218,7 +224,7 @@ method _getHeaderInfo( $file ) {
   %hInfo;
 }
 
-method _getInfoFromFile( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
+method _getInfoFromFile( IO::Handle $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
   return Nil unless $FILE;
   return Nil if $FILE.seek( $iPos, SeekFromBeginning ) == 0;
 
@@ -232,7 +238,7 @@ method _getInfoFromFile( $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
 # slight change here, flatten references a bit in general.
 #
 method _getBbdInfo( %hInfo ) {
-  my $FILE = %hInfo<_FILEH_>;
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
 
   my Int $iBdbCnt = %hInfo<_BDB_COUNT>;
   my Int $i1stCnt = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
@@ -280,8 +286,8 @@ method _getBbdInfo( %hInfo ) {
   return %hBd;
 }
 
-method _getNthPps( Int $iPos, %hInfo, $bData ) {
-  my $FILE = %hInfo<_FILEH_>;
+method _getNthPps( Int $iPos, %hInfo, $bData? ) {
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
 
   my Int $iPpsStart = %hInfo<_ROOT_START>;
   my Buf $sWk;
@@ -298,13 +304,13 @@ method _getNthPps( Int $iPos, %hInfo, $bData ) {
   return Nil unless defined $iBlock;
 
   my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack( "v" );
-  $iNmSize = ( $iNmSize > 2 ) ?? $iNmSize - 2 !! $iNmSize;
+  $iNmSize        = ( $iNmSize > 2 ) ?? $iNmSize - 2 !! $iNmSize;
 
-  my Buf $sNm   = $sWk.subbuf( 0,        $iNmSize );
-  my Int $iType = $sWk.subbuf( 0x42,     INT-SIZE ).unpack( "C" );
-  my $lPpsPrev  = $sWk.subbuf( 0x44, LONGINT-SIZE ).unpack( "V" );
-  my $lPpsNext  = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack( "V" );
-  my $lDirPps   = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack( "V" );
+  my Buf $sNm      = $sWk.subbuf( 0,        $iNmSize );
+  my Int $iType    = $sWk.subbuf( 0x42,     INT-SIZE ).unpack( "C" );
+  my Int $lPpsPrev = $sWk.subbuf( 0x44, LONGINT-SIZE ).unpack( "V" );
+  my Int $lPpsNext = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack( "V" );
+  my Int $lDirPps  = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack( "V" );
 
   my @aTime1st =
      ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
@@ -380,7 +386,7 @@ method _getData( Int $iType, Int $iBlock, Int $iSize, %hInfo ) {
 }
 
 method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
-  my $_iBlock = $iBlock;
+  my Int $_iBlock = $iBlock;
   return '' unless _isNormalBlock( $_iBlock );
 
   my Int $iRest = $iSize;

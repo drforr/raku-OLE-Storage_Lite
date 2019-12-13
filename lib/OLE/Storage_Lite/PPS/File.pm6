@@ -26,7 +26,7 @@ multi method new( Str $Name, @Time1st?, @Time2nd?, @Child? ) {
 # Encode $Name to UCS2 at the last possible point.
 #
 method newFile( Str $Name, Str $sFile? ) {
-  my $oSelf = OLE::Storage::Lite::PPS::File.new(
+  my OLE::Storage_Lite::PPS::File $oSelf = OLE::Storage::Lite::PPS::File.new(
     :$Name,
     :Data( '' ),
   );

@@ -104,9 +104,9 @@ method _makeSmallData( @aList, %hInfo ) {
 }
 
 method _savePpsWk( %hInfo ) {
-  my $FILE = %hInfo<_FILEH_>;
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
 
-  my $name = self.Name.encode( OLE-ENCODING );
+  my Blob $name = self.Name.encode( OLE-ENCODING );
   $FILE.write( $name );
   $FILE.write(
     Blob.new( flat

@@ -112,13 +112,13 @@ method _calcSize( @aList, %hInfo ) {
 }
 
 method _adjust2( Int $i2 ) {
-  my $iWk = log( $i2 ) / log(2);
+  my Int $iWk = log( $i2 ) / log(2);
 
   ( $iWk > Int( $iWk ) ) ?? Int( $iWk ) + 1 !! $iWk;
 }
 
 method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
-#  my $FILE = %hInfo<_FILEH_>; # pFile originally?
+#  my IO::Handle $FILE = %hInfo<_FILEH_>; # pFile originally?
 
   # Calculate basic setting
   #
@@ -140,7 +140,7 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
     # Calculate BD count
     #
     $iBlCnt--;
-    my $iBBleftover = $iAll - $i1stBdMax;
+    my Int $iBBleftover = $iAll - $i1stBdMax;
 
     if $iAll > $i1stBdMax {
       loop {
@@ -158,7 +158,7 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # Save Header
   #
-  my $fh = %hInfo<_FILEH_>;
+  my IO::Handle $fh = %hInfo<_FILEH_>;
   $fh.write( Blob.new( flat
     0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1,
     _int32( 0 ) xx 4,
@@ -251,7 +251,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
 }
 
 method _savePps( @aList, %hInfo ) {
-  my $FILE = %hInfo<_FILEH_>;
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
 
   for @aList -> $oItem {
     $oItem._savePpsWk( %hInfo );
@@ -346,7 +346,7 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
 # XXX _savePpsSetPnt1 isn't used anywhere in the source
 
 method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
-  my $FILE = %hInfo<_FILEH_>;
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
 
   # Calculate basic setting
   #
@@ -424,10 +424,10 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
   # Extra BDList
   #
   if $iBdCnt > $i1stBdL {
-    my $iN  = 0;
-    my $iNb = 0;
+    my Int $iN  = 0;
+    my Int $iNb = 0;
 
-    loop ( my $i = $i1stBdL ; $i < $iBdCnt ; $i++, $iN++ ) {
+    loop ( my Int $i = $i1stBdL ; $i < $iBdCnt ; $i++, $iN++ ) {
       if $iN >= ( $iBbCnt - 1 ) {
           $iN = 0;
           $iNb++;
