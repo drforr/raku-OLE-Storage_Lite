@@ -32,7 +32,8 @@ subtest 'Root Entry', {
 
   my $node = @pps[0];
 
-  isa-ok    $node,             'OLE::Storage_Lite::PPS::Root';
+  isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
+
   is        $node.No,          0,                          'No';
   is        $node.Type,        5,                          'Type';
   is        $node.Size,        0,                          'Size';
@@ -54,7 +55,8 @@ subtest 'Workbook', {
 
   my $node = @pps[0].Child[0];
 
-  isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+  isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+
   is        $node.No,          1,          'No';
   is        $node.Type,        2,          'Type';
   is        $node.Size,        4096,       'Size';
@@ -76,7 +78,7 @@ subtest 'SummaryInformation', {
 
   my $node = @pps[0].Child[1];
 
-  isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+  isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
   is        $node.No,          2,         'No';
   is        $node.Type,        2,         'Type';
@@ -100,7 +102,7 @@ subtest 'DocumentSummaryInformation', {
 
   my $node = @pps[0].Child[2];
 
-  isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+  isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
   is        $node.No,          3,                 'No';
   is        $node.Type,        2,                 'Type';

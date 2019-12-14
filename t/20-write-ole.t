@@ -50,7 +50,7 @@ subtest 'before writing', {
 
     my $node = $workbook;
  
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
     is        $node.Data[0],     0x09,       'Data 0';
     is        $node.Data[1],     0x08,       'Data 1';
@@ -68,7 +68,7 @@ subtest 'before writing', {
 
     my $node = $summary-information;
  
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
     is        $node.Data[0],     0xfe,  'Data 0';
     is        $node.Data[1],     0xff,  'Data 1';
@@ -87,7 +87,7 @@ subtest 'before writing', {
 
     my $node = $document-summary-information;
  
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
     is        $node.Data[30],    0xcd,            'Data 0';
     is        $node.Data[31],    0xd5,            'Data 1';
@@ -106,7 +106,7 @@ subtest 'before writing', {
 
     my $node = $root;
 
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::Root';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
 
     is        $node.Child.elems, 3,                          'Child count';
     is        $node.Data,        Any,                        'Data';
@@ -138,7 +138,7 @@ subtest 'read new file', {
 
       my $node = $new-root.[0].Child.[0];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::File;
     
       is        $node.Data[0],     0xfe,       'Data 0';
       is        $node.Data[1],     0xff,       'Data 1';
@@ -163,7 +163,7 @@ subtest 'read new file', {
 
       my $node = $new-root.[0].Child.[1];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::File;
     
       is        $node.Data[0],     0x9,        'Data 0';
       is        $node.Data[1],     0x8,        'Data 1';
@@ -187,7 +187,7 @@ subtest 'read new file', {
 
       my $node = $new-root.[0].Child.[2];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::File;
     
       is        $node.Data[0],     0xfe,            'Data 0';
       is        $node.Data[1],     0xff,            'Data 1';
@@ -212,7 +212,7 @@ subtest 'read new file', {
     
       my $node = $new-root.[0];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::Root';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
     
       is        $node.Child.elems, 3,                          'Child count';
       is        $node.DirPps,      2,                          'DirPps';
@@ -242,7 +242,7 @@ subtest 'read new file', {
 
       my $node = $new-root.[0].Child.[0];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::File;
     
       is        $node.Data,        Any,        'Data missing';
       is        $node.DirPps,      0xffffffff, 'DirPps';
@@ -266,7 +266,7 @@ subtest 'read new file', {
 
       my $node = $new-root.[0].Child.[1];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::File;
     
       is        $node.Data,        Any,        'Data missing';
       is        $node.DirPps,      0xffffffff, 'DirPps';
@@ -289,7 +289,7 @@ subtest 'read new file', {
 
       my $node = $new-root.[0].Child.[2];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::File;
     
       is        $node.Data,        Any,             'Data missing';
       is        $node.DirPps,      0xffffffff,      'DirPps';
@@ -313,7 +313,7 @@ subtest 'read new file', {
     
       my $node = $new-root.[0];
     
-      isa-ok    $node,             'OLE::Storage_Lite::PPS::Root';
+      isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
     
       is        $node.Child.elems, 3,                          'Child count';
       is        $node.Data,        Any,                        'Data missing';
@@ -341,7 +341,7 @@ subtest 'read new file', {
     my @new-nodes    = $ole.getPpsSearch( @search-names, 1, 0 );
     my $node         = @new-nodes[0];
   
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  
     is        $node.Data[0],     0xfe,       'Data 0';
     is        $node.Data[1],     0xff,       'Data 1';
@@ -368,7 +368,7 @@ subtest 'read new file', {
     my @new-nodes    = $ole.getPpsSearch( @search-names, 0, 0 );
     my $node         = @new-nodes[0];
   
-    isa-ok $node, 'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  
     is        $node.Data,        Any,        'Data missing';
     is        $node.DirPps,      0xffffffff, 'DirPps';
@@ -394,7 +394,7 @@ subtest 'read new file', {
     my @new-nodes    = $ole.getPpsSearch( @search-names, 0, 1 );
     my $node         = @new-nodes[0];
   
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  
     is        $node.Data,        Any,        'Data missing';
     is        $node.DirPps,      0xffffffff, 'DirPps';
@@ -418,7 +418,7 @@ subtest 'read new file', {
 
     my $node = $ole.getNthPps( 2, 1 );
  
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  
     is        $node.Data[0],     0x9,        'Data 0';
     is        $node.Data[1],     0x8,        'Data 1';
@@ -442,7 +442,7 @@ subtest 'read new file', {
 
     my $node = $ole.getNthPps( 2, 0 );
  
-    isa-ok    $node,             'OLE::Storage_Lite::PPS::File';
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  
     is        $node.Data,        Any,        'Data missing';
     is        $node.DirPps,      0xffffffff, 'DirPps';

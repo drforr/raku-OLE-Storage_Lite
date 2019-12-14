@@ -417,7 +417,7 @@ method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
 }
 
 method _getNextBlockNo( Int $iBlockNo, %hInfo ) {
-  my Int $iRes = %hInfo<_BBD_INFO>{$iBlockNo};
+  my $iRes = %hInfo<_BBD_INFO>{~$iBlockNo};
 
   return defined( $iRes ) ?? $iRes !! $iBlockNo + 1;
 }
