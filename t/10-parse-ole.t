@@ -13,7 +13,7 @@ plan 5;
 # Rewritten to be a test by Jeff G. (drforr)
 
 my $ole = OLE::Storage_Lite.new( FILENAME );
-my @pps = $ole.getPpsTree();
+my @pps = $ole.getPpsTree;
 
 is @pps.elems, 1, "Single root object";
 
@@ -23,9 +23,9 @@ is @pps.elems, 1, "Single root object";
 # Also, 'Type' is redundant, we have that information in the object name.
 
 subtest 'Root Entry', {
-  my $elem = @pps[0];
-
   plan 13;
+
+  my $elem = @pps[0];
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::Root';
 
@@ -44,9 +44,9 @@ subtest 'Root Entry', {
 };
 
 subtest 'Workbook', {
-  my $elem = @pps[0].Child[0];
-
   plan 13;
+
+  my $elem = @pps[0].Child[0];
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
 
@@ -54,20 +54,20 @@ subtest 'Workbook', {
   is        $elem.Type,        2,          'Type';
   is        $elem.Size,        4096,       'Size';
   is        $elem.Name,        'Workbook', 'Name';
-  is-deeply $elem.Time1st,     [ Any ],    'Time1st';
-  is-deeply $elem.Time2nd,     [ Any ],    'Time2nd';
   is        $elem.Data,        Any,        'Data';
   is        $elem.StartBlock,  0,          'StartBlock';
   is        $elem.PrevPps,     2**32 - 1,  'PrevPps';
   is        $elem.NextPps,     2**32 - 1,  'NextPps';
   is        $elem.DirPps,      2**32 - 1,  'DirPps';
-  is        $elem.Child.elems, 0,          'Child';
+  is-deeply $elem.Time1st,     [ Any ],    'Time1st';
+  is-deeply $elem.Time2nd,     [ Any ],    'Time2nd';
+  is-deeply $elem.Child,       [ ],        'Child';
 };
 
 subtest 'SummaryInformation', {
-  my $elem = @pps[0].Child[1];
-
   plan 13;
+
+  my $elem = @pps[0].Child[1];
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
 
@@ -76,21 +76,20 @@ subtest 'SummaryInformation', {
   is        $elem.Size,       4096,       'Size';
   is        $elem.Name,
             qq{\x[05]SummaryInformation}, 'Name';
-  is-deeply $elem.Time1st,    [ Any ],    'Time1st';
-  is-deeply $elem.Time2nd,    [ Any ],    'Time2nd';
   is        $elem.Data,       Any,        'Data';
   is        $elem.StartBlock, 8,          'StartBlock';
   is        $elem.PrevPps,    1,          'PrevPps';
   is        $elem.NextPps,    3,          'NextPps';
   is        $elem.DirPps,     2**32 - 1,  'DirPps';
-
-  is        $elem.Child.elems, 0, 'Child';
+  is-deeply $elem.Time1st,    [ Any ],    'Time1st';
+  is-deeply $elem.Time2nd,    [ Any ],    'Time2nd';
+  is-deeply $elem.Child,      [ ],        'Time2nd';
 };
 
 subtest 'DocumentSummaryInformation', {
-  my $elem = @pps[0].Child[2];
-
   plan 13;
+
+  my $elem = @pps[0].Child[2];
 
   isa-ok $elem, 'OLE::Storage_Lite::PPS::File';
 
@@ -99,14 +98,14 @@ subtest 'DocumentSummaryInformation', {
   is        $elem.Size,	       4096,              'Size';
   is        $elem.Name,
             qq{\x[05]DocumentSummaryInformation}, 'Name';
-  is-deeply $elem.Time1st,     [ Any ],           'Time1st';
-  is-deeply $elem.Time2nd,     [ Any ],           'Time2nd';
   is        $elem.Data,        Any,               'Data';
   is        $elem.StartBlock,  16,                'StartBlock';
   is        $elem.PrevPps,     2**32 - 1,         'PrevPps';
   is        $elem.NextPps,     2**32 - 1,         'NextPps';
   is        $elem.DirPps,      2**32 - 1,         'DirPps';
-  is        $elem.Child.elems, 0,                 'Child';
+  is-deeply $elem.Time1st,     [ Any ],           'Time1st';
+  is-deeply $elem.Time2nd,     [ Any ],           'Time2nd';
+  is-deeply $elem.Child,       [ ],               'Child';
 
   done-testing;
 };
