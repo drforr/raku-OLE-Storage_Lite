@@ -54,7 +54,7 @@ method _DataLen {
 }
 
 method _makeSmallData( @aList, %hInfo ) {
-  my Str        $sRes;
+  my Buf        $sRes;
   my IO::Handle $FILE   = %hInfo<_FILEH_>;
   my Int        $iSmBlk = 0;
 
@@ -75,17 +75,24 @@ method _makeSmallData( @aList, %hInfo ) {
 	  my Buf $sBuff;
 	  $oPps._PPS_FILE.seek( 0, SeekFromBeginning );
 	  while $sBuff = $oPps._PPS_FILE.read( 4096 ) {
-	    $sRes ~= $sBuff;
+	    $sRes.append( $sBuff );
 	  }
 	}
 	else {
-	  $sRes ~= $oPps.Data;
+          $sRes = Buf.new unless $sRes;
+          $sRes.append( $oPps.Data.list );
 	}
 
-	$sRes ~= ( "\x00" x
+        if $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> {
+	  $sRes.append( 0x00 xx 
 	           ( %hInfo<_SMALL_BLOCK_SIZE> -
-		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ) if
-	  $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE>;
+		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) )
+          );
+	}
+#	$sRes ~= ( "\x00" x
+#	           ( %hInfo<_SMALL_BLOCK_SIZE> -
+#		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ) if
+#	  $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE>;
 	
 	$oPps.StartBlock = $iSmBlk;
 	$iSmBlk += $iSmbCnt;

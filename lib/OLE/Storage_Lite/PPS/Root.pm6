@@ -60,7 +60,7 @@ my @thisList = ( self );
 
   # Make small data string
   #
-  my Str $sSmWk = self._makeSmallData( @aList, %hInfo );
+  my Buf $sSmWk = self._makeSmallData( @aList, %hInfo );
   self.Data     = $sSmWk; # Small data's become RootEntry Data
 
   # Write BB
