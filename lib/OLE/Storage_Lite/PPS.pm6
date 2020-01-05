@@ -55,7 +55,7 @@ method _DataLen {
     self.Data.elems;
 }
 
-method _makeSmallData( @aList, %hInfo ) {
+method _makeSmallData( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   my Buf        $sRes;
   my IO::Handle $FILE   = %hInfo<_FILEH_>;
   my Int        $iSmBlk = 0;

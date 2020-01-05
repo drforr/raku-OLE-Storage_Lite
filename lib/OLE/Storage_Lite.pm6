@@ -133,7 +133,7 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   @aList;
 }
 
-method _getPpsSearch( Int $iNo, %hInfo, @aName, @aDone, $bData, $iCase ) {
+method _getPpsSearch( Int $iNo, %hInfo, @aName, Int @aDone, $bData, $iCase ) {
   my Int $iRootBlock = %hInfo<_ROOT_START>;
   my OLE::Storage_Lite::PPS @aRes;
 
@@ -394,11 +394,11 @@ method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
 
   my Int $iRest = $iSize;
   my Buf $sRes  = Buf.new();
-  my @aKeys     = sort { $^a <=> $^b },
+  my Int @aKeys     = sort { $^a <=> $^b },
                        map { +$_ }, keys %( %hInfo<_BBD_INFO> );
 
   while $iRest > 0 {
-    my @aRes      = grep { $_ >= $_iBlock }, @aKeys;
+    my Int @aRes  = grep { $_ >= $_iBlock }, @aKeys;
     my Int $iNKey = @aRes[0];
     my Int $i     = $iNKey - $_iBlock;
     my Int $iNext = %hInfo<_BBD_INFO>{$iNKey};
@@ -481,8 +481,8 @@ method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
 # # Also *gotta* clean up the hierarchy, PPS.pm is referencing child classes.
 #
 method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
-                  Int $DirPps, @Time1st, @Time2nd, Int $StartBlock, Int $Size,
-   	          $Data?, @Child? ) {
+                  Int $DirPps, Int @Time1st, Int @Time2nd, Int $StartBlock,
+                  Int $Size, $Data?, @Child? ) {
   given $Type {
     when PPS-TYPE-FILE {
       OLE::Storage_Lite::PPS::File.new(

@@ -79,7 +79,7 @@ my OLE::Storage_Lite::PPS @thisList = ( self );
   close %hInfo<_FILEH_>;
 }
 
-method _calcSize( @aList, %hInfo ) {
+method _calcSize( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   my Int ( $iSBDcnt, $iBBcnt, $iPPScnt ) = ( 0, 0, 0 );
   my Int $iSmallLen = 0;
   my Int $iSBcnt    = 0;
@@ -207,7 +207,7 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 # XXX Later on I bind to another variable to reflect better what might be going
 # XXX on in the code.
 # XXX
-method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
+method _saveBigData( Int $iStBlk is rw, OLE::Storage_Lite::PPS @aList, %hInfo ) {
   my Int        $iRes = 0;
   my IO::Handle $FILE = %hInfo<_FILEH_>;
 
@@ -250,7 +250,7 @@ method _saveBigData( Int $iStBlk is rw, @aList, %hInfo ) {
   }
 }
 
-method _savePps( @aList, %hInfo ) {
+method _savePps( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   my IO::Handle $FILE = %hInfo<_FILEH_>;
 
   for @aList -> $oItem {
@@ -266,7 +266,7 @@ method _savePps( @aList, %hInfo ) {
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
 }
 
-method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
+method _savePpsSetPnt2( @aThis, OLE::Storage_Lite::PPS @aList, %hInfo ) {
   # If no child relations
   #
   if @aThis.elems <= 0 {

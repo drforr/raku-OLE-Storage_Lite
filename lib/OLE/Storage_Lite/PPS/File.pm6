@@ -6,14 +6,14 @@ unit class OLE::Storage_Lite::PPS::File is OLE::Storage_Lite::PPS;
 
 # Encoding is native Raku here, encoded to UCS2/UTF-16LE when written out
 
-multi method new( Str $Name, $Data ) {
+multi method new( Str $Name, Buf $Data ) {
   self.bless(
     :$Name,
     :Type( 2 ),
     :$Data
   );
 }
-multi method new( Str $Name, @Time1st?, @Time2nd?, @Child? ) {
+multi method new( Str $Name, Int @Time1st?, Int @Time2nd?, OLE::Storage_Lite::PPS @Child? ) {
   self.bless(
     :$Name,
     :Type( 2 ),
