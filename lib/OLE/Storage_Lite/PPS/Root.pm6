@@ -44,8 +44,8 @@ method save( Str $sFile, $bNoAs?, %hInfo? ) {
 
   # Make an array of PPS
   #
-  my @aList = ( );
-my @thisList = ( self );
+  my OLE::Storage_Lite::PPS @aList = ( );
+my OLE::Storage_Lite::PPS @thisList = ( self );
   if $bNoAs {
     self._savePpsSetPnt2( @thisList, @aList, %hInfo ); 
   }
@@ -284,9 +284,9 @@ method _savePpsSetPnt2( @aThis, @aList, %hInfo ) {
   else {
     my Int $iCnt = @aThis.elems;
     my Int $iPos = 0;
-    my @aWk      = @aThis;
-    my @aPrev    = @aThis.elems > 1 ?? splice( @aWk, 1, 1 ) !! ( );
-    my @aNext    = splice( @aWk, 1 );
+    my OLE::Storage_Lite::PPS @aWk      = @aThis;
+    my OLE::Storage_Lite::PPS @aPrev    = @aThis.elems > 1 ?? splice( @aWk, 1, 1 ) !! ( );
+    my OLE::Storage_Lite::PPS @aNext    = splice( @aWk, 1 );
 
     @aThis[$iPos].PrevPps =
       self._savePpsSetPnt2( @aPrev, @aList, %hInfo );
@@ -329,12 +329,12 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
     my Int $iPos = Int( $iCnt / 2 );
     append @aList, @aThis[$iPos];
     @aThis[$iPos].No = @aList.elems;
-    my @aWk = @aThis;
+    my OLE::Storage_Lite::PPS @aWk = @aThis;
 
     # Divide array into Previous, Next
     #
-    my @aPrev = splice( @aWk, 0, $iPos );
-    my @aNext = splice( @aWk, 1, $iCnt - $iPos - 1 );
+    my OLE::Storage_Lite::PPS @aPrev = splice( @aWk, 0, $iPos );
+    my OLE::Storage_Lite::PPS @aNext = splice( @aWk, 1, $iCnt - $iPos - 1 );
     @aThis[$iPos].PrevPps = _savePpsSetPnt( @aPrev, @aList, %hInfo );
     @aThis[$iPos].NextPps = _savePpsSetPnt( @aNext, @aList, %hInfo );
     @aThis[$iPos].DirPps =

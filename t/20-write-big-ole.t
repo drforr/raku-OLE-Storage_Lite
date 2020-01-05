@@ -151,8 +151,8 @@ subtest 'read new file', {
       is        $node.Size,        4096,       'Size';
       is        $node.StartBlock,  0,          'StartBlock';
       is        $node.Type,        2,          'Type';
-      is-deeply $node.Time1st,     [ Any ],    'Time1st';
-      is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+      is-deeply $node.Time1st,     [ Int ],    'Time1st';
+      is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
       is-deeply $node.Child,       [ ],        'Child';
     
       done-testing;
@@ -175,8 +175,8 @@ subtest 'read new file', {
       is        $node.Size,        4096,       'Size';
       is        $node.StartBlock,  8,          'StartBlock';
       is        $node.Type,        2,          'Type';
-      is-deeply $node.Time1st,     [ Any ],    'Time1st';
-      is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+      is-deeply $node.Time1st,     [ Int ],    'Time1st';
+      is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
       is-deeply $node.Child,       [ ],        'Child';
     
       done-testing;
@@ -200,8 +200,8 @@ subtest 'read new file', {
       is        $node.Size,        4096,            'Size';
       is        $node.StartBlock,  16,              'StartBlock';
       is        $node.Type,        2,               'Type';
-      is-deeply $node.Time1st,     [ Any ],         'Time1st';
-      is-deeply $node.Time2nd,     [ Any ],         'Time2nd';
+      is-deeply $node.Time1st,     [ Int ],         'Time1st';
+      is-deeply $node.Time2nd,     [ Int ],         'Time2nd';
       is-deeply $node.Child,       [ ],             'Time2nd';
     
       done-testing;
@@ -254,8 +254,8 @@ subtest 'read new file', {
       is        $node.Size,        4096,       'Size';
       is        $node.StartBlock,  0,          'StartBlock';
       is        $node.Type,        2,          'Type';
-      is-deeply $node.Time1st,     [ Any ],    'Time1st';
-      is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+      is-deeply $node.Time1st,     [ Int ],    'Time1st';
+      is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
       is-deeply $node.Child,       [ ],        'Child';
     
       done-testing;
@@ -277,8 +277,8 @@ subtest 'read new file', {
       is        $node.Size,        4096,       'Size';
       is        $node.StartBlock,  8,          'StartBlock';
       is        $node.Type,        2,          'Type';
-      is-deeply $node.Time1st,     [ Any ],    'Time1st';
-      is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+      is-deeply $node.Time1st,     [ Int ],    'Time1st';
+      is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
       is-deeply $node.Child,       [ ],        'Child';
     
       done-testing;
@@ -301,8 +301,8 @@ subtest 'read new file', {
       is        $node.Size,        4096,            'Size';
       is        $node.StartBlock,  16,              'StartBlock';
       is        $node.Type,        2,               'Type';
-      is-deeply $node.Time1st,     [ Any ],         'Time1st';
-      is-deeply $node.Time2nd,     [ Any ],         'Time2nd';
+      is-deeply $node.Time1st,     [ Int ],         'Time1st';
+      is-deeply $node.Time2nd,     [ Int ],         'Time2nd';
       is-deeply $node.Child,       [ ],             'Child';
     
       done-testing;
@@ -354,8 +354,8 @@ subtest 'read new file', {
     is        $node.Size,        4096,       'Size';
     is        $node.StartBlock,  0,          'StartBlock';
     is        $node.Type,        2,          'Type';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+    is-deeply $node.Time1st,     [ Int ],    'Time1st';
+    is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
     is-deeply $node.Child,       [ ],        'Child';
  
     done-testing;
@@ -380,8 +380,8 @@ subtest 'read new file', {
     is        $node.Size,        4096,       'Size';
     is        $node.StartBlock,  0,          'StartBlock';
     is        $node.Type,        2,          'Type';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+    is-deeply $node.Time1st,     [ Int ],    'Time1st';
+    is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
     is-deeply $node.Child,       [ ],        'Child';
  
     done-testing;
@@ -406,8 +406,8 @@ subtest 'read new file', {
     is        $node.Size,        4096,       'Size';
     is        $node.StartBlock,  0,          'StartBlock';
     is        $node.Type,        2,          'Type';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+    is-deeply $node.Time1st,     [ Int ],    'Time1st';
+    is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
     is-deeply $node.Child,       [ ],        'Child';
  
     done-testing;
@@ -430,8 +430,8 @@ subtest 'read new file', {
     is        $node.Size,        4096,       'Size';
     is        $node.StartBlock,  8,          'StartBlock';
     is        $node.Type,        2,          'Type';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+    is-deeply $node.Time1st,     [ Int ],    'Time1st';
+    is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
     is-deeply $node.Child,       [ ],        'Child';
  
     done-testing;
@@ -453,8 +453,8 @@ subtest 'read new file', {
     is        $node.Size,        4096,       'Size';
     is        $node.StartBlock,  8,          'StartBlock';
     is        $node.Type,        2,          'Type';
-    is-deeply $node.Time1st,     [ Any ],    'Time1st';
-    is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+    is-deeply $node.Time1st,     [ Int ],    'Time1st';
+    is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
     is-deeply $node.Child,       [ ],        'Child';
  
     done-testing;

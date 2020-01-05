@@ -24,6 +24,8 @@ constant PPS-TYPE-DIR  = 1;
 constant PPS-TYPE-FILE = 2;
 constant PPS-TYPE-ROOT = 5;
 
+constant LONGINT-SIZE = 4;
+
 # $.Type is gone, because it's intimately tied to the subclass name(s). Instead,
 # when an instance of PPS:: is created, it's given a default Type at creation.
 #
@@ -50,7 +52,7 @@ method _DataLen {
   return 0 unless self.Data;
   self._PPS_FILE ??
     self._PPS_FILE.stat()[7] !!
-    self.Data.bytes;
+    self.Data.elems;
 }
 
 method _makeSmallData( @aList, %hInfo ) {
@@ -80,6 +82,7 @@ method _makeSmallData( @aList, %hInfo ) {
 	}
 	else {
           $sRes = Buf.new unless $sRes;
+          #$sRes.append( $oPps.Data.decode( OLE-ENCODING ).list );
           $sRes.append( $oPps.Data.list );
 	}
 
@@ -102,7 +105,7 @@ method _makeSmallData( @aList, %hInfo ) {
 
   # Adjust for SBD block size
   #
-  my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 4 ); # LONG-INT-SIZE
+  my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   $FILE.write( Blob.new( flat
     ( _int32( -1 ) ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) )
   ) ) if $iSmBlk % $iSbCnt;

@@ -4,22 +4,26 @@ use Test;
 
 use OLE::Storage_Lite;
 
-constant FILENAME = 'sample/raku-small-test.xls';
+constant FILENAME = 'sample/raku-small-test.dat';
 
 # When you create the objects, fields like *Pps, No, Size, and StartBlock
 # aren't initialized. They're filled when reading.
 #
 subtest 'before writing', {
-  plan 6;
+  plan 7;
 
   my $workbook = OLE::Storage_Lite::PPS::File.new(
     "Workbook",
     Buf.new( 0x41, 0x42, 0x43, 0x44, 0x45, 0x46 )
   );
 
-  my $File_2 = OLE::Storage_Lite::PPS::File.new( "File_2" );
-  my $File_3 = OLE::Storage_Lite::PPS::File.new( "File_3" );
-  my $File_4 = OLE::Storage_Lite::PPS::File.new( "File_4" );
+  my $buf_1 = Buf.new( 0x41 xx 0x1000 );
+  my $buf_2 = Buf.new( 0x42 xx 0x100 );
+  my $buf_3 = Buf.new( 0x43 xx 0x100 );
+
+  my $File_2 = OLE::Storage_Lite::PPS::File.new( "File_2", $buf_1 );
+  my $File_3 = OLE::Storage_Lite::PPS::File.new( "File_3", $buf_2 );
+  my $File_4 = OLE::Storage_Lite::PPS::File.new( "File_4", $buf_3 );
 
   my $dir = OLE::Storage_Lite::PPS::Dir.new(
     "Dir",
@@ -29,7 +33,7 @@ subtest 'before writing', {
   );
 
   my $root = OLE::Storage_Lite::PPS::Root.new(
-    ( 0, 0, 0, 1, 0, -299 ),
+    ( 0, 0, 0,  1, 0, -299 ),
     ( 0, 0, 16, 4, 10, 100 ),
     ( $workbook, $dir )
   );
@@ -59,13 +63,12 @@ subtest 'before writing', {
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data,     Any,  'Data';
-    is        $node.Name,
-              "File_2", 'Name';
-    is        $node.Type,        2,     'Type';
-    is-deeply $node.Time1st,     [],    'Time1st';
-    is-deeply $node.Time2nd,     [],    'Time2nd';
-    is-deeply $node.Child,       [],    'Child';
+    is        $node.Data.[0], 0x41,     'Data';
+    is        $node.Name,     "File_2", 'Name';
+    is        $node.Type,     2,        'Type';
+    is-deeply $node.Time1st,  [],       'Time1st';
+    is-deeply $node.Time2nd,  [],       'Time2nd';
+    is-deeply $node.Child,    [],       'Child';
  
     done-testing;
   };
@@ -77,13 +80,12 @@ subtest 'before writing', {
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data,     Any,  'Data';
-    is        $node.Name,
-              "File_3", 'Name';
-    is        $node.Type,        2,     'Type';
-    is-deeply $node.Time1st,     [],    'Time1st';
-    is-deeply $node.Time2nd,     [],    'Time2nd';
-    is-deeply $node.Child,       [],    'Child';
+    is        $node.Data.[0], 0x42,     'Data';
+    is        $node.Name,     "File_3", 'Name';
+    is        $node.Type,     2,        'Type';
+    is-deeply $node.Time1st,  [],       'Time1st';
+    is-deeply $node.Time2nd,  [],       'Time2nd';
+    is-deeply $node.Child,    [],       'Child';
  
     done-testing;
   };
@@ -95,13 +97,12 @@ subtest 'before writing', {
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data,     Any,  'Data';
-    is        $node.Name,
-              "File_4", 'Name';
-    is        $node.Type,        2,     'Type';
-    is-deeply $node.Time1st,     [],    'Time1st';
-    is-deeply $node.Time2nd,     [],    'Time2nd';
-    is-deeply $node.Child,       [],    'Child';
+    is        $node.Data.[0], 0x43,     'Data';
+    is        $node.Name,     "File_4", 'Name';
+    is        $node.Type,     2,        'Type';
+    is-deeply $node.Time1st,  [],       'Time1st';
+    is-deeply $node.Time2nd,  [],       'Time2nd';
+    is-deeply $node.Child,    [],       'Child';
  
     done-testing;
   };
@@ -130,17 +131,17 @@ subtest 'before writing', {
 
     isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
 
-    is        $node.Child.elems, 2,                        'Child count';
     is        $node.Data,        Any,                      'Data';
     is        $node.Name,        'Root Entry',             'Name';
+    is        $node.Type,        5,                        'Type';
     is-deeply $node.Time1st,     [ 0, 0, 0, 1, 0, -299 ],  'Time1st';
     is-deeply $node.Time2nd,     [ 0, 0, 16, 4, 10, 100 ], 'Time2nd';
-    is        $node.Type,        5,                        'Type';
+    is        $node.Child.elems, 2,                        'Child count';
     
     done-testing;
   };
 
-  $root.save( FILENAME, 1 );
+  ok $root.save( FILENAME, 1 );
 
   done-testing;
 };

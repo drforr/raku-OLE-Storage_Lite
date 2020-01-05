@@ -66,8 +66,8 @@ subtest 'Workbook', {
   is        $node.NextPps,     2**32 - 1,  'NextPps';
   is        $node.DirPps,      2**32 - 1,  'DirPps';
   is        $node.Data.[0],    9,          'Data';
-  is-deeply $node.Time1st,     [ Any ],    'Time1st';
-  is-deeply $node.Time2nd,     [ Any ],    'Time2nd';
+  is-deeply $node.Time1st,     [ Int ],    'Time1st';
+  is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
   is-deeply $node.Child,       [ ],        'Time2nd';
 
   done-testing;
@@ -90,8 +90,8 @@ subtest 'SummaryInformation', {
   is        $node.NextPps,     3,         'NextPps';
   is        $node.DirPps,      2**32 - 1, 'DirPps';
   is        $node.Data.[31],   242,       'Data';
-  is-deeply $node.Time1st,     [ Any ],   'Time1st';
-  is-deeply $node.Time2nd,     [ Any ],   'Time2nd';
+  is-deeply $node.Time1st,     [ Int ],   'Time1st';
+  is-deeply $node.Time2nd,     [ Int ],   'Time2nd';
   is-deeply $node.Child,       [ ],       'Time2nd';
 
   done-testing;
@@ -114,8 +114,8 @@ subtest 'DocumentSummaryInformation', {
   is        $node.NextPps,     2**32 - 1,         'NextPps';
   is        $node.DirPps,      2**32 - 1,         'DirPps';
   is        $node.Data.[31],   213,               'Data';
-  is-deeply $node.Time1st,     [ Any ],           'Time1st';
-  is-deeply $node.Time2nd,     [ Any ],           'Time2nd';
+  is-deeply $node.Time1st,     [ Int ],           'Time1st';
+  is-deeply $node.Time2nd,     [ Int ],           'Time2nd';
   is-deeply $node.Child,       [ ],               'Child';
 
   done-testing;

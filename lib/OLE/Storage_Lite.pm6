@@ -69,7 +69,7 @@ multi method new( Str $FILE ) {
 method getPpsTree( $bData? ) {
   my IO::Handle $file = open $.FILE, :r, :bin;
   my %hInfo           = self._getHeaderInfo( $file );
-  my @aDone;
+  my Int @aDone;
 
   my OLE::Storage_Lite::PPS @oPps =
     self._getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
@@ -81,7 +81,7 @@ method getPpsTree( $bData? ) {
 method getPpsSearch( @aName, $bData?, $iCase? ) {
   my IO::Handle $file = open $.FILE, :r, :bin;
   my %hInfo           = self._getHeaderInfo( $file );
-  my @aDone;
+  my Int @aDone;
 
   my OLE::Storage_Lite::PPS @aList =
     self._getPpsSearch( 0, %hInfo, @aName, @aDone, $bData, $iCase );
@@ -246,7 +246,7 @@ method _getBbdInfo( %hInfo ) {
   my Int $iBdbCnt = %hInfo<_BDB_COUNT>;
   my Int $i1stCnt = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
   my Int $iBdlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE ) - 1;
-  my @aBdList;
+  my Int @aBdList;
 
   # 1st BDList
   #
@@ -272,7 +272,7 @@ method _getBbdInfo( %hInfo ) {
 
   # Get BDs
   #
-  my @aWk;
+  my Int @aWk;
   my %hBd;
   my Int $iBlkNo = 0;
   my Int $iBdCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
@@ -315,10 +315,10 @@ method _getNthPps( Int $iPos, %hInfo, $bData? ) {
   my Int $lPpsNext = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack( "V" );
   my Int $lDirPps  = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack( "V" );
 
-  my @aTime1st =
+  my Int @aTime1st =
      ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
          OLEDate2Local( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
-  my @aTime2nd =
+  my Int @aTime2nd =
      ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
          OLEDate2Local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack( "VV" );
