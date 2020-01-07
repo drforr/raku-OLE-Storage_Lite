@@ -14,9 +14,6 @@
 #=================================================================
 use strict;
 use OLE::Storage_Lite;
-my @aL = #localtime();
-		(0, 0, 16, 4, 10, 120);  #2000/11/4 16:00:00:0000
-splice(@aL, 6);
 my $oF = OLE::Storage_Lite::PPS::File->new(
 		    OLE::Storage_Lite::Asc2Ucs('Workbook'), 
 		'ABCDEF');
@@ -31,13 +28,13 @@ my $oF4 = OLE::Storage_Lite::PPS::File->new(
 		'C'x 0x100);
 my $oD = OLE::Storage_Lite::PPS::Dir->new(
 		OLE::Storage_Lite::Asc2Ucs('Dir'), 
-	        [0, 0, 16, 4, 10, 120],  #2020/11/4 16:00:00:0000
-	        [1, 1, 17, 5, 11, 121],  #2021/12/5 17:01:01:0001
+	        #[1, 1, 17, 5, 11, 121],  #2021/12/5 17:01:01:0001
+		[0, 0, 0, 1, 0, 70],
+		[0, 0, 0, 1, 0, 70],
 		[$oF2, $oF3, $oF4]);
 my $oDt = OLE::Storage_Lite::PPS::Root->new(
 #		undef,
-		[0, 0, 16, 4, 10, 100],  #2000/11/4 16:00:00:0000
-		[1, 1, 19, 4, 10, 101],  #2000/11/4 16:00:00:0000
+		[0, 0, 0, 1, 0, 70],
+		[0, 0, 0, 1, 0, 70],
 		[$oF, $oD]);
-my $raW = $oDt->{Child};
 $oDt->save("sample/tsv.dat");
