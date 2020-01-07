@@ -17,24 +17,33 @@ subtest 'before writing', {
     Buf.new( 0x41, 0x42, 0x43, 0x44, 0x45, 0x46 )
   );
 
-  my $buf_1 = Buf.new( 0x41 xx 0x1000 );
-  my $buf_2 = Buf.new( 0x42 xx 0x100 );
-  my $buf_3 = Buf.new( 0x43 xx 0x100 );
+  my $File_2 = OLE::Storage_Lite::PPS::File.new(
+    "File_2",
+    Buf.new( ord("A") xx 0x1000 )
+  );
 
-  my $File_2 = OLE::Storage_Lite::PPS::File.new( "File_2", $buf_1 );
-  my $File_3 = OLE::Storage_Lite::PPS::File.new( "File_3", $buf_2 );
-  my $File_4 = OLE::Storage_Lite::PPS::File.new( "File_4", $buf_3 );
+  my $File_3 = OLE::Storage_Lite::PPS::File.new(
+    "File_3",
+    Buf.new( ord("B") xx 0x100 )
+  );
+
+  my $File_4 = OLE::Storage_Lite::PPS::File.new(
+    "File_4",
+    Buf.new( ord("C") xx 0x100 )
+  );
 
   my $dir = OLE::Storage_Lite::PPS::Dir.new(
     "Dir",
-    ( 19, 57, 4, 23, 10, 119 ),
-    ( 19, 57, 4, 23, 10, 119 ),
+    ( 0, 0, 16, 4, 10, 120 ),
+    ( 1, 1, 17, 5, 11, 121 ),
     ( $File_2, $File_3, $File_4 )
   );
 
   my $root = OLE::Storage_Lite::PPS::Root.new(
-    ( 0, 0, 0,  1, 0, -299 ),
-    ( 0, 0, 16, 4, 10, 100 ),
+#Any,
+    ( 0, 0, 16, 4, 10, 100 ), # Temporary workaround because ::Root should be
+                              # able to accept Any for one or both times.
+    ( 1, 1, 19, 4, 10, 101 ),
     ( $workbook, $dir )
   );
 
@@ -43,15 +52,15 @@ subtest 'before writing', {
 
     my $node = $workbook;
  
-    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+    isa-ok    $node,         OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data[0],     0x41,       'Data 0';
-    is        $node.Data[1],     0x42,       'Data 1';
-    is        $node.Name,        "Workbook", 'Name';
-    is        $node.Type,        2,          'Type';
-    is-deeply $node.Time1st,     [],         'Time1st';
-    is-deeply $node.Time2nd,     [],         'Time2nd';
-    is-deeply $node.Child,       [],         'Child';
+    is        $node.Data[0], 0x41,       'Data 0';
+    is        $node.Data[1], 0x42,       'Data 1';
+    is        $node.Name,    "Workbook", 'Name';
+    is        $node.Type,    2,          'Type';
+    is-deeply $node.Time1st, [],         'Time1st';
+    is-deeply $node.Time2nd, [],         'Time2nd';
+    is-deeply $node.Child,   [],         'Child';
 
     done-testing;
   };
@@ -61,7 +70,7 @@ subtest 'before writing', {
 
     my $node = $File_2;
  
-    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+    isa-ok    $node,          OLE::Storage_Lite::PPS::File;
 
     is        $node.Data.[0], 0x41,     'Data';
     is        $node.Name,     "File_2", 'Name';
@@ -78,7 +87,7 @@ subtest 'before writing', {
 
     my $node = $File_3;
  
-    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+    isa-ok    $node,          OLE::Storage_Lite::PPS::File;
 
     is        $node.Data.[0], 0x42,     'Data';
     is        $node.Name,     "File_3", 'Name';
@@ -95,7 +104,7 @@ subtest 'before writing', {
 
     my $node = $File_4;
  
-    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+    isa-ok    $node,          OLE::Storage_Lite::PPS::File;
 
     is        $node.Data.[0], 0x43,     'Data';
     is        $node.Name,     "File_4", 'Name';
@@ -114,12 +123,12 @@ subtest 'before writing', {
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::Dir;
 
-    is        $node.Data,        Any,                        'Data';
-    is        $node.Name,        "Dir",                      'Name';
-    is        $node.Type,        1,                          'Type';
-    is-deeply $node.Time1st,     [ 19, 57, 4, 23, 10, 119 ], 'Time1st';
-    is-deeply $node.Time2nd,     [ 19, 57, 4, 23, 10, 119 ], 'Time2nd';
-    is        $node.Child.elems, 3,                          'Child count';
+    is        $node.Data,        Any,                      'Data';
+    is        $node.Name,        "Dir",                    'Name';
+    is        $node.Type,        1,                        'Type';
+    is-deeply $node.Time1st,     [ 0, 0, 16, 4, 10, 120 ], 'Time1st';
+    is-deeply $node.Time2nd,     [ 1, 1, 17, 5, 11, 121 ], 'Time2nd';
+    is        $node.Child.elems, 3,                        'Child count';
  
     done-testing;
   };
@@ -134,14 +143,14 @@ subtest 'before writing', {
     is        $node.Data,        Any,                      'Data';
     is        $node.Name,        'Root Entry',             'Name';
     is        $node.Type,        5,                        'Type';
-    is-deeply $node.Time1st,     [ 0, 0, 0, 1, 0, -299 ],  'Time1st';
-    is-deeply $node.Time2nd,     [ 0, 0, 16, 4, 10, 100 ], 'Time2nd';
+    is-deeply $node.Time1st,     [ 0, 0, 16, 4, 10, 100 ], 'Time1st';
+    is-deeply $node.Time2nd,     [ 1, 1, 19, 4, 10, 101 ], 'Time2nd';
     is        $node.Child.elems, 2,                        'Child count';
     
     done-testing;
   };
 
-  ok $root.save( FILENAME, 1 );
+  ok $root.save( FILENAME ); # XXX Don't forget there's a flag here as well
 
   done-testing;
 };
@@ -166,7 +175,7 @@ subtest 'read small-block file', {
     is        $node.Type,        5,                        'Type';
     is        $node.Size,        576,                      'Size';
     is        $node.Name,        'Root Entry',             'Name';
-    is-deeply $node.Time1st,     [ 0, 0, 0, 1, 0, -299 ],  'Time1st';
+    is-deeply $node.Time1st,     [ 0, 0, 16, 4, 10, 100 ], 'Time1st';
     is-deeply $node.Time2nd,     [ 0, 0, 16, 4, 10, 100 ], 'Time2nd';
     is        $node.Data,        Any,                      'Data';
     is        $node.StartBlock,  1,                        'StartBlock';
@@ -233,7 +242,7 @@ subtest 'read small-block file', {
   
     is        $node.No,          4,         'No';
     is        $node.Type,        2,         'Type';
-    is        $node.Size,        4096,      'Size';
+    is        $node.Size,        2**12,     'Size';
     is        $node.Name,        'File_2',  'Name';
     is-deeply $node.Time1st,     [ Any ],   'Time1st';
     is-deeply $node.Time2nd,     [ Any ],   'Time2nd';
@@ -256,7 +265,7 @@ subtest 'read small-block file', {
   
     is        $node.No,          3,         'No';
     is        $node.Type,        2,         'Type';
-    is        $node.Size,        256,       'Size';
+    is        $node.Size,        2**8,      'Size';
     is        $node.Name,        'File_3',  'Name';
     is-deeply $node.Time1st,     [ Any ],   'Time1st';
     is-deeply $node.Time2nd,     [ Any ],   'Time2nd';
@@ -279,7 +288,7 @@ subtest 'read small-block file', {
   
     is        $node.No,          5,         'No';
     is        $node.Type,        2,         'Type';
-    is        $node.Size,        256,       'Size';
+    is        $node.Size,        2**8,      'Size';
     is        $node.Name,        'File_4',  'Name';
     is-deeply $node.Time1st,     [ Any ],   'Time1st';
     is-deeply $node.Time2nd,     [ Any ],   'Time2nd';

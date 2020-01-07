@@ -13,6 +13,12 @@ plan 2;
 #
 # Rewritten to be a test by Jeff G. (drforr)
 
+# I was going to remove all one-word names, but that would make the tests look
+# too much alike. Even if I did that it'd still be easy to go by line number
+# to see what's actually being tested. I've done this elsewhere while I'm 
+# still testing because it's also easy to copy/paste, like Time1st one name
+# over an old name and make them stale.
+
 subtest 'large blocks', {
   plan 5;
 
@@ -70,19 +76,18 @@ subtest 'large blocks', {
   
     isa-ok $elem, OLE::Storage_Lite::PPS::File;
   
-    is        $elem.No,         2,          'No';
-    is        $elem.Type,       2,          'Type';
-    is        $elem.Size,       4096,       'Size';
-    is        $elem.Name,
-              qq{\x[05]SummaryInformation}, 'Name';
-    is        $elem.Data,       Any,        'Data';
-    is        $elem.StartBlock, 8,          'StartBlock';
-    is        $elem.PrevPps,    1,          'PrevPps';
-    is        $elem.NextPps,    3,          'NextPps';
-    is        $elem.DirPps,     2**32 - 1,  'DirPps';
-    is-deeply $elem.Time1st,    [ Int ],    'Time1st';
-    is-deeply $elem.Time2nd,    [ Int ],    'Time2nd';
-    is-deeply $elem.Child,      [ ],        'Time2nd';
+    is        $elem.No,         2,                            'No';
+    is        $elem.Type,       2,                            'Type';
+    is        $elem.Size,       4096,                         'Size';
+    is        $elem.Name,       qq{\x[05]SummaryInformation}, 'Name';
+    is        $elem.Data,       Any,                          'Data';
+    is        $elem.StartBlock, 8,                            'StartBlock';
+    is        $elem.PrevPps,    1,                            'PrevPps';
+    is        $elem.NextPps,    3,                            'NextPps';
+    is        $elem.DirPps,     2**32 - 1,                    'DirPps';
+    is-deeply $elem.Time1st,    [ Int ],                      'Time1st';
+    is-deeply $elem.Time2nd,    [ Int ],                      'Time2nd';
+    is-deeply $elem.Child,      [ ],                          'Time2nd';
   };
   
   subtest 'DocumentSummaryInformation', {
@@ -92,19 +97,18 @@ subtest 'large blocks', {
   
     isa-ok $elem, OLE::Storage_Lite::PPS::File;
   
-    is        $elem.No,          3,                 'No';
-    is        $elem.Type,        2,                 'Type';
-    is        $elem.Size,        4096,              'Size';
-    is        $elem.Name,
-              qq{\x[05]DocumentSummaryInformation}, 'Name';
-    is        $elem.Data,        Any,               'Data';
-    is        $elem.StartBlock,  16,                'StartBlock';
-    is        $elem.PrevPps,     2**32 - 1,         'PrevPps';
-    is        $elem.NextPps,     2**32 - 1,         'NextPps';
-    is        $elem.DirPps,      2**32 - 1,         'DirPps';
-    is-deeply $elem.Time1st,     [ Int ],           'Time1st';
-    is-deeply $elem.Time2nd,     [ Int ],           'Time2nd';
-    is-deeply $elem.Child,       [ ],               'Child';
+    is        $elem.No,          3,                             'No';
+    is        $elem.Type,        2,                             'Type';
+    is        $elem.Size,        2**12,                         'Size';
+    is        $elem.Name, qq{\x[05]DocumentSummaryInformation}, 'Name';
+    is        $elem.Data,        Any,                           'Data';
+    is        $elem.StartBlock,  16,                            'StartBlock';
+    is        $elem.PrevPps,     2**32 - 1,                     'PrevPps';
+    is        $elem.NextPps,     2**32 - 1,                     'NextPps';
+    is        $elem.DirPps,      2**32 - 1,                     'DirPps';
+    is-deeply $elem.Time1st,     [ Int ],                       'Time1st';
+    is-deeply $elem.Time2nd,     [ Int ],                       'Time2nd';
+    is-deeply $elem.Child,       [ ],                           'Child';
   
     done-testing;
   };
@@ -131,8 +135,8 @@ subtest 'small blocks', {
     is        $elem.Type,        5,                        'Type';
     is        $elem.Size,        576,                      'Size';
     is        $elem.Name,        'Root Entry',             'Name';
-    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, -299 ],  'Time1st';
-    is-deeply $elem.Time2nd,     [ 0, 0, 16, 4, 10, 100 ], 'Time2nd';
+    is-deeply $elem.Time1st,     [ 0, 0, 16, 4, 10, 100 ], 'Time1st';
+    is-deeply $elem.Time2nd,     [ 1, 1, 19, 4, 10, 101 ], 'Time2nd';
     is        $elem.Data,        Any,                      'Data';
     is        $elem.StartBlock,  1,                        'StartBlock';
     is        $elem.PrevPps,     2**32 - 1,                'PrevPps';
@@ -173,18 +177,18 @@ subtest 'small blocks', {
   
     isa-ok $elem, OLE::Storage_Lite::PPS::Dir;
   
-    is        $elem.No,          1,                          'No';
-    is        $elem.Type,        1,                          'Type';
-    is        $elem.Size,        0,                          'Size';
-    is        $elem.Name,        'Dir',                      'Name';
-    is-deeply $elem.Time1st,     [ 19, 57, 4, 23, 10, 119 ], 'Time1st';
-    is-deeply $elem.Time2nd,     [ 19, 57, 4, 23, 10, 119 ], 'Time2nd';
-    is        $elem.Data,        Any,                        'Data';
-    is        $elem.StartBlock,  0,                          'StartBlock';
-    is        $elem.PrevPps,     2,                          'PrevPps';
-    is        $elem.NextPps,     2**32 - 1,                  'NextPps';
-    is        $elem.DirPps,      3,                          'DirPps';
-    is        $elem.Child.elems, 3,                          'Child';
+    is        $elem.No,          1,                        'No';
+    is        $elem.Type,        1,                        'Type';
+    is        $elem.Size,        0,                        'Size';
+    is        $elem.Name,        'Dir',                    'Name';
+    is-deeply $elem.Time1st,     [ 0, 0, 16, 4, 10, 120 ], 'Time1st';
+    is-deeply $elem.Time2nd,     [ 1, 1, 17, 5, 11, 121 ], 'Time2nd';
+    is        $elem.Data,        Any,                      'Data';
+    is        $elem.StartBlock,  0,                        'StartBlock';
+    is        $elem.PrevPps,     2,                        'PrevPps';
+    is        $elem.NextPps,     2**32 - 1,                'NextPps';
+    is        $elem.DirPps,      3,                        'DirPps';
+    is        $elem.Child.elems, 3,                        'Child';
 
     done-testing;
   };
@@ -198,7 +202,7 @@ subtest 'small blocks', {
   
     is        $elem.No,          4,         'No';
     is        $elem.Type,        2,         'Type';
-    is        $elem.Size,        4096,      'Size';
+    is        $elem.Size,        2**12,     'Size';
     is        $elem.Name,        'File_2',  'Name';
     is-deeply $elem.Time1st,     [ Int ],   'Time1st';
     is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
@@ -221,7 +225,7 @@ subtest 'small blocks', {
   
     is        $elem.No,          3,         'No';
     is        $elem.Type,        2,         'Type';
-    is        $elem.Size,        256,       'Size';
+    is        $elem.Size,        2**8,      'Size';
     is        $elem.Name,        'File_3',  'Name';
     is-deeply $elem.Time1st,     [ Int ],   'Time1st';
     is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
@@ -244,7 +248,7 @@ subtest 'small blocks', {
   
     is        $elem.No,          5,         'No';
     is        $elem.Type,        2,         'Type';
-    is        $elem.Size,        256,       'Size';
+    is        $elem.Size,        2**8,      'Size';
     is        $elem.Name,        'File_4',  'Name';
     is-deeply $elem.Time1st,     [ Int ],   'Time1st';
     is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';

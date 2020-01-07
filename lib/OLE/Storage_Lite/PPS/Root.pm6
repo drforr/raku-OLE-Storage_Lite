@@ -328,7 +328,7 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
     #
     my Int $iPos = Int( $iCnt / 2 );
     append @aList, @aThis[$iPos];
-    @aThis[$iPos].No = @aList.elems;
+    @aThis[$iPos].No = @aList.elems - 1;
     my OLE::Storage_Lite::PPS @aWk = @aThis;
 
     # Divide array into Previous, Next
