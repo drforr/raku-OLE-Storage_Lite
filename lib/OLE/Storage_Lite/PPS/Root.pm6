@@ -22,6 +22,8 @@ constant LONGINT-SIZE = 4;
 
 constant PPS-SIZE     = 0x80;
 
+constant SENTINEL-END = 0xffffffff;
+
 multi method new ( @Time1st, @Time2nd, @Child ) {
   self.bless(
     :Name( 'Root Entry' ),
@@ -124,11 +126,6 @@ method _adjust2( Int $i2 ) {
 }
 
 method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
-#  my IO::Handle $FILE = %hInfo<_FILEH_>; # pFile originally?
-
-  # Calculate basic setting
-  #
-  # JMG added Int() around these divisions
   my Int $iBlCnt    = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   my Int $i1stBdL   = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4C ) / LONGINT-SIZE );
   my Int $i1stBdMax = $i1stBdL * $iBlCnt - $i1stBdL;
@@ -141,6 +138,10 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
     Int( ( $iAll + $iBdCntW ) / $iBlCnt ) +
        ( ( ( $iAllW + $iBdCntW ) % $iBlCnt ) ?? 1 !! 0 );
   my Int $i;
+
+  my IO::Handle $FILE = %hInfo<_FILEH_>;
+
+  # Calculate basic setting
 
   if $iBdCnt > $i1stBdL {
     # Calculate BD count
@@ -164,8 +165,7 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
 
   # Save Header
   #
-  my IO::Handle $fh = %hInfo<_FILEH_>;
-  $fh.write( Blob.new( flat
+  $FILE.write( Blob.new( flat
     0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1,
     _int32( 0 ) xx 4,
     _int16( 0x3b ),                # pack("v", 0x3b)
@@ -186,13 +186,13 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
   # Extra BDlist Start, Count
   #
   if $iAll <= $i1stBdMax {
-    %hInfo<_FILEH_>.write( Blob.new( flat
+    $FILE.write( Blob.new( flat
       _int32( -2 ), # Extra BDList Start
       _int32( 0 )   # Extra BDList Count
     ) );
   }
   else {
-    %hInfo<_FILEH_>.write( Blob.new( flat
+    $FILE.write( Blob.new( flat
       _int32( $iAll + $iBdCnt ), # Extra BDList Start
       _int32( $iBdExL )          # Extra BDlist Count
     ) );
@@ -201,11 +201,13 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
   # BDlist
   #
   loop ( $i = 0 ; $i < $i1stBdL and $i < $iBdCnt ; $i++ ) {
-    %hInfo<_FILEH_>.write( Blob.new( _int32( $iAll + $i ) ) );
+    $FILE.write( Blob.new( _int32( $iAll + $i ) ) );
   }
-  %hInfo<_FILEH_>.write( Blob.new( flat
-    ( _int32( -1 ) ) xx ( $i1stBdL - $i )
-  ) ) if $i < $i1stBdL;
+  if $i < $i1stBdL {
+    $FILE.write( Blob.new( flat
+      ( _int32( -1 ) ) xx ( $i1stBdL - $i )
+    ) );
+  }
 }
 
 # XXX Note that $iStBlk in the original source is a reference to a Scalar.
@@ -240,11 +242,13 @@ method _saveBigData( Int $iStBlk is rw, OLE::Storage_Lite::PPS @aList, %hInfo ) 
 	  # XXX Not sure if this is where we want to encode...
 	  $FILE.write( $oPps.Data );
 	}
-	$FILE.write(
-	  Blob.new(
-	    0x00 xx ( %hInfo<_BIG_BLOCK_SIZE> -
-	              ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) )
-	) if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE>;
+	if $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> {
+	  $FILE.write(
+	    Blob.new(
+	      0x00 xx ( %hInfo<_BIG_BLOCK_SIZE> -
+	                ( $oPps.Size % %hInfo<_BIG_BLOCK_SIZE> ) ) )
+	  )
+        }
 
 	# Set for PPS
 	#
@@ -267,11 +271,11 @@ method _savePps( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   my Int $iCnt  = @aList.elems;
   # XXX Added Int() here
   my Int $iBCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
-if $iCnt % $iBCnt {
-  for ^( ( $iBCnt - ( $iCnt % $iBCnt ) ) * PPS-SIZE ) {
-    $FILE.write( Buf.new( _int8( 0 ) ) );
+  if $iCnt % $iBCnt {
+    for ^( ( $iBCnt - ( $iCnt % $iBCnt ) ) * PPS-SIZE ) {
+      $FILE.write( Buf.new( _int8( 0 ) ) );
+    }
   }
-}
   Int( $iCnt / $iBCnt ) + ( ( $iCnt % $iBCnt ) ?? 1 !! 0 );
 }
 
@@ -281,14 +285,14 @@ method _savePpsSetPnt2( @aThis, OLE::Storage_Lite::PPS @aList, %hInfo ) {
 #1. make Array as Children-Relations
 #1.1 if No Children
   if @aThis.elems - 1 < 0 {
-    return 0xffffffff;
+    return SENTINEL-END;
   }
 #1.2 Just Only one
   elsif @aThis.elems - 1 == 0 {
     append @aList, @aThis[0];
     @aThis[0].No      = @aList.elems - 1;
-    @aThis[0].PrevPps = 0xffffffff;
-    @aThis[0].NextPps = 0xffffffff;
+    @aThis[0].PrevPps = SENTINEL-END;
+    @aThis[0].NextPps = SENTINEL-END;
     @aThis[0].DirPps =
       self._savePpsSetPnt2( @aThis[0].Child, @aList, %hInfo );
     return @aThis[0].No;
@@ -325,7 +329,7 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
 #1. make Array as Children-Relations
 #1.1 if No Children
   if @aThis.elems - 1 < 0 {
-    return 0xffffffff;
+    return SENTINEL-END;
   }
 #1.2 Just Only one
   elsif @aThis.elems - 1 == 0 {
@@ -333,16 +337,14 @@ sub _savePpsSetPnt( @aThis, @aList, %hInfo ) {
     #
     append @aList, @aThis[0];
     @aThis[0].No      = @aList.elems - 1;
-    @aThis[0].PrevPps = 0xffffffff;
-    @aThis[0].NextPps = 0xffffffff;
+    @aThis[0].PrevPps = SENTINEL-END;
+    @aThis[0].NextPps = SENTINEL-END;
     @aThis[0].DirPps  = _savePpsSetPnt( @aThis[0].Child, @aList, %hInfo );
 
     return @aThis[0].No;
   }
 #1.3 Array
   else {
-    # Array
-    #
 #1.3.1 Define Center
     my Int $iCnt = @aThis.elems;
 
@@ -374,9 +376,9 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
 #0. Calculate Basic Setting
 
   # XXX JMG Added Int() here
-  my Int $iBbCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
-  my Int $iBlCnt  = $iBbCnt - 1;
-  my Int $i1stBdL = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
+  my Int $iBbCnt    = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
+  my Int $iBlCnt    = $iBbCnt - 1;
+  my Int $i1stBdL   = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
   my Int $i1stBdMax = $i1stBdL * $iBbCnt - $i1stBdL;
   my Int $iBdExL    = 0;
   my Int $iAll      = $iBsize + $iPpsCnt + $iSbdSize;
