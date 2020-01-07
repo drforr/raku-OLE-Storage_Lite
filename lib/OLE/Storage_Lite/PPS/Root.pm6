@@ -20,6 +20,8 @@ constant PPS-TYPE-ROOT = 5;
 
 constant LONGINT-SIZE = 4;
 
+constant PPS-SIZE     = 0x80;
+
 multi method new ( @Time1st, @Time2nd, @Child ) {
   self.bless(
     :Name( 'Root Entry' ),
@@ -38,7 +40,6 @@ method save( Str $sFile, $bNoAs?, %hInfo? ) {
     2**( %hInfo<_SMALL_BLOCK_SIZE> ??
          self._adjust2( %hInfo<_SMALL_BLOCK_SIZE> ) !! 6 );
   %hInfo<_SMALL_SIZE> = 0x1000;
-  %hInfo<_PPS_SIZE>   = 0x80;
 
   # sFile is Ref of scalar
   #
@@ -49,7 +50,7 @@ method save( Str $sFile, $bNoAs?, %hInfo? ) {
 
   # Make an array of PPS
   #
-  my OLE::Storage_Lite::PPS @aList = ( );
+  my OLE::Storage_Lite::PPS @aList;
 my OLE::Storage_Lite::PPS @thisList = ( self );
   if $bNoAs {
     self._savePpsSetPnt2( @thisList, @aList, %hInfo ); 
@@ -77,7 +78,6 @@ my OLE::Storage_Lite::PPS @thisList = ( self );
   # Write PPS
   #
   self._savePps( @aList, %hInfo );
-#close %hInfo<_FILEH_>; exit 0;
 
   # Write BD and BDList and Adding Header Information
   #
@@ -91,7 +91,7 @@ method _calcSize( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   my Int $iSBcnt    = 0;
 
   for @aList -> $oPps {
-    if $oPps.Type == 2 { # OLE::Storage_Lite::PPS-TYPE-FILE
+    if $oPps.Type == PPS-TYPE-FILE {
       $oPps.Size = $oPps._DataLen(); # Mod
       if $oPps.Size < %hInfo<_SMALL_SIZE> {
 	$iSBcnt += Int( $oPps.Size / %hInfo<_SMALL_BLOCK_SIZE> ) +
@@ -112,7 +112,7 @@ method _calcSize( OLE::Storage_Lite::PPS @aList, %hInfo ) {
 
   my Int $iCnt   = @aList.elems;
   # JMG added Int() around this division
-  my Int $iBdCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / 0x80 ); # PPS-SIZE
+  my Int $iBdCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
   $iPPScnt = Int( $iCnt / $iBdCnt ) + ( ( $iCnt % $iBdCnt ) ?? 1 !! 0 );
   return ( $iSBDcnt, $iBBcnt, $iPPScnt );
 }
@@ -168,17 +168,17 @@ method _saveHeader( %hInfo, Int $iSBDcnt, Int $iBBcnt, Int $iPPScnt ) {
   $fh.write( Blob.new( flat
     0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1,
     _int32( 0 ) xx 4,
-    _int16( 0x3b ),               # pack("v", 0x3b)
-    _int16( 0x03 ),               # pack("v", 0x03)
-    _int16( -2 ),                 # pack("v", -2)
-    _int16( 9 ),                  # pack("v", 9)
-    _int16( 6 ),                  # pack("v", 6)
-    _int16( 0 ),                  # pack("v", 0)
-    _int32( 0 ) xx 2,             # "\x00\x00\x00\x00" x 2
-    _int32( $iBdCnt ),            # pack("V", $iBdCnt),
-    _int32( $iBBcnt + $iSBDcnt ), # pack("V", $iBBcnt+$iSBDcnt), #ROOT START
-    _int32( 0 ),                  # pack("V", 0)
-    _int32( 0x1000 ),             # pack("V", 0x1000)
+    _int16( 0x3b ),                # pack("v", 0x3b)
+    _int16( 0x03 ),                # pack("v", 0x03)
+    _int16( -2 ),                  # pack("v", -2)
+    _int16( 9 ),                   # pack("v", 9)
+    _int16( 6 ),                   # pack("v", 6)
+    _int16( 0 ),                   # pack("v", 0)
+    _int32( 0 ) xx 2,              # "\x00\x00\x00\x00" x 2
+    _int32( $iBdCnt ),             # pack("V", $iBdCnt),
+    _int32( $iBBcnt + $iSBDcnt ),  # pack("V", $iBBcnt+$iSBDcnt), #ROOT START
+    _int32( 0 ),                   # pack("V", 0)
+    _int32( 0x1000 ),              # pack("V", 0x1000)
     _int32( $iSBDcnt ?? 0 !! -2 ), # pack("V", $iSBDcnt ? 0 : -2) Small Block Depot
     _int32( $iSBDcnt )             # pack("V", $iSBDcnt)
   ) );
@@ -262,14 +262,13 @@ method _savePps( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   for @aList -> $oItem {
     $oItem._savePpsWk( %hInfo );
   }
-#close %hInfo<_FILEH_>; exit 0;
 
 #3. Adjust for Block
   my Int $iCnt  = @aList.elems;
   # XXX Added Int() here
-  my Int $iBCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_PPS_SIZE> );
+  my Int $iBCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
 if $iCnt % $iBCnt {
-  for ^( ( $iBCnt - ( $iCnt % $iBCnt ) ) * %hInfo<_PPS_SIZE> ) {
+  for ^( ( $iBCnt - ( $iCnt % $iBCnt ) ) * PPS-SIZE ) {
     $FILE.write( Buf.new( _int8( 0 ) ) );
   }
 }
@@ -299,9 +298,10 @@ method _savePpsSetPnt2( @aThis, OLE::Storage_Lite::PPS @aList, %hInfo ) {
     my Int $iCnt = @aThis.elems;
 #1.3.1 Define Center
     my Int $iPos = 0;
-    my OLE::Storage_Lite::PPS @aWk      = @aThis;
-    my OLE::Storage_Lite::PPS @aPrev    = @aThis.elems - 1 > 1 ?? splice( @aWk, 1, 1 ) !! ( );
-    my OLE::Storage_Lite::PPS @aNext    = splice( @aWk, 1 );
+    my OLE::Storage_Lite::PPS @aWk   = @aThis;
+    my OLE::Storage_Lite::PPS @aPrev =
+       @aThis.elems - 1 > 1 ?? splice( @aWk, 1, 1 ) !! ( );
+    my OLE::Storage_Lite::PPS @aNext = splice( @aWk, 1 );
 
     @aThis[$iPos].PrevPps =
       self._savePpsSetPnt2( @aPrev, @aList, %hInfo );
@@ -454,7 +454,7 @@ method _saveBbd( Int $iSbdSize, Int $iBsize, Int $iPpsCnt, %hInfo ) {
     }
     if ( $iBdCnt - $i1stBdL ) % ( $iBbCnt - 1 ) {
       $FILE.write( Blob.new( _int32( -1 ) ) ) for
-        (($iBbCnt-1) - (($iBdCnt-$i1stBdL) % ($iBbCnt-1)));
+        ( ( $iBbCnt - 1 ) - ( ( $iBdCnt - $i1stBdL ) % ( $iBbCnt - 1 ) ) );
     }
     $FILE.write( Blob.new( _int32( -2 ) ) );
   }
