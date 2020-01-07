@@ -153,7 +153,6 @@ subtest 'before writing', {
 
   done-testing;
 };
-exit 0;
 
 subtest 'read small-block file', {
   plan 7;
@@ -164,7 +163,7 @@ subtest 'read small-block file', {
   is @pps.elems, 1, "Single root object";
   
   subtest 'Root Entry', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0];
   
@@ -187,7 +186,7 @@ subtest 'read small-block file', {
   };
 
   subtest 'Workbook', {
-    plan 13;
+    plan 10;
   
     my $node = @pps[0].Child[0];
   
@@ -210,7 +209,7 @@ subtest 'read small-block file', {
   };
 
   subtest 'Dir', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1];
   
@@ -233,7 +232,7 @@ subtest 'read small-block file', {
   };
 
   subtest 'File_2', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1].Child[0];
   
@@ -256,7 +255,7 @@ subtest 'read small-block file', {
   };
 
   subtest 'File_3', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1].Child[1];
   
@@ -279,7 +278,7 @@ subtest 'read small-block file', {
   };
 
   subtest 'File_4', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1].Child[2];
   
