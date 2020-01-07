@@ -72,9 +72,9 @@ method getPpsTree( $bData? ) {
   my Int @aDone;
 
   my OLE::Storage_Lite::PPS @oPps =
-    self._getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
+    self._getPpsTree( 0, %hInfo, $file, $bData, @aDone ); # @aDone is my own
 
-  close %hInfo<_FILEH_>;
+  close $file;
   @oPps;
 }
 
@@ -84,9 +84,9 @@ method getPpsSearch( @aName, $bData?, $iCase? ) {
   my Int @aDone;
 
   my OLE::Storage_Lite::PPS @aList =
-    self._getPpsSearch( 0, %hInfo, @aName, @aDone, $bData, $iCase );
+    self._getPpsSearch( 0, %hInfo, $file, @aName, @aDone, $bData, $iCase );
 
-  close %hInfo<_FILEH_>;
+  close $file;
   @aList;
 }
 
@@ -95,15 +95,15 @@ method getNthPps( Int $iNo, $bData? ) {
   my %hInfo           = self._getHeaderInfo( $file );
 
   my OLE::Storage_Lite::PPS $oPps =
-    self._getNthPps( $iNo, %hInfo, $bData );
+    self._getNthPps( $iNo, %hInfo, $file, $bData );
 
-  close %hInfo<_FILEH_>;
+  close $file;
   $oPps;
 }
 
 # XXX _initParse was here, now _getHeaderInfo() does the work.
 
-method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
+method _getPpsTree( Int $iNo, %hInfo, $file, $bData, @aDone ) {
   if @aDone.elems {
     return () if grep { $_ == $iNo }, @aDone;
   }
@@ -113,11 +113,11 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   append @aDone, $iNo;
 
   my Int $iRootBlock              = %hInfo<_ROOT_START>;
-  my OLE::Storage_Lite::PPS $oPps = self._getNthPps( $iNo, %hInfo, $bData );
+  my OLE::Storage_Lite::PPS $oPps = self._getNthPps( $iNo, %hInfo, $file, $bData );
 
   if $oPps.DirPps != 0xffffffff {
     my OLE::Storage_Lite::PPS @aChildL =
-      self._getPpsTree( $oPps.DirPps, %hInfo, $bData, @aDone );
+      self._getPpsTree( $oPps.DirPps, %hInfo, $file, $bData, @aDone );
     $oPps.Child = @aChildL;
   }
   else {
@@ -125,15 +125,15 @@ method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   }
 
   my OLE::Storage_Lite::PPS @aList;
-  append @aList, self._getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
+  append @aList, self._getPpsTree( $oPps.PrevPps, %hInfo, $file, $bData, @aDone ) if
     $oPps.PrevPps != 0xffffffff;
   append @aList, $oPps;
-  append @aList, self._getPpsTree( $oPps.NextPps, %hInfo, $bData, @aDone ) if
+  append @aList, self._getPpsTree( $oPps.NextPps, %hInfo, $file, $bData, @aDone ) if
     $oPps.NextPps != 0xffffffff;
   @aList;
 }
 
-method _getPpsSearch( Int $iNo, %hInfo, @aName, Int @aDone, $bData, $iCase ) {
+method _getPpsSearch( Int $iNo, %hInfo, $file, @aName, Int @aDone, $bData, $iCase ) {
   my Int $iRootBlock = %hInfo<_ROOT_START>;
   my OLE::Storage_Lite::PPS @aRes;
 
@@ -146,10 +146,10 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, Int @aDone, $bData, $iCase ) {
 
   append @aDone, $iNo;
   my OLE::Storage_Lite::PPS $oPps =
-     self._getNthPps( $iNo, %hInfo, Nil );
+     self._getNthPps( $iNo, %hInfo, $file, Nil );
   if ( $iCase && grep { fc( $oPps.Name ) eq fc( $_ ) }, @aName ) or
        grep { $oPps.Name eq $_ }, @aName {
-    $oPps = self._getNthPps( $iNo, %hInfo, $bData ) if $bData;
+    $oPps = self._getNthPps( $iNo, %hInfo, $file, $bData ) if $bData;
     @aRes = $oPps;
   }
   else {
@@ -157,13 +157,13 @@ method _getPpsSearch( Int $iNo, %hInfo, @aName, Int @aDone, $bData, $iCase ) {
   }
 
   append @aRes,
-    self._getPpsSearch( $oPps.DirPps, %hInfo, @aName, @aDone, $bData, $iCase )
+    self._getPpsSearch( $oPps.DirPps, %hInfo, $file, @aName, @aDone, $bData, $iCase )
       if $oPps.DirPps != 0xffffffff;
   append @aRes,
-    self._getPpsSearch( $oPps.PrevPps, %hInfo, @aName, @aDone, $bData, $iCase )
+    self._getPpsSearch( $oPps.PrevPps, %hInfo, $file, @aName, @aDone, $bData, $iCase )
       if $oPps.PrevPps != 0xffffffff;
   append @aRes,
-    self._getPpsSearch( $oPps.NextPps, %hInfo, @aName, @aDone, $bData, $iCase )
+    self._getPpsSearch( $oPps.NextPps, %hInfo, $file, @aName, @aDone, $bData, $iCase )
       if $oPps.NextPps != 0xffffffff;
 
   @aRes;
@@ -220,7 +220,7 @@ method _getHeaderInfo( IO::Handle $file ) {
 
   # Get Root PPS
   #
-  my OLE::Storage_Lite::PPS $oRoot = self._getNthPps( 0, %hInfo, Nil );
+  my OLE::Storage_Lite::PPS $oRoot = self._getNthPps( 0, %hInfo, $file, Nil );
   %hInfo<_SB_START>                = $oRoot.StartBlock;
   %hInfo<_SB_SIZE>                 = $oRoot.Size;
 
@@ -289,9 +289,7 @@ method _getBbdInfo( %hInfo ) {
   return %hBd;
 }
 
-method _getNthPps( Int $iPos, %hInfo, $bData? ) {
-  my IO::Handle $FILE = %hInfo<_FILEH_>;
-
+method _getNthPps( Int $iPos, %hInfo, $FILE, $bData? ) {
   my Int $iPpsStart = %hInfo<_ROOT_START>;
   my Buf $sWk;
 
