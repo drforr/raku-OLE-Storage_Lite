@@ -43,8 +43,8 @@ my $fh = open FILENAME, :r, :bin;
 my $header-info = OLE::Storage_Lite._getHeaderInfo( $fh );
 close $fh;
 
-is $header-info.<_SMALL_BLOCK_SIZE>, 64;
-is $header-info.<_BIG_BLOCK_SIZE>,   512;
+is $header-info.<_SMALL_BLOCK_SIZE>, 2**6;
+is $header-info.<_BIG_BLOCK_SIZE>,   2**9;
 
 is $header-info.<_SBD_START>,       2**32-2;
 is $header-info.<_ROOT_START>,      25;

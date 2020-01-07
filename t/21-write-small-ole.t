@@ -51,15 +51,15 @@ subtest 'before writing', {
 
     my $node = $workbook;
  
-    isa-ok    $node,         OLE::Storage_Lite::PPS::File;
+    isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data[0], 0x41,       'Data 0';
-    is        $node.Data[1], 0x42,       'Data 1';
-    is        $node.Name,    "Workbook", 'Name';
-    is        $node.Type,    2,          'Type';
-#    is-deeply $node.Time1st, [],         'Time1st';
-#    is-deeply $node.Time2nd, [],         'Time2nd';
-    is-deeply $node.Child,   [],         'Child';
+    is        $node.Child.elems, 0,          'Child count';
+    is        $node.Data[0],     0x41,       'Data 0';
+    is        $node.Data[1],     0x42,       'Data 1';
+    is        $node.Name,        "Workbook", 'Name';
+    is        $node.Type,        2,          'Type';
+#    is-deeply $node.Time1st,     [],         'Time1st';
+#    is-deeply $node.Time2nd,     [],         'Time2nd';
 
     done-testing;
   };
@@ -71,12 +71,12 @@ subtest 'before writing', {
  
     isa-ok    $node,          OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data.[0], 0x41,     'Data';
-    is        $node.Name,     "File_2", 'Name';
-    is        $node.Type,     2,        'Type';
+    is        $node.Child.elems, 0,        'Child count';
+    is        $node.Data.[0],    0x41,     'Data';
+    is        $node.Name,        "File_2", 'Name';
+    is        $node.Type,        2,        'Type';
 #    is-deeply $node.Time1st,  [],       'Time1st';
 #    is-deeply $node.Time2nd,  [],       'Time2nd';
-    is-deeply $node.Child,    [],       'Child';
  
     done-testing;
   };
@@ -88,12 +88,12 @@ subtest 'before writing', {
  
     isa-ok    $node,          OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data.[0], 0x42,     'Data';
-    is        $node.Name,     "File_3", 'Name';
-    is        $node.Type,     2,        'Type';
-#    is-deeply $node.Time1st,  [],       'Time1st';
-#    is-deeply $node.Time2nd,  [],       'Time2nd';
-    is-deeply $node.Child,    [],       'Child';
+    is        $node.Child.elems, 0,        'Child count';
+    is        $node.Data.[0],    0x42,     'Data';
+    is        $node.Name,        "File_3", 'Name';
+    is        $node.Type,        2,        'Type';
+#    is-deeply $node.Time1st,     [],       'Time1st';
+#    is-deeply $node.Time2nd,     [],       'Time2nd';
  
     done-testing;
   };
@@ -105,12 +105,12 @@ subtest 'before writing', {
  
     isa-ok    $node,          OLE::Storage_Lite::PPS::File;
 
-    is        $node.Data.[0], 0x43,     'Data';
-    is        $node.Name,     "File_4", 'Name';
-    is        $node.Type,     2,        'Type';
-#    is-deeply $node.Time1st,  [],       'Time1st';
-#    is-deeply $node.Time2nd,  [],       'Time2nd';
-    is-deeply $node.Child,    [],       'Child';
+    is        $node.Child.elems, 0,        'Child count';
+    is        $node.Data.[0],    0x43,     'Data';
+    is        $node.Name,        "File_4", 'Name';
+    is        $node.Type,        2,        'Type';
+#    is-deeply $node.Time1st,     [],       'Time1st';
+#    is-deeply $node.Time2nd,     [],       'Time2nd';
  
     done-testing;
   };
@@ -122,12 +122,12 @@ subtest 'before writing', {
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::Dir;
 
+    is        $node.Child.elems, 3,                    'Child count';
     is        $node.Data,        Any,                  'Data';
     is        $node.Name,        "Dir",                'Name';
     is        $node.Type,        1,                    'Type';
 #    is-deeply $node.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
 #    is-deeply $node.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
-    is        $node.Child.elems, 3,                    'Child count';
  
     done-testing;
   };
@@ -139,12 +139,12 @@ subtest 'before writing', {
 
     isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
 
+    is        $node.Child.elems, 2,                    'Child count';
     is        $node.Data,        Any,                  'Data';
     is        $node.Name,        'Root Entry',         'Name';
     is        $node.Type,        5,                    'Type';
 #    is-deeply $node.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
 #    is-deeply $node.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
-    is        $node.Child.elems, 2,                    'Child count';
     
     done-testing;
   };
@@ -170,6 +170,7 @@ subtest 'read small-block file', {
   
     isa-ok $node, OLE::Storage_Lite::PPS::Root;
   
+    is        $node.Child.elems, 2,                    'Child count';
     is        $node.No,          0,                    'No';
     is        $node.Type,        5,                    'Type';
     is        $node.Size,        576,                  'Size';
@@ -181,7 +182,6 @@ subtest 'read small-block file', {
     is        $node.PrevPps,     2**32 - 1,            'PrevPps';
     is        $node.NextPps,     2**32 - 1,            'NextPps';
     is        $node.DirPps,      1,                    'DirPps';
-    is        $node.Child.elems, 2,                    'Child';
 
     done-testing;
   };
@@ -193,6 +193,7 @@ subtest 'read small-block file', {
   
     isa-ok $node, OLE::Storage_Lite::PPS::File;
   
+    is        $node.Child.elems, 0,          'Child';
     is        $node.No,          2,          'No';
     is        $node.Type,        2,          'Type';
     is        $node.Size,        6,          'Size';
@@ -204,7 +205,6 @@ subtest 'read small-block file', {
     is        $node.PrevPps,     2**32 - 1,  'PrevPps';
     is        $node.NextPps,     2**32 - 1,  'NextPps';
     is        $node.DirPps,      2**32 - 1,  'DirPps';
-    is        $node.Child.elems, 0,          'Child';
 
     done-testing;
   };
@@ -216,6 +216,7 @@ subtest 'read small-block file', {
   
     isa-ok $node, OLE::Storage_Lite::PPS::Dir;
   
+    is        $node.Child.elems, 3,                    'Child';
     is        $node.No,          1,                    'No';
     is        $node.Type,        1,                    'Type';
     is        $node.Size,        0,                    'Size';
@@ -227,7 +228,6 @@ subtest 'read small-block file', {
     is        $node.PrevPps,     2,                    'PrevPps';
     is        $node.NextPps,     2**32 - 1,            'NextPps';
     is        $node.DirPps,      3,                    'DirPps';
-    is        $node.Child.elems, 3,                    'Child';
 
     done-testing;
   };
@@ -239,6 +239,7 @@ subtest 'read small-block file', {
   
     isa-ok $node, OLE::Storage_Lite::PPS::File;
   
+    is        $node.Child.elems, 0,         'Child';
     is        $node.No,          4,         'No';
     is        $node.Type,        2,         'Type';
     is        $node.Size,        2**12,     'Size';
@@ -250,7 +251,6 @@ subtest 'read small-block file', {
     is        $node.PrevPps,     2**32 - 1, 'PrevPps';
     is        $node.NextPps,     2**32 - 1, 'NextPps';
     is        $node.DirPps,      2**32 - 1, 'DirPps';
-    is        $node.Child.elems, 0,         'Child';
 
     done-testing;
   };
@@ -262,6 +262,7 @@ subtest 'read small-block file', {
   
     isa-ok $node, OLE::Storage_Lite::PPS::File;
   
+    is        $node.Child.elems, 0,         'Child';
     is        $node.No,          3,         'No';
     is        $node.Type,        2,         'Type';
     is        $node.Size,        2**8,      'Size';
@@ -273,7 +274,6 @@ subtest 'read small-block file', {
     is        $node.PrevPps,     4,         'PrevPps';
     is        $node.NextPps,     5,         'NextPps';
     is        $node.DirPps,      2**32 - 1, 'DirPps';
-    is        $node.Child.elems, 0,         'Child';
 
     done-testing;
   };
@@ -285,6 +285,7 @@ subtest 'read small-block file', {
   
     isa-ok $node, OLE::Storage_Lite::PPS::File;
   
+    is        $node.Child.elems, 0,         'Child';
     is        $node.No,          5,         'No';
     is        $node.Type,        2,         'Type';
     is        $node.Size,        2**8,      'Size';
@@ -296,7 +297,6 @@ subtest 'read small-block file', {
     is        $node.PrevPps,     2**32 - 1, 'PrevPps';
     is        $node.NextPps,     2**32 - 1, 'NextPps';
     is        $node.DirPps,      2**32 - 1, 'DirPps';
-    is        $node.Child.elems, 0,         'Child';
 
     done-testing;
   };

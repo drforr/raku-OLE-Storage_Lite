@@ -59,7 +59,7 @@ subtest 'Workbook', {
 
   is        $node.No,          1,          'No';
   is        $node.Type,        2,          'Type';
-  is        $node.Size,        4096,       'Size';
+  is        $node.Size,        2**12,      'Size';
   is        $node.Name,        'Workbook', 'Name';
   is        $node.StartBlock,  0,          'StartBlock';
   is        $node.PrevPps,     2**32 - 1,  'PrevPps';
@@ -80,19 +80,18 @@ subtest 'SummaryInformation', {
 
   isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
-  is        $node.No,          2,         'No';
-  is        $node.Type,        2,         'Type';
-  is        $node.Size,        4096,      'Size';
-  is        $node.Name,
-            qq{\x[05]SummaryInformation}, 'Name';
-  is        $node.StartBlock,  8,         'StartBlock';
-  is        $node.PrevPps,     1,         'PrevPps';
-  is        $node.NextPps,     3,         'NextPps';
-  is        $node.DirPps,      2**32 - 1, 'DirPps';
-  is        $node.Data.[31],   242,       'Data';
-#  is-deeply $node.Time1st,     [ Int ],   'Time1st';
-#  is-deeply $node.Time2nd,     [ Int ],   'Time2nd';
-  is-deeply $node.Child,       [ ],       'Time2nd';
+  is        $node.Child.elems, 0,                     'Child count';
+  is        $node.No,          2,                     'No';
+  is        $node.Type,        2,                     'Type';
+  is        $node.Size,        2**12,                 'Size';
+  is        $node.Name, qq{\x[05]SummaryInformation}, 'Name';
+  is        $node.StartBlock,  8,                     'StartBlock';
+  is        $node.PrevPps,     1,                     'PrevPps';
+  is        $node.NextPps,     3,                     'NextPps';
+  is        $node.DirPps,      2**32 - 1,             'DirPps';
+  is        $node.Data.[31],   242,                   'Data';
+#  is-deeply $node.Time1st,     [ Int ],               'Time1st';
+#  is-deeply $node.Time2nd,     [ Int ],               'Time2nd';
 
   done-testing;
 };
@@ -104,19 +103,18 @@ subtest 'DocumentSummaryInformation', {
 
   isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
-  is        $node.No,          3,                 'No';
-  is        $node.Type,        2,                 'Type';
-  is        $node.Size,	       4096,              'Size';
-  is        $node.Name,
-            qq{\x[05]DocumentSummaryInformation}, 'Name';
-  is        $node.StartBlock,  16,                'StartBlock';
-  is        $node.PrevPps,     2**32 - 1,         'PrevPps';
-  is        $node.NextPps,     2**32 - 1,         'NextPps';
-  is        $node.DirPps,      2**32 - 1,         'DirPps';
-  is        $node.Data.[31],   213,               'Data';
-#  is-deeply $node.Time1st,     [ Int ],           'Time1st';
-#  is-deeply $node.Time2nd,     [ Int ],           'Time2nd';
-  is-deeply $node.Child,       [ ],               'Child';
+  is        $node.Child.elems, 0,                             'Child count';
+  is        $node.No,          3,                             'No';
+  is        $node.Type,        2,                             'Type';
+  is        $node.Size,	       2**12,                         'Size';
+  is        $node.Name, qq{\x[05]DocumentSummaryInformation}, 'Name';
+  is        $node.StartBlock,  16,                            'StartBlock';
+  is        $node.PrevPps,     2**32 - 1,                     'PrevPps';
+  is        $node.NextPps,     2**32 - 1,                     'NextPps';
+  is        $node.DirPps,      2**32 - 1,                     'DirPps';
+  is        $node.Data.[31],   213,                           'Data';
+#  is-deeply $node.Time1st,     [ Int ],                       'Time1st';
+#  is-deeply $node.Time2nd,     [ Int ],                       'Time2nd';
 
   done-testing;
 };
