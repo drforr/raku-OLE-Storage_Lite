@@ -58,6 +58,19 @@ constant LONGINT-SIZE = 4;
 constant PPS-SIZE     = 0x80;
 
 has Str $.FILE; # String or IO::Handle or ...
+has IO::Handle $.FILE_H is rw;
+
+# These need to be set on each get* call.
+#
+has Int $.ROOT_START      is rw;
+has Int $.BDB_COUNT       is rw;
+has Int $.SBD_START       is rw;
+has Int $.SBD_COUNT       is rw; # Definitely not used
+has Int $.EXTRA_BBD_START is rw;
+has Int $.EXTRA_BBD_COUNT is rw; # Definitely not used
+has %.BBD_INFO            is rw;
+has Int $.SB_START        is rw;
+has Int $.SB_SIZE         is rw; # Definitely not used
 
 multi method new( Str $FILE ) {
   self.new( :$FILE );
@@ -67,171 +80,156 @@ multi method new( Str $FILE ) {
 # But I'll keep it around until I have actual tests.
 #
 method getPpsTree( $bData? ) {
-  my IO::Handle $file = open $.FILE, :r, :bin;
-  my %hInfo           = self._getHeaderInfo( $file );
+  $.FILE_H  = open $.FILE, :r, :bin;
+  my %hInfo = self._getHeaderInfo;
   my Int @aDone;
 
   my OLE::Storage_Lite::PPS @oPps =
-    self._getPpsTree( 0, %hInfo, $file, $bData, @aDone ); # @aDone is my own
+    self._getPpsTree( 0, %hInfo, $bData, @aDone ); # @aDone is my own
 
-  close $file;
+  close $.FILE_H;
   @oPps;
 }
 
 method getPpsSearch( @aName, $bData?, $iCase? ) {
-  my IO::Handle $file = open $.FILE, :r, :bin;
-  my %hInfo           = self._getHeaderInfo( $file );
+  $.FILE_H  = open $.FILE, :r, :bin;
+  my %hInfo = self._getHeaderInfo;
   my Int @aDone;
 
   my OLE::Storage_Lite::PPS @aList =
-    self._getPpsSearch( 0, %hInfo, $file, @aName, @aDone, $bData, $iCase );
+    self._getPpsSearch( 0, %hInfo, @aName, @aDone, $bData, $iCase );
 
-  close $file;
+  close $.FILE_H;
   @aList;
 }
 
 method getNthPps( Int $iNo, $bData? ) {
-  my IO::Handle $file = open $.FILE, :r, :bin;
-  my %hInfo           = self._getHeaderInfo( $file );
+  $.FILE_H  = open $.FILE, :r, :bin;
+  my %hInfo = self._getHeaderInfo;
 
   my OLE::Storage_Lite::PPS $oPps =
-    self._getNthPps( $iNo, %hInfo, $file, $bData );
+    self._getNthPps( $iNo, %hInfo, $bData );
 
-  close $file;
+  close $.FILE_H;
   $oPps;
 }
 
 # XXX _initParse was here, now _getHeaderInfo() does the work.
 
-method _getPpsTree( Int $iNo, %hInfo, $file, $bData, @aDone ) {
+method _getPpsTree( Int $iNo, %hInfo, $bData, @aDone ) {
   if @aDone.elems {
     return () if grep { $_ == $iNo }, @aDone;
   }
-  else {
-    @aDone = ();
-  }
   append @aDone, $iNo;
 
-  my Int $iRootBlock              = %hInfo<_ROOT_START>;
-  my OLE::Storage_Lite::PPS $oPps = self._getNthPps( $iNo, %hInfo, $file, $bData );
+  my OLE::Storage_Lite::PPS $oPps = self._getNthPps( $iNo, %hInfo, $bData );
 
   if $oPps.DirPps != 0xffffffff {
     my OLE::Storage_Lite::PPS @aChildL =
-      self._getPpsTree( $oPps.DirPps, %hInfo, $file, $bData, @aDone );
+      self._getPpsTree( $oPps.DirPps, %hInfo, $bData, @aDone );
     $oPps.Child = @aChildL;
-  }
-  else {
-    $oPps.Child = ();
   }
 
   my OLE::Storage_Lite::PPS @aList;
-  append @aList, self._getPpsTree( $oPps.PrevPps, %hInfo, $file, $bData, @aDone ) if
+  append @aList, self._getPpsTree( $oPps.PrevPps, %hInfo, $bData, @aDone ) if
     $oPps.PrevPps != 0xffffffff;
   append @aList, $oPps;
-  append @aList, self._getPpsTree( $oPps.NextPps, %hInfo, $file, $bData, @aDone ) if
+  append @aList, self._getPpsTree( $oPps.NextPps, %hInfo, $bData, @aDone ) if
     $oPps.NextPps != 0xffffffff;
   @aList;
 }
 
-method _getPpsSearch( Int $iNo, %hInfo, $file, @aName, Int @aDone, $bData, $iCase ) {
-  my Int $iRootBlock = %hInfo<_ROOT_START>;
+method _getPpsSearch( Int $iNo, %hInfo, @aName, Int @aDone, $bData, $iCase ) {
   my OLE::Storage_Lite::PPS @aRes;
 
   if @aDone.elems {
     return () if grep { $_ == $iNo }, @aDone;
   }
-  else {
-    @aDone = ( );
-  }
 
   append @aDone, $iNo;
   my OLE::Storage_Lite::PPS $oPps =
-     self._getNthPps( $iNo, %hInfo, $file, Nil );
+     self._getNthPps( $iNo, %hInfo, Nil );
   if ( $iCase && grep { fc( $oPps.Name ) eq fc( $_ ) }, @aName ) or
        grep { $oPps.Name eq $_ }, @aName {
-    $oPps = self._getNthPps( $iNo, %hInfo, $file, $bData ) if $bData;
+    $oPps = self._getNthPps( $iNo, %hInfo, $bData ) if $bData;
     @aRes = $oPps;
-  }
-  else {
-    @aRes = ( );
   }
 
   append @aRes,
-    self._getPpsSearch( $oPps.DirPps, %hInfo, $file, @aName, @aDone, $bData, $iCase )
+    self._getPpsSearch( $oPps.DirPps, %hInfo, @aName, @aDone, $bData, $iCase )
       if $oPps.DirPps != 0xffffffff;
   append @aRes,
-    self._getPpsSearch( $oPps.PrevPps, %hInfo, $file, @aName, @aDone, $bData, $iCase )
+    self._getPpsSearch( $oPps.PrevPps, %hInfo, @aName, @aDone, $bData, $iCase )
       if $oPps.PrevPps != 0xffffffff;
   append @aRes,
-    self._getPpsSearch( $oPps.NextPps, %hInfo, $file, @aName, @aDone, $bData, $iCase )
+    self._getPpsSearch( $oPps.NextPps, %hInfo, @aName, @aDone, $bData, $iCase )
       if $oPps.NextPps != 0xffffffff;
 
   @aRes;
 }
 
-method _getHeaderInfo( IO::Handle $file ) {
-  my %hInfo =
-    _FILEH_ => $file
-  ;
+method _getHeaderInfo {
+  my %hInfo;
 
-  $file.seek( 0, SeekFromBeginning );
-  my Str $sWk = $file.read( 8 ).unpack('A8');
+  $.FILE_H.seek( 0, SeekFromBeginning );
+  my Str $sWk = $.FILE_H.read( 8 ).unpack('A8');
   die "Header ID incorrect" if $sWk ne HEADER-ID;
 
-  my Int $iWk = self._getInfoFromFile( $file, 0x1E, 2, "v" );
+  my Int $iWk = self._getInfoFromFile( 0x1E, 2, "v" );
   die "Big block size missing" unless defined( $iWk );
   %hInfo<_BIG_BLOCK_SIZE> = 2 ** $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x20, 2, "v" );
+  $iWk = self._getInfoFromFile( 0x20, 2, "v" );
   die "Small block size missing" unless defined( $iWk );
   %hInfo<_SMALL_BLOCK_SIZE> = 2 ** $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x2C, 4, "v" );
+  $iWk = self._getInfoFromFile( 0x2C, 4, "v" );
   die "BDB count missing" unless defined( $iWk );
-  %hInfo<_BDB_COUNT> = $iWk;
+  $.BDB_COUNT = $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x30, 4, "V" );
+  $iWk = self._getInfoFromFile( 0x30, 4, "V" );
   die "Root start missing" unless defined( $iWk );
-  %hInfo<_ROOT_START> = $iWk;
+  $.ROOT_START = $iWk;
 
-# $iWk = self._getInfoFromFile( $file, 0x38, 4, "v" );
+# $iWk = self._getInfoFromFile( 0x38, 4, "v" );
 # die "Min size BB missing" unless defined( $iWk );
 # %hInfo<_MIN_SIZE_BB> = $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x3C, 4, "V" );
+  $iWk = self._getInfoFromFile( 0x3C, 4, "V" );
   die "Small BD start missing" unless defined( $iWk );
-  %hInfo<_SBD_START> = $iWk;
+  $.SBD_START = $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x40, 4, "V" );
+  $iWk = self._getInfoFromFile( 0x40, 4, "V" );
   die "Small BD count missing" unless defined( $iWk );
-  %hInfo<_SBD_COUNT> = $iWk;
+  $.SBD_COUNT = $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x44, 4, "V" );
+  $iWk = self._getInfoFromFile( 0x44, 4, "V" );
   die "Extra BBD start missing" unless defined( $iWk );
-  %hInfo<_EXTRA_BBD_START> = $iWk;
+  $.EXTRA_BBD_START = $iWk;
 
-  $iWk = self._getInfoFromFile( $file, 0x48, 4, "V" );
+  $iWk = self._getInfoFromFile( 0x48, 4, "V" );
   die "Extra BBD count missing" unless defined( $iWk );
-  %hInfo<_EXTRA_BBD_COUNT> = $iWk;
+  $.EXTRA_BBD_COUNT = $iWk;
 
   # Get BBD Info
   #
-  %hInfo<_BBD_INFO> = self._getBbdInfo( %hInfo );
+  %.BBD_INFO = self._getBbdInfo( %hInfo );
 
   # Get Root PPS
   #
-  my OLE::Storage_Lite::PPS $oRoot = self._getNthPps( 0, %hInfo, $file, Nil );
-  %hInfo<_SB_START>                = $oRoot.StartBlock;
-  %hInfo<_SB_SIZE>                 = $oRoot.Size;
+  my OLE::Storage_Lite::PPS $oRoot =
+    self._getNthPps( 0, %hInfo, Nil );
+  $.SB_START = $oRoot.StartBlock;
+  $.SB_SIZE  = $oRoot.Size;
 
   %hInfo;
 }
 
-method _getInfoFromFile( IO::Handle $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
-  return Nil unless $FILE;
-  return Nil if $FILE.seek( $iPos, SeekFromBeginning ) == 0;
+method _getInfoFromFile( Int $iPos, Int $iLen, Str $sFmt ) {
+  return Nil unless $.FILE_H;
+  return Nil if $.FILE_H.seek( $iPos, SeekFromBeginning ) == 0;
 
-  my Buf $sWk = $FILE.read( $iLen );
+  my Buf $sWk = $.FILE_H.read( $iLen );
   if $sFmt ~~ 'v' {
     return Nil if $sWk.decode('ascii').chars != $iLen;
   }
@@ -241,32 +239,30 @@ method _getInfoFromFile( IO::Handle $FILE, Int $iPos, Int $iLen, Str $sFmt ) {
 # slight change here, flatten references a bit in general.
 #
 method _getBbdInfo( %hInfo ) {
-  my IO::Handle $FILE = %hInfo<_FILEH_>;
-
-  my Int $iBdbCnt = %hInfo<_BDB_COUNT>;
+  my Int $iBdbCnt = $.BDB_COUNT;
   my Int $i1stCnt = Int( ( %hInfo<_BIG_BLOCK_SIZE> - 0x4c ) / LONGINT-SIZE );
   my Int $iBdlCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE ) - 1;
   my Int @aBdList;
 
   # 1st BDList
   #
-  $FILE.seek( 0x4c, SeekFromBeginning );
+  $.FILE_H.seek( 0x4c, SeekFromBeginning );
   my Int $iGetCnt = ( $iBdbCnt < $i1stCnt ) ?? $iBdbCnt !! $i1stCnt;
-  my Buf $sWk     = $FILE.read( LONGINT-SIZE + $iGetCnt );
+  my Buf $sWk     = $.FILE_H.read( LONGINT-SIZE + $iGetCnt );
   append @aBdList, $sWk.unpack( "V$iGetCnt" );
   $iBdbCnt -= $iGetCnt;
 
   # Extra BDList
   #
-  my Int $iBlock = %hInfo<_EXTRA_BBD_START>;
+  my Int $iBlock = $.EXTRA_BBD_START;
   while $iBdbCnt > 0 and _isNormalBlock( $iBlock ) {
     self._setFilePos( $iBlock, 0, %hInfo );
     $iGetCnt = ( $iBdbCnt < $iBdlCnt ) ?? $iBdbCnt !! $iBdlCnt;
-    $sWk     = $FILE.read( LONGINT-SIZE + $iGetCnt );
+    $sWk     = $.FILE_H.read( LONGINT-SIZE + $iGetCnt );
     append @aBdList, $sWk.unpack( "V$iGetCnt" );
 
     $iBdbCnt -= $iGetCnt;
-    $sWk      = $FILE.read( LONGINT-SIZE );
+    $sWk      = $.FILE_H.read( LONGINT-SIZE );
     $iBlock   = $sWk.unpack( "V" );
   }
 
@@ -278,7 +274,7 @@ method _getBbdInfo( %hInfo ) {
   my Int $iBdCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
   for @aBdList -> $iBdL {
     self._setFilePos( $iBdL, 0, %hInfo );
-    $sWk = $FILE.read( %hInfo<_BIG_BLOCK_SIZE> );
+    $sWk = $.FILE_H.read( %hInfo<_BIG_BLOCK_SIZE> );
     @aWk = $sWk.unpack( "V$iBdCnt" );
     loop ( my Int $i = 0; $i < $iBdCnt ; $i++, $iBlkNo++ ) {
       if @aWk[$i] != $iBlkNo + 1 {
@@ -289,19 +285,18 @@ method _getBbdInfo( %hInfo ) {
   return %hBd;
 }
 
-method _getNthPps( Int $iPos, %hInfo, $FILE, $bData? ) {
-  my Int $iPpsStart = %hInfo<_ROOT_START>;
-  my Buf $sWk;
-
+method _getNthPps( Int $iPos, %hInfo, $bData? ) {
+  my Int $iPpsStart = $.ROOT_START;
   my Int $iBaseCnt  = Int( %hInfo<_BIG_BLOCK_SIZE> / PPS-SIZE );
   my Int $iPpsBlock = Int( $iPos / $iBaseCnt );
   my Int $iPpsPos   = $iPos % $iBaseCnt;
+  my Buf $sWk;
 
-  my Int $iBlock = self._getNthBlockNo( $iPpsStart, $iPpsBlock, %hInfo );
+  my Int $iBlock = self._getNthBlockNo( $iPpsStart, $iPpsBlock );
   die "No block found" unless defined $iBlock;
 
   self._setFilePos( $iBlock, PPS-SIZE * $iPpsPos, %hInfo );
-  $sWk = $FILE.read( PPS-SIZE );
+  $sWk = $.FILE_H.read( PPS-SIZE );
   return Nil unless defined $iBlock;
 
   my Int $iNmSize = $sWk.subbuf( 0x40, 2 ).unpack( "v" );
@@ -347,19 +342,19 @@ method _getNthPps( Int $iPos, %hInfo, $FILE, $bData? ) {
 }
 
 method _setFilePos( Int $iBlock, Int $iPos, %hInfo ) {
-  %hInfo<_FILEH_>.seek(
+  $.FILE_H.seek(
     ( $iBlock + 1 ) * %hInfo<_BIG_BLOCK_SIZE> + $iPos,
     SeekFromBeginning
   );
 }
 
-method _getNthBlockNo( Int $iStBlock, Int $iNth, %hInfo ) {
+method _getNthBlockNo( Int $iStBlock, Int $iNth ) {
   my Int $iSv;
   my Int $iNext = $iStBlock;
 
   loop ( my Int $i = 0; $i < $iNth; $i++ ) {
     $iSv   = $iNext;
-    $iNext = self._getNextBlockNo( $iSv, %hInfo );
+    $iNext = self._getNextBlockNo( $iSv );
     return Nil unless _isNormalBlock( $iNext );
   }
   $iNext;
@@ -392,21 +387,21 @@ method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
 
   my Int $iRest = $iSize;
   my Buf $sRes  = Buf.new();
-  my Int @aKeys     = sort { $^a <=> $^b },
-                       map { +$_ }, keys %( %hInfo<_BBD_INFO> );
+  my Int @aKeys = sort { $^a <=> $^b },
+                   map { +$_ }, keys %.BBD_INFO;
 
   while $iRest > 0 {
     my Int @aRes  = grep { $_ >= $_iBlock }, @aKeys;
     my Int $iNKey = @aRes[0];
     my Int $i     = $iNKey - $_iBlock;
-    my Int $iNext = %hInfo<_BBD_INFO>{$iNKey};
+    my Int $iNext = %.BBD_INFO{$iNKey};
 
     self._setFilePos( $_iBlock, 0, %hInfo );
 
     my Int $iGetSize = %hInfo<_BIG_BLOCK_SIZE> * ( $i + 1 );
 
     $iGetSize = $iRest if $iRest < $iGetSize;
-    my Buf $sWk = %hInfo<_FILEH_>.read( $iGetSize );
+    my Buf $sWk = $.FILE_H.read( $iGetSize );
     $sRes      ~= $sWk;
     $iRest     -= $iGetSize;
     $_iBlock    = $iNext;
@@ -414,8 +409,8 @@ method _getBigData( Int $iBlock, Int $iSize, %hInfo ) {
   $sRes;
 }
 
-method _getNextBlockNo( Int $iBlockNo, %hInfo ) {
-  my $iRes = %hInfo<_BBD_INFO>{~$iBlockNo};
+method _getNextBlockNo( Int $iBlockNo ) {
+  my $iRes = %.BBD_INFO{~$iBlockNo};
 
   return defined( $iRes ) ?? $iRes !! $iBlockNo + 1;
 }
@@ -431,7 +426,7 @@ method _getSmallData( Int $iSmBlock, Int $iSize, %hInfo ) {
 
   while $iRest > 0 {
     self._setFilePosSmall( $iSmBlock, %hInfo );
-    $sWk = %hInfo<_FILEH_>.read(
+    $sWk = $.FILE_H.read(
       $iRest >= %hInfo<_SMALL_BLOCK_SIZE> ??
         %hInfo<_SMALL_BLOCK_SIZE> !!
         $iRest
@@ -444,25 +439,24 @@ method _getSmallData( Int $iSmBlock, Int $iSize, %hInfo ) {
 }
 
 method _setFilePosSmall( Int $iSmBlock, %hInfo ) {
-  my Int $iSmStart = %hInfo<_SB_START>;
+  my Int $iSmStart = $.SB_START;
   my Int $iBaseCnt = %hInfo<_BIG_BLOCK_SIZE> / %hInfo<_SMALL_BLOCK_SIZE>;
   my Int $iNth     = Int( $iSmBlock / $iBaseCnt );
   my Int $iPos     = $iSmBlock % $iBaseCnt;
-  my Int $iBlk     = self._getNthBlockNo( $iSmStart, $iNth, %hInfo );
+  my Int $iBlk     = self._getNthBlockNo( $iSmStart, $iNth );
 
   self._setFilePos( $iBlk, $iPos * %hInfo<_SMALL_BLOCK_SIZE>, %hInfo );
 }
 
 method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
-  my Buf $sWk;
-
   my Int $iBaseCnt = %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE;
   my Int $iNth     = Int( $iSmBlock / $iBaseCnt );
   my Int $iPos     = $iSmBlock % $iBaseCnt;
-  my Int $iBlk     = self._getNthBlockNo( %hInfo<_SBD_START>, $iNth, %hInfo );
+  my Int $iBlk     = self._getNthBlockNo( $.SBD_START, $iNth );
+  my Buf $sWk;
 
   self._setFilePos( $iBlk, $iPos * LONGINT-SIZE, %hInfo );
-  $sWk = %hInfo<_FILEH_>.read( LONGINT-SIZE );
+  $sWk = $.FILE_H.read( LONGINT-SIZE );
 
   return $sWk.unpack( "V" );
 }

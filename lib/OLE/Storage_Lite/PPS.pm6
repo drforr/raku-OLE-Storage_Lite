@@ -90,10 +90,6 @@ method _makeSmallData( OLE::Storage_Lite::PPS @aList, %hInfo ) {
 		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) )
           );
 	}
-#	$sRes ~= ( "\x00" x
-#	           ( %hInfo<_SMALL_BLOCK_SIZE> -
-#		     ( $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE> ) ) ) if
-#	  $oPps.Size % %hInfo<_SMALL_BLOCK_SIZE>;
 	
 	$oPps.StartBlock = $iSmBlk;
 	$iSmBlk += $iSmbCnt;
@@ -104,9 +100,11 @@ method _makeSmallData( OLE::Storage_Lite::PPS @aList, %hInfo ) {
   # Adjust for SBD block size
   #
   my Int $iSbCnt = Int( %hInfo<_BIG_BLOCK_SIZE> / LONGINT-SIZE );
-  $FILE.write( Blob.new( flat
-    ( _int32( -1 ) ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) )
-  ) ) if $iSmBlk % $iSbCnt;
+  if $iSmBlk % $iSbCnt {
+    $FILE.write( Blob.new( flat
+      ( _int32( -1 ) ) xx ( $iSbCnt - ( $iSmBlk % $iSbCnt ) )
+    ) );
+  }
 
   $sRes;
 }
