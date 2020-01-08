@@ -9,37 +9,6 @@ use OLE::Storage_Lite::PPS::Root;
 
 use experimental :pack;
 
-# A couple of notes on how I translated (loosely) this from the Perl 5 module:
-#
-# I'm taking advantage of being able to pass along array and hash types, and
-# leaving hash "attribute"s as just that, attributes.
-#
-#   This is probably most notable with the %rhInfo and @Time{1st,2nd} vars.
-#
-# Dropping parens where unneeded, using object notation only where needed, like
-# pack/unpack because they're "experimental".
-#
-# Dropping unneeded 'return's on the last line.
-#
-# I'm leaving the method/function distinctions alone for the time being, simply
-# because it's easier that way. Also it'll be easier to find changes from the
-# Perl 5 module in the new Raku code.
-#
-# Actually that's a lie, it's easier to test things if everything is a method.
-# I'll probably refactor it back once I'm sure of how it's going to be used.
-#
-
-# Once I've gotten it tested and able to do its job in Raku I'll feel better
-# about completely rearranging things to work better in Raku.
-#
-# And yes, I do know that classes can have subs as well, I'm using subs until
-# I figure out a better method of testing.
-#
-# I've added given-when when it makes sense, and stuck with the original loop
-# types that the code used. Not terribly consistent, but if it makes finding
-# coincidences between the Perl 5 and Raku code easier, I'm all for it.
-#
-
 #------------------------------------------------------------------------------
 # Consts for OLE::Storage_Lite
 #------------------------------------------------------------------------------
@@ -60,7 +29,7 @@ constant PPS-SIZE     = 0x80;
 has Str $.FILE; # String or IO::Handle or ...
 has IO::Handle $.FILE_H is rw;
 
-# These need to be set on each get* call.
+# These need to be set on each pps-* call.
 #
 has Int $.ROOT_START      is rw;
 has Int $.BDB_COUNT       is rw;
@@ -79,7 +48,7 @@ multi method new( Str $FILE ) {
 # I really don't think @aDone is useful in general
 # But I'll keep it around until I have actual tests.
 #
-method getPpsTree( $bData? ) {
+method pps-tree( $bData? ) {
   $.FILE_H  = open $.FILE, :r, :bin;
   my %hInfo = self._getHeaderInfo;
   my Int @aDone;
@@ -91,7 +60,7 @@ method getPpsTree( $bData? ) {
   @oPps;
 }
 
-method getPpsSearch( @aName, $bData?, $iCase? ) {
+method pps-search( @aName, $bData?, $iCase? ) {
   $.FILE_H  = open $.FILE, :r, :bin;
   my %hInfo = self._getHeaderInfo;
   my Int @aDone;
@@ -103,7 +72,7 @@ method getPpsSearch( @aName, $bData?, $iCase? ) {
   @aList;
 }
 
-method getNthPps( Int $iNo, $bData? ) {
+method Nth-pps( Int $iNo, $bData? ) {
   $.FILE_H  = open $.FILE, :r, :bin;
   my %hInfo = self._getHeaderInfo;
 
@@ -324,7 +293,6 @@ method _getNthPps( Int $iPos, %hInfo, $bData? ) {
   #
   if $bData {
     my $sData = self._getData( $iType, $iStart, $iSize, %hInfo );
-#    return OLE::Storage_Lite::PPS.new
     return self.createPps(
       $iPos, $sNm.decode( OLE-ENCODING ),
       $iType, $lPpsPrev, $lPpsNext, $lDirPps,
@@ -332,7 +300,6 @@ method _getNthPps( Int $iPos, %hInfo, $bData? ) {
     );
   }
   else {
-#    return OLE::Storage_Lite::PPS.new
     return self.createPps(
       $iPos, $sNm.decode( OLE-ENCODING ),
       $iType, $lPpsPrev, $lPpsNext, $lDirPps,
@@ -420,9 +387,9 @@ sub _isNormalBlock( Int $iBlock ) {
 }
 
 method _getSmallData( Int $iSmBlock, Int $iSize, %hInfo ) {
-  my Str $sWk;
   my Int $iRest = $iSize;
   my Str $sRes  = '';
+  my Str $sWk;
 
   while $iRest > 0 {
     self._setFilePosSmall( $iSmBlock, %hInfo );
@@ -521,7 +488,7 @@ OLE::Storage_Lite - Simple Class for OLE document interface.
     my $oOl = OLE::Storage_Lite.new("some.xls");
 
     # Read data
-    my $oPps = $oOl.getPpsTree(1);
+    my $oPps = $oOl.pps-tree(1);
 
     # Save Data
     # To a File
@@ -549,26 +516,26 @@ Constructor.
 
 Creates a L<OLE::Storage_Lite> object for C<$sFile>. C<$sFile> must be a valid file name. 
 
-=head2 getPpsTree()
+=head2 pps-tree()
 
-    $oPpsRoot = $oOle.getPpsTree([$bData]);
+    $oPpsRoot = $oOle.pps-tree([$bData]);
 
 Returns PPS as an L<OLE::Storage_Lite::PPS::Root> object. Other PPS objects will be included as its children.
 
 If C<$bData> is true, the objects will have data in the file.
 
-=head2 getPpsSearch()
+=head2 pps-search()
 
-    $oPpsRoot = $oOle.getPpsTree(@aName [, $bData][, $iCase] );
+    $oPpsRoot = $oOle.pps-tree(@aName [, $bData][, $iCase] );
 
 Returns PPSs as L<OLE::Storage_Lite::PPS> objects that has the name specified in C<$raName> array.
 
 If C<$bData> is true, the objects will have data in the file.
 If C<$iCase> is true, search is case insensitive.
 
-=head2 getNthPps()
+=head2 Nth-pps()
 
-    $oPpsRoot = $oOle.getNthPps($iNth [, $bData]);
+    $oPpsRoot = $oOle.Nth-pps($iNth [, $bData]);
 
 Returns PPS as C<OLE::Storage_Lite::PPS> object specified number C<$iNth>.
 
@@ -707,7 +674,7 @@ C<$sData> is the data in the PPS.
 
     $oRoot = OLE::Storage_Lite::PPS::File.newFile($sName, $sFile);
 
-This function makes to use file handle for geting and storing data.
+This function makes to use file handle for getting and storing data.
 
 C<$sName> is name of the PPS.
 

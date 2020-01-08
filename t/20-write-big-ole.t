@@ -142,10 +142,10 @@ subtest 'read new file', {
 
   my $ole = OLE::Storage_Lite.new( FILENAME );
 
-  subtest 'getPpsTree', {
+  subtest 'pps-tree', {
     plan 4;
 
-    my $new-root = $ole.getPpsTree( 1 );
+    my $new-root = $ole.pps-tree( 1 );
 
     subtest 'summary information', {
       plan 14;
@@ -245,10 +245,10 @@ subtest 'read new file', {
     done-testing;
   };
 
-  subtest 'getPpsTree without data', {
+  subtest 'pps-tree without data', {
     plan 4;
 
-    my $new-root = $ole.getPpsTree;
+    my $new-root = $ole.pps-tree;
 
     subtest 'summary information', {
       plan 11;
@@ -347,11 +347,11 @@ subtest 'read new file', {
     done-testing;
   };
 
-  subtest 'getPpsSearch', {
+  subtest 'pps-search', {
     plan 14;
 
     my @search-names = "\x05SummaryInformation";
-    my @new-nodes    = $ole.getPpsSearch( @search-names, 1, 0 );
+    my @new-nodes    = $ole.pps-search( @search-names, 1, 0 );
     my $node         = @new-nodes[0];
   
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
@@ -373,11 +373,11 @@ subtest 'read new file', {
     done-testing;
   };
 
-  subtest 'getPpsSearch without data', {
+  subtest 'pps-search without data', {
     plan 13;
 
     my @search-names = "\x05SummaryInformation";
-    my @new-nodes    = $ole.getPpsSearch( @search-names, 0, 0 );
+    my @new-nodes    = $ole.pps-search( @search-names, 0, 0 );
     my $node         = @new-nodes[0];
   
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
@@ -398,11 +398,11 @@ subtest 'read new file', {
     done-testing;
   };
 
-  subtest 'getPpsSearch without data, insensitive', {
+  subtest 'pps-search without data, insensitive', {
     plan 13;
 
     my @search-names = "\x05sUmmaryiNformation";
-    my @new-nodes    = $ole.getPpsSearch( @search-names, 0, 1 );
+    my @new-nodes    = $ole.pps-search( @search-names, 0, 1 );
     my $node         = @new-nodes[0];
   
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
@@ -423,10 +423,10 @@ subtest 'read new file', {
     done-testing;
   };
 
-  subtest 'getNthPps', {
+  subtest 'Nth-pps', {
     plan 14;
 
-    my $node = $ole.getNthPps( 2, 1 );
+    my $node = $ole.Nth-pps( 2, 1 );
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  
@@ -447,10 +447,10 @@ subtest 'read new file', {
     done-testing;
   };
 
-  subtest 'getNthPps without data', {
+  subtest 'Nth-pps without data', {
     plan 13;
 
-    my $node = $ole.getNthPps( 2, 0 );
+    my $node = $ole.Nth-pps( 2, 0 );
  
     isa-ok    $node,             OLE::Storage_Lite::PPS::File;
  

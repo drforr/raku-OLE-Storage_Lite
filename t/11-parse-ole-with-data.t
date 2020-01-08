@@ -12,11 +12,11 @@ plan 5;
 #
 # Rewritten to be a test by Jeff G. (drforr)
 
-# This time, actually load the data. That's what the 1 is in getPpsTree...
+# This time, actually load the data. That's what the 1 is in pps-tree...
 # Should make that an optional flag in the full Raku version.
 #
 my $ole = OLE::Storage_Lite.new( FILENAME );
-my @pps = $ole.getPpsTree( 1 ); 
+my @pps = $ole.pps-tree( 1 ); 
 
 is @pps.elems, 1, "Single root object";
 

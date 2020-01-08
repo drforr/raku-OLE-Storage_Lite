@@ -186,7 +186,7 @@ subtest 'read small-block file', {
   plan 7;
 
   my $ole = OLE::Storage_Lite.new( FILENAME );
-  my @pps = $ole.getPpsTree;
+  my @pps = $ole.pps-tree;
 
   is @pps.elems, 1, "Single root object";
   
