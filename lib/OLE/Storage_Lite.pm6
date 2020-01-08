@@ -308,12 +308,12 @@ method _getNthPps( Int $iPos, %hInfo, $bData? ) {
   my Int $lPpsNext = $sWk.subbuf( 0x48, LONGINT-SIZE ).unpack( "V" );
   my Int $lDirPps  = $sWk.subbuf( 0x4C, LONGINT-SIZE ).unpack( "V" );
 
-  my Int @aTime1st =
+  my DateTime $dtTime1st =
      ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
-         OLEDate2Local( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
-  my Int @aTime2nd =
+         OLEDate2LocalObject( $sWk.subbuf( 0x64, 8 ) ) !! Nil;
+  my DateTime $dtTime2nd =
      ( ( $iType == PPS-TYPE-ROOT ) or ( $iType == PPS-TYPE-DIR ) ) ??
-         OLEDate2Local( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
+         OLEDate2LocalObject( $sWk.subbuf( 0x6c, 8 ) ) !! Nil;
   my Int ( $iStart, $iSize ) = $sWk.subbuf( 0x74, 8 ).unpack( "VV" );
 
   # If we were to make OLE::Storage_Lite::PPS do the work of constructing
@@ -328,7 +328,7 @@ method _getNthPps( Int $iPos, %hInfo, $bData? ) {
     return self.createPps(
       $iPos, $sNm.decode( OLE-ENCODING ),
       $iType, $lPpsPrev, $lPpsNext, $lDirPps,
-      @aTime1st, @aTime2nd, $iStart, $iSize, $sData, ( )
+      $dtTime1st, $dtTime2nd, $iStart, $iSize, $sData, ( )
     );
   }
   else {
@@ -336,7 +336,7 @@ method _getNthPps( Int $iPos, %hInfo, $bData? ) {
     return self.createPps(
       $iPos, $sNm.decode( OLE-ENCODING ),
       $iType, $lPpsPrev, $lPpsNext, $lDirPps,
-      @aTime1st, @aTime2nd, $iStart, $iSize
+      $dtTime1st, $dtTime2nd, $iStart, $iSize
     );
   }
 }
@@ -473,30 +473,30 @@ method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
 # # Also *gotta* clean up the hierarchy, PPS.pm is referencing child classes.
 #
 method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
-                  Int $DirPps, Int @Time1st, Int @Time2nd, Int $StartBlock,
-                  Int $Size, $Data?, @Child? ) {
+                  Int $DirPps, DateTime $time1st, DateTime $time2nd,
+                  Int $StartBlock, Int $Size, $Data?, @Child? ) {
   given $Type {
     when PPS-TYPE-FILE {
       OLE::Storage_Lite::PPS::File.new(
         :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
-        :@Time1st, :@Time2nd,
+        :$time1st, :$time2nd,
         :$Data, :@Child
       )
     }
-    when PPS-TYPE-DIR { #OLE::Storage_Lite::PPS-TYPE-DIR
+    when PPS-TYPE-DIR {
       OLE::Storage_Lite::PPS::Dir.new(
         :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
-        :@Time1st, :@Time2nd,
+        :$time1st, :$time2nd,
         :$Data, :@Child
       )
     }
-    when PPS-TYPE-ROOT { #OLE::Storage_Lite::PPS-TYPE-ROOT
+    when PPS-TYPE-ROOT {
       OLE::Storage_Lite::PPS::Root.new(
         :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
-        :@Time1st, :@Time2nd,
+        :$time1st, :$time2nd,
         :$Data, :@Child
       )
     }
@@ -644,11 +644,11 @@ L<OLE::Storage_Lite::PPS::Root> has 2 methods.
 
 =head2 new()
 
-    $oRoot = OLE::Storage_Lite::PPS::Root.new( @aTime1st, @aTime2nd, @aChild);
+    $oRoot = OLE::Storage_Lite::PPS::Root.new( $dtTime1st, $dtTime2nd, @aChild);
 
 Constructor.
 
-C<@aTime1st>, C<@aTime2nd> are array refs with ($iSec, $iMin, $iHour, $iDay, $iMon, $iYear).
+C<$dtTime1st>, C<$dtTime2nd> are array refs with ($iSec, $iMin, $iHour, $iDay, $iMon, $iYear).
 $iSec means seconds, $iMin means minutes. $iHour means hours.
 $iDay means day. $iMon is month -1. $iYear is year - 1900.
 
@@ -673,8 +673,8 @@ L<OLE::Storage_Lite::PPS::Dir> has 1 method.
 
     $oRoot = OLE::Storage_Lite::PPS::Dir.new(
                     $sName,
-                  [, @aTime1st]
-                  [, @aTime2nd]
+                  [, $dtTime1st]
+                  [, $dtTime2nd]
                   [, @aChild]);
 
 
@@ -682,7 +682,7 @@ Constructor.
 
 C<$sName> is a name of the PPS.
 
-C<@aTime1st>, C<@aTime2nd> is a array ref as
+C<$dtTime1st>, C<$dtTime2nd> is a array ref as
 ($iSec, $iMin, $iHour, $iDay, $iMon, $iYear).
 $iSec means seconds, $iMin means minutes. $iHour means hours.
 $iDay means day. $iMon is month -1. $iYear is year - 1900.

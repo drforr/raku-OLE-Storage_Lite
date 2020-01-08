@@ -35,8 +35,6 @@ has UInt   $.No         is rw;
 has UInt32 $.PrevPps    is rw;
 has UInt32 $.NextPps    is rw;
 has UInt32 $.DirPps     is rw;
-has Int    @.Time1st    is rw;
-has Int    @.Time2nd    is rw;
 has UInt   $.StartBlock is rw;
 has UInt   $.Size       is rw;
 has        $.Data       is rw;
