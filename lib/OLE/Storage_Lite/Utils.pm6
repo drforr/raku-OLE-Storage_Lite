@@ -100,6 +100,18 @@ sub OLEDate2Local( Buf $oletime ) is export {
   @localtime;
 }
 
+sub OLEDate2LocalObject( Buf $oletime ) is export {
+  my @localtime = OLEDate2Local( $oletime );
+  return DateTime.new(
+    second => @localtime[0],
+    minute => @localtime[1],
+    hour   => @localtime[2],
+    day    => @localtime[3],
+    month  => @localtime[4] + 1,
+    year   => @localtime[5] + 1900
+  );
+}
+
 #------------------------------------------------------------------------------
 # LocalDate2OLE()
 #
@@ -147,4 +159,15 @@ sub LocalDate2OLE( @localtime? ) is export {
   my Int $lo = $nanoseconds       +& 0xffffffff;
 
   return Buf.new( _int32( $lo ), _int32( $hi ) );
+}
+
+sub LocalDateObject2OLE( $localtimeObj ) is export {
+  my @localtime =
+    $localtimeObj.second,
+    $localtimeObj.minute,
+    $localtimeObj.hour,
+    $localtimeObj.day,
+    $localtimeObj.month - 1,
+    $localtimeObj.year - 1900;
+  return LocalDate2OLE( @localtime );
 }

@@ -6,7 +6,7 @@ use Test;
 
 use OLE::Storage_Lite::Utils;
 
-plan 198;
+plan 396;
 
 my $testdata = q:to[_END_];
 0-0-0-1-0-70        00803ED5DEB19D01  # Thu Jan  1 00:00:00 1970
@@ -122,16 +122,37 @@ for $testdata.lines -> $line {
 
   my $got_oletime = LocalDate2OLE( @expected_localtime );
      $got_oletime = uc $got_oletime.unpack( "H*" );
+  my $got_oletimeObj = LocalDateObject2OLE(
+    DateTime.new(
+      second => @expected_localtime[0],
+      minute => @expected_localtime[1],
+      hour   => @expected_localtime[2],
+      day    => @expected_localtime[3],
+      month  => @expected_localtime[4] + 1,
+      year   => @expected_localtime[5] + 1900,
+    )
+  );
+     $got_oletimeObj = uc $got_oletimeObj.unpack( "H*" );
 
   is $got_oletime, $expected_oletime, "LocalDate2OLE: $comment";
+  is $got_oletimeObj, $expected_oletime, "LocalDateObj2OLE: $comment";
 
   # Test LocalDate2OLE
   $expected_oletime = pack 'H*', $expected_oletime;
 
   my $got_localtime   = join '-', OLEDate2Local( $expected_oletime );
+  my $got_lt          = OLEDate2LocalObject( $expected_oletime );
   $expected_localtime = join '-', @$expected_localtime;
 
   is $got_localtime, $expected_localtime, "OLEDate2Local: $comment";
+  is $got_lt, DateTime.new(
+    second => @expected_localtime[0],
+    minute => @expected_localtime[1],
+    hour   => @expected_localtime[2],
+    day    => @expected_localtime[3],
+    month  => @expected_localtime[4] + 1,
+    year   => @expected_localtime[5] + 1900,
+  ), "OLEDate2LocalObject: $comment";
 }
 
 done-testing;
