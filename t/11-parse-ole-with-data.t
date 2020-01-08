@@ -32,7 +32,7 @@ subtest 'Root Entry', {
 
   my $node = @pps[0];
 
-  isa-ok    $node,             OLE::Storage_Lite::PPS::Root;
+  isa-ok $node, OLE::Storage_Lite::PPS::Root;
 
   is $node.Child.elems, 3,                      'Child';
   is $node.No,          0,                      'No';
@@ -51,11 +51,11 @@ subtest 'Root Entry', {
 };
 
 subtest 'Workbook', {
-  plan 13;
+  plan 11;
 
   my $node = @pps[0].Child[0];
 
-  isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+  isa-ok $node, OLE::Storage_Lite::PPS::File;
 
   is $node.Child.elems, 0,          'Child count';
   is $node.No,          1,          'No';
@@ -67,18 +67,16 @@ subtest 'Workbook', {
   is $node.NextPps,     2**32 - 1,  'NextPps';
   is $node.DirPps,      2**32 - 1,  'DirPps';
   is $node.Data.[0],    9,          'Data';
-  is $node.Time1st,     DateTime,   'Time1st';
-  is $node.Time2nd,     DateTime,   'Time2nd';
 
   done-testing;
 };
 
 subtest 'SummaryInformation', {
-  plan 13;
+  plan 11;
 
   my $node = @pps[0].Child[1];
 
-  isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+  isa-ok $node, OLE::Storage_Lite::PPS::File;
 
   is $node.Child.elems, 0,                            'Child count';
   is $node.No,          2,                            'No';
@@ -90,18 +88,16 @@ subtest 'SummaryInformation', {
   is $node.NextPps,     3,                            'NextPps';
   is $node.DirPps,      2**32 - 1,                    'DirPps';
   is $node.Data.[31],   242,                          'Data';
-  is $node.Time1st,     DateTime,                     'Time1st';
-  is $node.Time2nd,     DateTime,                     'Time2nd';
 
   done-testing;
 };
 
 subtest 'DocumentSummaryInformation', {
-  plan 13;
+  plan 11;
 
   my $node = @pps[0].Child[2];
 
-  isa-ok    $node,             OLE::Storage_Lite::PPS::File;
+  isa-ok $node, OLE::Storage_Lite::PPS::File;
 
   is $node.Child.elems, 0,                                    'Child count';
   is $node.No,          3,                                    'No';
@@ -113,8 +109,6 @@ subtest 'DocumentSummaryInformation', {
   is $node.NextPps,     2**32 - 1,                            'NextPps';
   is $node.DirPps,      2**32 - 1,                            'DirPps';
   is $node.Data.[31],   213,                                  'Data';
-  is $node.Time1st,     DateTime,                             'Time1st';
-  is $node.Time2nd,     DateTime,                             'Time2nd';
 
   done-testing;
 };

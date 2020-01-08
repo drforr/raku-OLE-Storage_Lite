@@ -162,6 +162,8 @@ sub LocalDate2OLE( @localtime? ) is export {
 }
 
 sub LocalDateObject2OLE( $localtimeObj ) is export {
+  return Buf.new( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ) unless
+    $localtimeObj;
   my @localtime =
     $localtimeObj.whole-second,
     $localtimeObj.minute,

@@ -29,33 +29,18 @@ constant LONGINT-SIZE = 4;
 my subset UInt   of Int where -1 < *;
 my subset UInt32 of Int where -1 < * < 2**32;
 
-has Str    $.Name       is required; # Gotten from Buffers, decoded to UTF-8...
-has UInt   $.Type       is required;
-has UInt   $.No         is rw;
-has UInt32 $.PrevPps    is rw;
-has UInt32 $.NextPps    is rw;
-has UInt32 $.DirPps     is rw;
-has UInt   $.StartBlock is rw;
-has UInt   $.Size       is rw;
-has        $.Data       is rw;
-has        @.Child      is rw;
-
-has DateTime $.Time1st is rw = DateTime.new(
-  second => 0,
-  minute => 0,
-  hour   => 0,
-  day    => 1,
-  month  => 1,
-  year   => 1970
-);
-has DateTime $.Time2nd is rw = DateTime.new(
-  second => 0,
-  minute => 0,
-  hour   => 0,
-  day    => 1,
-  month  => 1,
-  year   => 1970
-);
+has Str      $.Name       is required;
+has UInt     $.Type       is required;
+has UInt     $.No         is rw;
+has UInt32   $.PrevPps    is rw;
+has UInt32   $.NextPps    is rw;
+has UInt32   $.DirPps     is rw;
+has UInt     $.StartBlock is rw;
+has UInt     $.Size       is rw;
+has          $.Data       is rw;
+has          @.Child      is rw;
+has DateTime $.Time1st    is rw;
+has DateTime $.Time2nd    is rw;
 
 has Str $._PPS_FILE;
 

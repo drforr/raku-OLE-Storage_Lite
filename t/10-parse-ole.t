@@ -49,7 +49,7 @@ subtest 'large blocks', {
   };
   
   subtest 'Workbook', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[0];
   
@@ -58,19 +58,17 @@ subtest 'large blocks', {
     is $node.Child.elems, 0,          'Child count';
     is $node.No,          1,          'No';
     is $node.Type,        2,          'Type';
-    is $node.Size,        4096,       'Size';
+    is $node.Size,        2**12,      'Size';
     is $node.Name,        'Workbook', 'Name';
     is $node.Data,        Any,        'Data';
     is $node.StartBlock,  0,          'StartBlock';
     is $node.PrevPps,     2**32 - 1,  'PrevPps';
     is $node.NextPps,     2**32 - 1,  'NextPps';
     is $node.DirPps,      2**32 - 1,  'DirPps';
-    is $node.Time1st,     DateTime,   'Time1st';
-    is $node.Time2nd,     DateTime,   'Time2nd';
   };
   
   subtest 'SummaryInformation', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1];
   
@@ -79,19 +77,17 @@ subtest 'large blocks', {
     is $node.Child.elems, 0,                            'Child count';
     is $node.No,          2,                            'No';
     is $node.Type,        2,                            'Type';
-    is $node.Size,        4096,                         'Size';
+    is $node.Size,        2**12,                        'Size';
     is $node.Name,        qq{\x[05]SummaryInformation}, 'Name';
     is $node.Data,        Any,                          'Data';
     is $node.StartBlock,  8,                            'StartBlock';
     is $node.PrevPps,     1,                            'PrevPps';
     is $node.NextPps,     3,                            'NextPps';
     is $node.DirPps,      2**32 - 1,                    'DirPps';
-    is $node.Time1st,     DateTime,                     'Time1st';
-    is $node.Time2nd,     DateTime,                     'Time2nd';
   };
   
   subtest 'DocumentSummaryInformation', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[2];
   
@@ -107,8 +103,6 @@ subtest 'large blocks', {
     is $node.PrevPps,     2**32 - 1,                            'PrevPps';
     is $node.NextPps,     2**32 - 1,                            'NextPps';
     is $node.DirPps,      2**32 - 1,                            'DirPps';
-    is $node.Time1st,     DateTime,                             'Time1st';
-    is $node.Time2nd,     DateTime,                             'Time2nd';
   
     done-testing;
   };
@@ -148,7 +142,7 @@ subtest 'small blocks', {
   };
 
   subtest 'Workbook', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[0];
   
@@ -164,8 +158,6 @@ subtest 'small blocks', {
     is $node.PrevPps,     2**32 - 1,  'PrevPps';
     is $node.NextPps,     2**32 - 1,  'NextPps';
     is $node.DirPps,      2**32 - 1,  'DirPps';
-    is $node.Time1st,     DateTime,   'Time1st';
-    is $node.Time2nd,     DateTime,   'Time2nd';
 
     done-testing;
   };
@@ -194,7 +186,7 @@ subtest 'small blocks', {
   };
 
   subtest 'File_2', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1].Child[0];
   
@@ -210,14 +202,12 @@ subtest 'small blocks', {
     is $node.PrevPps,     2**32 - 1, 'PrevPps';
     is $node.NextPps,     2**32 - 1, 'NextPps';
     is $node.DirPps,      2**32 - 1, 'DirPps';
-    is $node.Time1st,     DateTime,  'Time1st';
-    is $node.Time2nd,     DateTime,  'Time2nd';
 
     done-testing;
   };
 
   subtest 'File_3', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1].Child[1];
   
@@ -233,14 +223,12 @@ subtest 'small blocks', {
     is $node.PrevPps,     4,         'PrevPps';
     is $node.NextPps,     5,         'NextPps';
     is $node.DirPps,      2**32 - 1, 'DirPps';
-    is $node.Time1st,     DateTime,  'Time1st';
-    is $node.Time2nd,     DateTime,  'Time2nd';
 
     done-testing;
   };
 
   subtest 'File_4', {
-    plan 13;
+    plan 11;
   
     my $node = @pps[0].Child[1].Child[2];
   
@@ -256,8 +244,6 @@ subtest 'small blocks', {
     is $node.PrevPps,     2**32 - 1, 'PrevPps';
     is $node.NextPps,     2**32 - 1, 'NextPps';
     is $node.DirPps,      2**32 - 1, 'DirPps';
-    is $node.Time1st,     DateTime,  'Time1st';
-    is $node.Time2nd,     DateTime,  'Time2nd';
 
     done-testing;
   };
