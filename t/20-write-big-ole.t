@@ -40,8 +40,23 @@ subtest 'before writing', {
   );
 
   my $root = OLE::Storage_Lite::PPS::Root.new(
-    ( 1, 28, 18, 5, 9, -240 ),
-    ( 31, 58, 21, 28, 1, 101 ),
+    DateTime.new(
+      second => 1,
+      minute => 28,
+      hour => 18,
+      day => ( 5 - 1 ),
+      month => ( 9 - 1 ),
+      year => 1970 - 240
+    ),
+    DateTime.new(
+      second => 31,
+      minute => 58,
+      hour => 21,
+      day => 28,
+      month => 1,
+      year => 1970 + 101
+    ),
+#    ( 31, 58, 21, 28, 1, 101 ),
     ( $workbook, $summary-information, $document-summary-information )
   );
 

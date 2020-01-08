@@ -57,6 +57,7 @@ subtest 'Workbook', {
 
   isa-ok    $node,             OLE::Storage_Lite::PPS::File;
 
+  is        $node.Child.elems, 0,          'Child count';
   is        $node.No,          1,          'No';
   is        $node.Type,        2,          'Type';
   is        $node.Size,        2**12,      'Size';
@@ -68,7 +69,6 @@ subtest 'Workbook', {
   is        $node.Data.[0],    9,          'Data';
 #  is-deeply $node.Time1st,     [ Int ],    'Time1st';
 #  is-deeply $node.Time2nd,     [ Int ],    'Time2nd';
-  is-deeply $node.Child,       [ ],        'Time2nd';
 
   done-testing;
 };

@@ -13,12 +13,12 @@ multi method new( Str $Name, Buf $Data ) {
     :$Data
   );
 }
-multi method new( Str $Name, Int @Time1st?, Int @Time2nd?, OLE::Storage_Lite::PPS @Child? ) {
+multi method new( Str $Name, DateTime $time1st?, DateTime $time2nd?, OLE::Storage_Lite::PPS @Child? ) {
   self.bless(
     :$Name,
     :Type( 2 ),
-    :@Time1st,
-    :@Time2nd,
+    :$time1st,
+    :$time2nd,
     :@Child
   );
 }

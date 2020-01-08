@@ -39,13 +39,13 @@ subtest 'large blocks', {
     is        $elem.Type,        5,                    'Type';
     is        $elem.Size,        0,                    'Size';
     is        $elem.Name,        'Root Entry',         'Name';
-#    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
-#    is-deeply $elem.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
     is        $elem.Data,        Any,                  'Data';
     is        $elem.StartBlock,  2**32 - 2,            'StartBlock';
     is        $elem.PrevPps,     2**32 - 1,            'PrevPps';
     is        $elem.NextPps,     2**32 - 1,            'NextPps';
     is        $elem.DirPps,      2,                    'DirPps';
+#    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
+#    is-deeply $elem.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
   };
   
   subtest 'Workbook', {
@@ -136,13 +136,13 @@ subtest 'small blocks', {
     is        $elem.Type,        5,                    'Type';
     is        $elem.Size,        576,                  'Size';
     is        $elem.Name,        'Root Entry',         'Name';
-#    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
-#    is-deeply $elem.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
     is        $elem.Data,        Any,                  'Data';
     is        $elem.StartBlock,  1,                    'StartBlock';
     is        $elem.PrevPps,     2**32 - 1,            'PrevPps';
     is        $elem.NextPps,     2**32 - 1,            'NextPps';
     is        $elem.DirPps,      1,                    'DirPps';
+#    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
+#    is-deeply $elem.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
 
     done-testing;
   };
@@ -159,13 +159,13 @@ subtest 'small blocks', {
     is        $elem.Type,        2,          'Type';
     is        $elem.Size,        6,          'Size';
     is        $elem.Name,        'Workbook', 'Name';
-#    is-deeply $elem.Time1st,     [ Int ],    'Time1st';
-#    is-deeply $elem.Time2nd,     [ Int ],    'Time2nd';
     is        $elem.Data,        Any,        'Data';
     is        $elem.StartBlock,  0,          'StartBlock';
     is        $elem.PrevPps,     2**32 - 1,  'PrevPps';
     is        $elem.NextPps,     2**32 - 1,  'NextPps';
     is        $elem.DirPps,      2**32 - 1,  'DirPps';
+#    is-deeply $elem.Time1st,     [ Int ],    'Time1st';
+#    is-deeply $elem.Time2nd,     [ Int ],    'Time2nd';
 
     done-testing;
   };
@@ -182,13 +182,13 @@ subtest 'small blocks', {
     is        $elem.Type,        1,                    'Type';
     is        $elem.Size,        0,                    'Size';
     is        $elem.Name,        'Dir',                'Name';
-#    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
-#    is-deeply $elem.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
     is        $elem.Data,        Any,                  'Data';
     is        $elem.StartBlock,  0,                    'StartBlock';
     is        $elem.PrevPps,     2,                    'PrevPps';
     is        $elem.NextPps,     2**32 - 1,            'NextPps';
     is        $elem.DirPps,      3,                    'DirPps';
+#    is-deeply $elem.Time1st,     [ 0, 0, 0, 1, 0, 0 ], 'Time1st';
+#    is-deeply $elem.Time2nd,     [ 0, 0, 0, 1, 0, 0 ], 'Time2nd';
 
     done-testing;
   };
@@ -205,13 +205,13 @@ subtest 'small blocks', {
     is        $elem.Type,        2,         'Type';
     is        $elem.Size,        2**12,     'Size';
     is        $elem.Name,        'File_2',  'Name';
-#    is-deeply $elem.Time1st,     [ Int ],   'Time1st';
-#    is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
     is        $elem.Data,        Any,       'Data';
     is        $elem.StartBlock,  3,         'StartBlock';
     is        $elem.PrevPps,     2**32 - 1, 'PrevPps';
     is        $elem.NextPps,     2**32 - 1, 'NextPps';
     is        $elem.DirPps,      2**32 - 1, 'DirPps';
+#    is-deeply $elem.Time1st,     [ Int ],   'Time1st';
+#    is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
 
     done-testing;
   };
@@ -228,13 +228,13 @@ subtest 'small blocks', {
     is        $elem.Type,        2,         'Type';
     is        $elem.Size,        2**8,      'Size';
     is        $elem.Name,        'File_3',  'Name';
-#    is-deeply $elem.Time1st,     [ Int ],   'Time1st';
-#    is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
     is        $elem.Data,        Any,       'Data';
     is        $elem.StartBlock,  1,         'StartBlock';
     is        $elem.PrevPps,     4,         'PrevPps';
     is        $elem.NextPps,     5,         'NextPps';
     is        $elem.DirPps,      2**32 - 1, 'DirPps';
+#    is-deeply $elem.Time1st,     [ Int ],   'Time1st';
+#    is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
 
     done-testing;
   };
@@ -251,13 +251,13 @@ subtest 'small blocks', {
     is        $elem.Type,        2,         'Type';
     is        $elem.Size,        2**8,      'Size';
     is        $elem.Name,        'File_4',  'Name';
-#    is-deeply $elem.Time1st,     [ Int ],   'Time1st';
-#    is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
     is        $elem.Data,        Any,       'Data';
     is        $elem.StartBlock,  5,         'StartBlock';
     is        $elem.PrevPps,     2**32 - 1, 'PrevPps';
     is        $elem.NextPps,     2**32 - 1, 'NextPps';
     is        $elem.DirPps,      2**32 - 1, 'DirPps';
+#    is-deeply $elem.Time1st,     [ Int ],   'Time1st';
+#    is-deeply $elem.Time2nd,     [ Int ],   'Time2nd';
 
     done-testing;
   };

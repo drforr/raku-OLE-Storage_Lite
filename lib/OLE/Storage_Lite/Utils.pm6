@@ -163,7 +163,7 @@ sub LocalDate2OLE( @localtime? ) is export {
 
 sub LocalDateObject2OLE( $localtimeObj ) is export {
   my @localtime =
-    $localtimeObj.second,
+    $localtimeObj.whole-second,
     $localtimeObj.minute,
     $localtimeObj.hour,
     $localtimeObj.day,

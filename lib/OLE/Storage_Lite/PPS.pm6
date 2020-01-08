@@ -42,6 +42,23 @@ has UInt   $.Size       is rw;
 has        $.Data       is rw;
 has        @.Child      is rw;
 
+has DateTime $.time1st is rw = DateTime.new(
+  second => 0,
+  minute => 0,
+  hour   => 0,
+  day    => 1,
+  month  => 1,
+  year   => 1970
+);
+has DateTime $.time2nd is rw = DateTime.new(
+  second => 0,
+  minute => 0,
+  hour   => 0,
+  day    => 1,
+  month  => 1,
+  year   => 1970
+);
+
 has Str $._PPS_FILE;
 
 # The old 'new' methods really don't do anything special.
@@ -117,21 +134,21 @@ method _savePpsWk( %hInfo ) {
   $FILE.write(
     Blob.new( flat
       0x00 xx ( 64 - $name.bytes ),                                 # 0..64
-      _int16( $name.bytes + 2 ),                                    # 65
+      _int16( $name.bytes + 2 ),                                    # 65-66
       self.Type,                                                    # 67
-      0x00,                                                         # 68
-      _int32( self.PrevPps ),                                       # 72
-      _int32( self.NextPps ),                                       # 76
-      _int32( self.DirPps ),                                        # 80
-      0x00, 0x09, 0x02, 0x00,                                       # 84
-      0x00, 0x00, 0x00, 0x00,                                       # 88
-      0xc0, 0x00, 0x00, 0x00,                                       # 92
-      0x00, 0x00, 0x00, 0x46,                                       # 96
-      0x00, 0x00, 0x00, 0x00,                                       # 100
-      LocalDate2OLE( self.Time1st ).list,                           # 108
-      LocalDate2OLE( self.Time2nd ).list,                           # 116
-      _int32( defined( self.StartBlock ) ?? self.StartBlock !! 0 ), # 124
-      _int32( defined( self.Size ) ?? self.Size !! 0 ),             # 128
+      0x00,                                                         # 68-71
+      _int32( self.PrevPps ),                                       # 72-75
+      _int32( self.NextPps ),                                       # 76-79
+      _int32( self.DirPps ),                                        # 80-83
+      0x00, 0x09, 0x02, 0x00,                                       # 84-87
+      0x00, 0x00, 0x00, 0x00,                                       # 88-91
+      0xc0, 0x00, 0x00, 0x00,                                       # 92-95
+      0x00, 0x00, 0x00, 0x46,                                       # 96-99
+      0x00, 0x00, 0x00, 0x00,                                       # 100-107
+      LocalDateObject2OLE( self.time1st ).list,                     # 108-115
+      LocalDateObject2OLE( self.time2nd ).list,                     # 116-123
+      _int32( defined( self.StartBlock ) ?? self.StartBlock !! 0 ), # 124-127
+      _int32( defined( self.Size ) ?? self.Size !! 0 ),             # 128-131
       _int32( 0 )                                                   # 132
     )
   );

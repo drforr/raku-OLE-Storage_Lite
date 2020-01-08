@@ -34,15 +34,43 @@ subtest 'before writing', {
 
   my $dir = OLE::Storage_Lite::PPS::Dir.new(
     "Dir",
-    ( 0, 0, 0, 1, 0, 0 ),
-    ( 0, 0, 0, 1, 0, 0 ),
+    DateTime.new(
+      second => 0,
+      minute => 0,
+      hour => 0,
+      day => 1,
+      month => 1,
+      year => 1970
+    ),
+    DateTime.new(
+      second => 0,
+      minute => 0,
+      hour => 0,
+      day => 1,
+      month => 1,
+      year => 1970
+    ),
     ( $File_2, $File_3, $File_4 )
   );
 
   my $root = OLE::Storage_Lite::PPS::Root.new(
 #Any,
-    ( 0, 0, 0, 1, 0, 0 ),
-    ( 0, 0, 0, 1, 0, 0 ),
+    DateTime.new(
+      second => 0,
+      minute => 0,
+      hour => 0,
+      day => 1,
+      month => 1,
+      year => 1970
+    ),
+    DateTime.new(
+      second => 0,
+      minute => 0,
+      hour => 0,
+      day => 1,
+      month => 1,
+      year => 1970
+    ),
     ( $workbook, $dir )
   );
 
