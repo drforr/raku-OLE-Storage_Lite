@@ -40,7 +40,7 @@ has UInt   $.Size       is rw;
 has        $.Data       is rw;
 has        @.Child      is rw;
 
-has DateTime $.time1st is rw = DateTime.new(
+has DateTime $.Time1st is rw = DateTime.new(
   second => 0,
   minute => 0,
   hour   => 0,
@@ -48,7 +48,7 @@ has DateTime $.time1st is rw = DateTime.new(
   month  => 1,
   year   => 1970
 );
-has DateTime $.time2nd is rw = DateTime.new(
+has DateTime $.Time2nd is rw = DateTime.new(
   second => 0,
   minute => 0,
   hour   => 0,
@@ -143,8 +143,8 @@ method _savePpsWk( %hInfo ) {
       0xc0, 0x00, 0x00, 0x00,                                       # 92-95
       0x00, 0x00, 0x00, 0x46,                                       # 96-99
       0x00, 0x00, 0x00, 0x00,                                       # 100-107
-      LocalDateObject2OLE( self.time1st ).list,                     # 108-115
-      LocalDateObject2OLE( self.time2nd ).list,                     # 116-123
+      LocalDateObject2OLE( self.Time1st ).list,                     # 108-115
+      LocalDateObject2OLE( self.Time2nd ).list,                     # 116-123
       _int32( defined( self.StartBlock ) ?? self.StartBlock !! 0 ), # 124-127
       _int32( defined( self.Size ) ?? self.Size !! 0 ),             # 128-131
       _int32( 0 )                                                   # 132

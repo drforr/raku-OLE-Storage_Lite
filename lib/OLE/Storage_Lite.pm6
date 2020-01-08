@@ -473,14 +473,14 @@ method _getNextSmallBlockNo( Int $iSmBlock, %hInfo ) {
 # # Also *gotta* clean up the hierarchy, PPS.pm is referencing child classes.
 #
 method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
-                  Int $DirPps, DateTime $time1st, DateTime $time2nd,
+                  Int $DirPps, DateTime $Time1st, DateTime $Time2nd,
                   Int $StartBlock, Int $Size, $Data?, @Child? ) {
   given $Type {
     when PPS-TYPE-FILE {
       OLE::Storage_Lite::PPS::File.new(
         :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
-        :$time1st, :$time2nd,
+        :$Time1st, :$Time2nd,
         :$Data, :@Child
       )
     }
@@ -488,7 +488,7 @@ method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
       OLE::Storage_Lite::PPS::Dir.new(
         :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
-        :$time1st, :$time2nd,
+        :$Time1st, :$Time2nd,
         :$Data, :@Child
       )
     }
@@ -496,7 +496,7 @@ method createPps( Int $No, Str $Name, Int $Type, Int $PrevPps, Int $NextPps,
       OLE::Storage_Lite::PPS::Root.new(
         :$No, :$Name, :$Type, :$Size, :$StartBlock,
         :$PrevPps, :$NextPps, :$DirPps,
-        :$time1st, :$time2nd,
+        :$Time1st, :$Time2nd,
         :$Data, :@Child
       )
     }

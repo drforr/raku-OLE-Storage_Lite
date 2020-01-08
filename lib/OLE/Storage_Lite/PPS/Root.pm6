@@ -24,12 +24,12 @@ constant PPS-SIZE     = 0x80;
 
 constant SENTINEL-END = 0xffffffff;
 
-multi method new ( $time1st, $time2nd, @Child ) {
+multi method new ( $Time1st, $Time2nd, @Child ) {
   self.bless(
     :Name( 'Root Entry' ),
     :Type( 5 ),
-    :$time1st,
-    :$time2nd,
+    :$Time1st,
+    :$Time2nd,
     :@Child
   )
 }
