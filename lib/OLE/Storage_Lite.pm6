@@ -1,6 +1,6 @@
 use v6;
 
-unit class OLE::Storage_Lite:ver<0.0.1>;
+unit class OLE::Storage_Lite:ver<0.0.2>;
 
 use OLE::Storage_Lite::Utils;
 use OLE::Storage_Lite::PPS::Dir;

@@ -2,5 +2,8 @@ Revision history for Perl extension OLE::Storage_Lite.
 
 {{$NEXT}}
 
+0.0.2  2020-01-09T22:16:11Z
+  - Add missed dependency 'P5localtime'
+
 0.0.1  2020-01-09T06:57:09Z
   - Initial version
