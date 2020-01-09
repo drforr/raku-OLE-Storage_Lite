@@ -1,35 +1,25 @@
 {
   "auth" : "github:drforr",
   "authors" : [
-    "Jeffrey Goff <drforr@pobox.com>"
+    "Jeffrey Goff"
   ],
   "build-depends" : [ ],
-  "depends" : [
-    "P5localtime"
-  ],
-  "description" : "OLE Storage Parser",
-  "license" : "Artistic-2.0",
-  "meta6" : "0",
+  "depends" : [ ],
+  "description" : "Simple Class for OLE document interface.",
+  "license" : "NOASSERTION",
   "name" : "OLE::Storage_Lite",
   "perl" : "6.c",
   "provides" : {
     "OLE::Storage_Lite" : "lib/OLE/Storage_Lite.pm6",
     "OLE::Storage_Lite::PPS" : "lib/OLE/Storage_Lite/PPS.pm6",
-    "OLE::Storage_Lite::PPS;;Dir" : "lib/OLE/Storage_Lite/PPS/Dir.pm6",
-    "OLE::Storage_Lite::PPS;;File" : "lib/OLE/Storage_Lite/PPS/File.pm6",
-    "OLE::Storage_Lite::PPS;;Root" : "lib/OLE/Storage_Lite/PPS/Root.pm6",
+    "OLE::Storage_Lite::PPS::Dir" : "lib/OLE/Storage_Lite/PPS/Dir.pm6",
+    "OLE::Storage_Lite::PPS::File" : "lib/OLE/Storage_Lite/PPS/File.pm6",
+    "OLE::Storage_Lite::PPS::Root" : "lib/OLE/Storage_Lite/PPS/Root.pm6",
+    "OLE::Storage_Lite::Utils" : "lib/OLE/Storage_Lite/Utils.pm6"
   },
   "resources" : [ ],
-  "source-url" : "https://github.com/drforr/perl6-OLE-Storage_Lite.git",
-  "support" : {
-    "source" : "https://github.com/drforr/perl6-OLE-Storage_Lite.git"
-  },
-  "tags" : [
-    "Microsoft",
-    "OLE"
-  ],
-  "test-depends" : [
-    "Test",
-  ],
+  "source-url" : "https://github.com/drforr/raku-OLE-Storage_Lite.git",
+  "tags" : [ ],
+  "test-depends" : [ ],
   "version" : "0.0.1"
 }

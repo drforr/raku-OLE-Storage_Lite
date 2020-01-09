@@ -65,15 +65,15 @@ sub _unpack( Str $format, *@args ) is export {
   @bytes;
 }
 
-#-----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # OLEDate2Local()
 #
-# Convert from a Windows FILETIME structure to a localtime array.
-# FILETIME is a 64-bit value representing the number of 100-nanosecond
-# intervals since January 1 1601.
+# Convert from a Windows FILETIME structure to a localtime array. FILETIME is a
+# 64-bit value representing the number of 100-nanosecond intervals since
+# January 1 1601.
 #
-# We first convert the FILETIME to seconds and then subtract the
-# difference between the 1601 epoch and the 1970 Unix epoch.
+# We first convert the FILETIME to seconds and then subtract the difference
+# between the 1601 epoch and the 1970 Unix epoch.
 #
 sub OLEDate2LocalObject( Buf $oletime ) is export {
 
@@ -107,17 +107,17 @@ sub OLEDate2LocalObject( Buf $oletime ) is export {
   );
 }
 
-#-----------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # LocalDate2OLE()
 #
-# Convert from a a localtime array to a Window FILETIME structure.
-# FILETIME is a 64-bit value representing the number of 100-nanosecond
-# intervals since January 1 1601.
+# Convert from a a localtime array to a Window FILETIME structure. FILETIME is
+# a 64-bit value representing the number of 100-nanosecond intervals since
+# January 1 1601.
 #
-# We first convert the localtime (actually gmtime) to seconds and then
-# add the difference between the 1601 epoch and the 1970 Unix epoch.
-# We convert that to 100 nanosecond units, divide it into high and low
-# longs and return it as a packed 64bit structure.
+# We first convert the localtime (actually gmtime) to seconds and then add the
+# difference between the 1601 epoch and the 1970 Unix epoch. We convert that to
+# 100 nanosecond units, divide it into high and low longs and return it as a
+# packed 64bit structure.
 #
 sub LocalDateObject2OLE( $localtimeObj ) is export {
   return Buf.new( 0x00 xx 8 )
